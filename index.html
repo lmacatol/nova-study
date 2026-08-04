@@ -1017,7 +1017,7 @@ function renderQ(){
   } else {
     document.getElementById('qPrompt').textContent=q.prompt;
     termEl.textContent=q.term; termEl.classList.toggle('small', String(q.term).length>26);
-    sayEl.textContent = (q.kind==='meaning' && q.card.say) ? q.card.say : '';
+    sayEl.textContent = '';
     spk.style.display=''; spk.textContent='🔊 Say it';
   }
   // Careful: on a "which one means…" question the card's FRONT is the answer,
@@ -1137,13 +1137,16 @@ function showCard(){
   document.getElementById('fcCount').textContent=(F.i+1)+'/'+F.list.length;
   document.getElementById('fcTag').textContent=c.system?`${c.system} · ${c.type}`:c.type;
   document.getElementById('fcFront').textContent=c.front;
-  document.getElementById('fcSay').textContent=c.say?('say: '+c.say):'';
+  document.getElementById('fcSay').textContent='';           // spelling stands alone
   document.getElementById('fcBack').textContent=c.back;
-  document.getElementById('fcEx').textContent=c.example||'';
+  document.getElementById('fcEx').innerHTML =
+    (c.example ? esc(c.example) : '') +
+    (c.say ? `<div style="margin-top:9px;font-size:12.5px;color:var(--dim)">say it: <b style="color:var(--accent2)">${esc(c.say)}</b></div>` : '');
   const m=S.mastery[key(F.cid,c)];
   document.getElementById('fcFront').style.color = (m&&m.box>=3)?'#3ddc97':'';
   fcPaintSpeak();
 }
+function esc(t){ return String(t).replace(/[&<>]/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch])); }
 function fcFlipped(){ return document.getElementById('fcCard').classList.contains('flip'); }
 function fcPaintSpeak(){
   document.getElementById('fcSpeak').textContent = fcFlipped() ? '🔊 Hear the meaning' : '🔊 Hear the word';
