@@ -131,6 +131,11 @@ body{
 .fc .big{font-size:29px;font-weight:900;line-height:1.2;word-break:break-word}
 .fc .mid{font-size:20px;font-weight:800;line-height:1.3}
 .fc .sub{font-size:13.5px;color:var(--dim);line-height:1.5}
+.syl{color:#cfc6ff;font-weight:600;letter-spacing:.3px}
+.syl.stress{color:var(--accent2);font-weight:900;text-decoration:underline;text-underline-offset:3px}
+.sep{color:#6a5aa8;margin:0 2px}
+#fcSay{font-size:16px !important;margin-top:6px}
+#qSay .syl{font-size:15px}
 .fc .tag{position:absolute;top:14px;left:14px;font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;
   color:var(--dim);font-weight:800}
 .fc .hintflip{position:absolute;bottom:14px;font-size:11.5px;color:var(--dim)}
@@ -335,7 +340,10 @@ select,input{font-family:inherit}
     <div class="qprompt" id="qPrompt">What does this mean?</div>
     <div class="qterm" id="qTerm">—</div>
     <div class="qsay" id="qSay"></div>
-    <button class="speak" id="qSpeak">🔊 Say it</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="speak" id="qSpeak">🔊 Say it</button>
+      <button class="speak" id="qSlow">🐢 Slowly</button>
+    </div>
   </div>
   <div class="opts" id="qOpts"></div>
 </section>
@@ -352,7 +360,10 @@ select,input{font-family:inherit}
       <div class="face b"><div class="tag">meaning</div><div class="mid" id="fcBack"></div>
         <div class="sub" id="fcEx"></div><div class="hintflip">tap to flip back</div></div>
     </div>
-    <button class="speak" id="fcSpeak" style="align-self:center">🔊 Hear it</button>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="speak" id="fcSpeak">🔊 Hear it</button>
+      <button class="speak" id="fcSlow">🐢 Slowly</button>
+    </div>
     <div class="rate">
       <button class="no" id="fcNo">Still learning</button>
       <button class="ok" id="fcYes">I know it ✓</button>
@@ -626,24 +637,26 @@ const Rec = (()=>{
     stop(){ stopActive(); },
     lessonPos(cid){ return store.get('nova.lessonPos.'+cid, 0); },
 
-    play(cid, mode, i, onDone){
+    play(cid, mode, i, onDone, rate){
       if(!useRecorded) return false;
       const s = load(cid, mode);
       if(!ready(cid,mode)) return false;
       const clip = s.index[i];
       if(!clip || !clip[1]) return false;
       const [start,dur] = clip;
+      rate = rate || 1;
       stopActive();
 
       if(s.engine==='wa'){
         const c = audioCtx(); if(!c) return false;
         const src = c.createBufferSource();
-        src.buffer = s.abuf; src.connect(c.destination);
+        src.buffer = s.abuf; src.playbackRate.value = rate; src.connect(c.destination);
         const a = active = {src};
         src.onended = ()=>{ if(active===a){ active=null; if(onDone) onDone(); } };
         try{ src.start(0, start, dur + 0.04); }catch(e){ active=null; return false; }
         return true;
       }
+      s.el.playbackRate = rate;
 
       const el = s.el;
       const target = Math.max(0, start-0.02);
@@ -654,7 +667,7 @@ const Rec = (()=>{
       a.onTime = ()=>{ if(el.currentTime >= endAt){ stopActive(); if(onDone) onDone(); } };
       el.addEventListener('timeupdate', a.onTime);
       const pr = el.play(); if(pr && pr.catch) pr.catch(()=>{});
-      a.timer = setTimeout(()=>{ stopActive(); if(onDone) onDone(); }, (dur+1.3)*1000);
+      a.timer = setTimeout(()=>{ stopActive(); if(onDone) onDone(); }, (dur/rate+1.3)*1000);
       return true;
     },
 
@@ -726,7 +739,7 @@ function stopAllAudio(){ Rec.stop(); Voice.stop(); }
 /* Say a card: recorded voice first, device voice as backup.
    what: 'term' (default) | 'meaning' | 'both'
    Never give away the meaning before she's had a chance to recall it. */
-function sayCard(c, what, cid){
+function sayCard(c, what, cid, rate){
   if(!c) return;
   Rec.unlock();
   stopAllAudio();
@@ -736,14 +749,15 @@ function sayCard(c, what, cid){
   what = (what === true) ? 'both' : (what || 'term');
 
   if(what === 'meaning'){
-    if(cid && i >= 0 && Rec.play(cid, 'meaning', i)) return;
+    if(cid && i >= 0 && Rec.play(cid, 'meaning', i, null, rate)) return;
     Voice.say([c.back]);
     return;
   }
   if(cid && i >= 0){
     const after = (what === 'both') ? ()=>{ if(!Rec.play(cid,'meaning',i)) Voice.say([c.back]); } : null;
-    if(Rec.play(cid, 'term', i, after)) return;
+    if(Rec.play(cid, 'term', i, after, rate)) return;
   }
+  if(rate && rate < 1){ const r0 = Voice.rate(); Voice.rate(0.6); Voice.say([w]); setTimeout(()=>Voice.rate(r0), 60); return; }
   Voice.say(what === 'both' ? [w + '.', c.back + '.'] : [w]);
 }
 
@@ -1017,7 +1031,7 @@ function renderQ(){
   } else {
     document.getElementById('qPrompt').textContent=q.prompt;
     termEl.textContent=q.term; termEl.classList.toggle('small', String(q.term).length>26);
-    sayEl.textContent = '';
+    sayEl.innerHTML = q.card.say ? sayHtml(q.card.say) : '';
     spk.style.display=''; spk.textContent='🔊 Say it';
   }
   // Careful: on a "which one means…" question the card's FRONT is the answer,
@@ -1029,8 +1043,11 @@ function renderQ(){
     spk.textContent = '🔊 Read the question';
     spk.onclick = ()=>{ stopAllAudio(); Voice.say([String(q.q)]); };
   } else if(q.card){
-    spk.onclick = ()=> sayCard(q.card,false,q.cid);
+    spk.onclick = ()=> sayCard(q.card,'term',q.cid);
   }
+  const slow = document.getElementById('qSlow');
+  slow.style.display = q.card ? '' : 'none';
+  slow.onclick = ()=>{ if(q.card) sayCard(q.card,'term',q.cid,0.62); };
   const box=document.getElementById('qOpts'); box.innerHTML='';
   q.choices.forEach((c,idx)=>{
     const b=document.createElement('button'); b.className='opt'; b.textContent=c;
@@ -1052,14 +1069,14 @@ function answer(idx, btn){
     document.getElementById('fbT').textContent = Q.combo>=4 ? `${rand(NICE)} ${Q.combo} in a row!` : rand(NICE);
     document.getElementById('fbP').textContent =
       (q.kind==='listen' ? 'That word was ' + q.term + '. ' : '') + (q.why||'');
-    if(q.kind==='listen'){ document.getElementById('qTerm').textContent = q.term; document.getElementById('qSay').textContent = q.card.say||''; }
+    if(q.kind==='listen'){ document.getElementById('qTerm').textContent = q.term; document.getElementById('qSay').innerHTML = q.card.say ? sayHtml(q.card.say) : ''; }
   } else {
     Q.wrong++; Q.combo=0; if(!Q.boss) Q.hearts--; SFX.bad();
     Q.missed.push(q);
     fb.className='feedback bad on';
     document.getElementById('fbT').textContent = rand(OOPS);
     document.getElementById('fbP').textContent = (q.kind==='mcq' ? '' : (q.term+' → '+q.choices[q.answer]+'. ')) + (q.why||'');
-    if(q.kind==='listen'){ document.getElementById('qTerm').textContent = q.term; document.getElementById('qSay').textContent = q.card.say||''; }
+    if(q.kind==='listen'){ document.getElementById('qTerm').textContent = q.term; document.getElementById('qSay').innerHTML = q.card.say ? sayHtml(q.card.say) : ''; }
     if(q.card) setTimeout(()=>sayCard(q.card,false,q.cid),260);
   }
   save();
@@ -1137,16 +1154,24 @@ function showCard(){
   document.getElementById('fcCount').textContent=(F.i+1)+'/'+F.list.length;
   document.getElementById('fcTag').textContent=c.system?`${c.system} · ${c.type}`:c.type;
   document.getElementById('fcFront').textContent=c.front;
-  document.getElementById('fcSay').textContent='';           // spelling stands alone
+  document.getElementById('fcSay').innerHTML = c.say ? ('say it: ' + sayHtml(c.say)) : '';
   document.getElementById('fcBack').textContent=c.back;
   document.getElementById('fcEx').innerHTML =
     (c.example ? esc(c.example) : '') +
-    (c.say ? `<div style="margin-top:9px;font-size:12.5px;color:var(--dim)">say it: <b style="color:var(--accent2)">${esc(c.say)}</b></div>` : '');
+    (c.say ? `<div style="margin-top:9px;font-size:13px;color:var(--dim)">say it: ${sayHtml(c.say)}</div>` : '');
   const m=S.mastery[key(F.cid,c)];
   document.getElementById('fcFront').style.color = (m&&m.box>=3)?'#3ddc97':'';
   fcPaintSpeak();
 }
 function esc(t){ return String(t).replace(/[&<>]/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch])); }
+/* Break a respelling into syllables and make the STRESSED one (written in
+   capitals) stand out, so she can see where the emphasis falls. */
+function sayHtml(say){
+  return String(say||'').split('-').map(part=>{
+    const stressed = /[A-Z]{2,}/.test(part);
+    return `<span class="syl${stressed?' stress':''}">${esc(part)}</span>`;
+  }).join('<span class="sep">·</span>');
+}
 function fcFlipped(){ return document.getElementById('fcCard').classList.contains('flip'); }
 function fcPaintSpeak(){
   document.getElementById('fcSpeak').textContent = fcFlipped() ? '🔊 Hear the meaning' : '🔊 Hear the word';
@@ -1160,6 +1185,11 @@ document.getElementById('fcCard').onclick=function(){
 document.getElementById('fcSpeak').onclick=e=>{
   e.stopPropagation();
   sayCard(F.list[F.i], fcFlipped() ? 'meaning' : 'term', F.cid);
+};
+// same voice, slowed right down, so she can hear each syllable land
+document.getElementById('fcSlow').onclick=e=>{
+  e.stopPropagation();
+  sayCard(F.list[F.i], fcFlipped() ? 'meaning' : 'term', F.cid, 0.62);
 };
 function nextCard(right){
   bump(F.cid, F.list[F.i], right); if(right) S.xp+=2; save();
