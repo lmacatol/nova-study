@@ -723,20 +723,28 @@ function cardIndex(cid, card){
 
 function stopAllAudio(){ Rec.stop(); Voice.stop(); }
 
-/* Say a card: recorded voice first, device voice as backup. */
-function sayCard(c, withMeaning, cid){
+/* Say a card: recorded voice first, device voice as backup.
+   what: 'term' (default) | 'meaning' | 'both'
+   Never give away the meaning before she's had a chance to recall it. */
+function sayCard(c, what, cid){
   if(!c) return;
   Rec.unlock();
   stopAllAudio();
   cid = cid || c._cid;
   const i = cid ? cardIndex(cid, c) : -1;
   const w = speakable(c.front);
+  what = (what === true) ? 'both' : (what || 'term');
 
+  if(what === 'meaning'){
+    if(cid && i >= 0 && Rec.play(cid, 'meaning', i)) return;
+    Voice.say([c.back]);
+    return;
+  }
   if(cid && i >= 0){
-    const after = withMeaning ? ()=>{ if(!Rec.play(cid,'meaning',i)) Voice.say([c.back]); } : null;
+    const after = (what === 'both') ? ()=>{ if(!Rec.play(cid,'meaning',i)) Voice.say([c.back]); } : null;
     if(Rec.play(cid, 'term', i, after)) return;
   }
-  Voice.say(withMeaning ? [w + '.', c.back + '.'] : [w]);
+  Voice.say(what === 'both' ? [w + '.', c.back + '.'] : [w]);
 }
 
 /* ---------- sound effects (no files) ---------- */
@@ -1134,12 +1142,22 @@ function showCard(){
   document.getElementById('fcEx').textContent=c.example||'';
   const m=S.mastery[key(F.cid,c)];
   document.getElementById('fcFront').style.color = (m&&m.box>=3)?'#3ddc97':'';
+  fcPaintSpeak();
+}
+function fcFlipped(){ return document.getElementById('fcCard').classList.contains('flip'); }
+function fcPaintSpeak(){
+  document.getElementById('fcSpeak').textContent = fcFlipped() ? '🔊 Hear the meaning' : '🔊 Hear the word';
 }
 document.getElementById('fcCard').onclick=function(){
   this.classList.toggle('flip');
-  if(this.classList.contains('flip')) sayCard(F.list[F.i], true, F.cid);
+  fcPaintSpeak();
+  // front says the word only — the meaning waits until she's flipped it
+  sayCard(F.list[F.i], fcFlipped() ? 'meaning' : 'term', F.cid);
 };
-document.getElementById('fcSpeak').onclick=e=>{e.stopPropagation(); sayCard(F.list[F.i], true, F.cid);};
+document.getElementById('fcSpeak').onclick=e=>{
+  e.stopPropagation();
+  sayCard(F.list[F.i], fcFlipped() ? 'meaning' : 'term', F.cid);
+};
 function nextCard(right){
   bump(F.cid, F.list[F.i], right); if(right) S.xp+=2; save();
   F.i++;
