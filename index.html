@@ -83,6 +83,9 @@ body{
 .hud .lvl small{font-size:8px;letter-spacing:.5px;opacity:.8}
 .hud .xpwrap{flex:1}
 .hud .xpwrap div:first-child{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:5px;font-weight:700}
+.hud .gear{width:44px;height:44px;flex:0 0 auto;border-radius:16px;border:1px solid var(--line);background:var(--card);
+  font-size:19px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.hud .gear:active{transform:scale(.94)}
 
 /* ---------- quest ---------- */
 .qtop{display:flex;align-items:center;gap:10px;margin-bottom:16px}
@@ -192,6 +195,7 @@ select,input{font-family:inherit}
       <div><span id="h-xptext">0 / 100 XP</span><span id="h-streak">🔥 0 day streak</span></div>
       <div class="bar"><i id="h-xpbar" style="width:0%"></i></div>
     </div>
+    <button class="gear" data-go="voice" title="Voice & settings">⚙️</button>
   </div>
 
   <div class="nova-wrap">
@@ -240,7 +244,14 @@ select,input{font-family:inherit}
     <button class="btn ghost sm" id="soundToggle" style="width:auto;padding:10px 16px">On</button>
   </div>
 
-  <div class="sechead">Voices on this device</div>
+  <div class="sechead">Nova's real voice</div>
+  <div class="tile" id="recTile">
+    <div class="ic" style="background:linear-gradient(135deg,#ff8fc7,#8b6dff)">🎧</div>
+    <div class="tx"><b>Nova (recorded)</b><span id="recSub">Studio-recorded for every term — the good one</span></div>
+    <div class="chev" id="recState">✓</div>
+  </div>
+
+  <div class="sechead">Or use a phone voice instead</div>
   <div id="voiceList"></div>
   <p class="muted" id="voiceTip" style="margin-top:14px"></p>
 </section>
@@ -385,10 +396,14 @@ const Voice = (()=>{
   }
   if('speechSynthesis' in window){ refresh(); speechSynthesis.onvoiceschanged = refresh; }
 
-  // Chrome silently pauses long speech — nudge it awake.
+  // Desktop Chrome silently pauses speech longer than ~15s and needs a nudge.
+  // On Android that same nudge KILLS the utterance, so it's desktop-only.
+  const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   function guard(on){
     clearInterval(keepAlive);
-    if(on) keepAlive = setInterval(()=>{ try{ if(speechSynthesis.speaking && !speechSynthesis.paused){ speechSynthesis.pause(); speechSynthesis.resume(); } }catch(e){} }, 8000);
+    if(on && !IS_MOBILE) keepAlive = setInterval(()=>{
+      try{ if(speechSynthesis.speaking && !speechSynthesis.paused){ speechSynthesis.pause(); speechSynthesis.resume(); } }catch(e){}
+    }, 8000);
   }
 
   // Long text must be broken up or cloud voices cut off mid-sentence.
@@ -402,17 +417,30 @@ const Voice = (()=>{
     return out.length?out:[String(text)];
   }
 
-  function next(){
+  let token = 0, watchdog = null;     // token invalidates in-flight callbacks after stop()
+  function next(myToken){
+    clearTimeout(watchdog);
+    if(myToken !== token) return;
     if(!queue.length){ speaking=false; guard(false); return; }
     const text = queue.shift();
+    let advanced = false;
+    const step = ()=>{ if(advanced) return; advanced = true; next(myToken); };
     try{
       const u = new SpeechSynthesisUtterance(text);
-      if(v) { u.voice=v; u.lang = v.lang; }
+      if(v){ u.voice = v; u.lang = v.lang; }
       u.rate = rate; u.pitch = 1.05; u.volume = 1;
-      u.onend = next;
-      u.onerror = next;
+      u.onend = step;
+      u.onerror = step;
       speechSynthesis.speak(u);
-    }catch(e){ next(); }
+      // Android frequently never fires onend, which strands the rest of the
+      // lesson. Estimate how long this chunk should take and move on regardless.
+      const est = (text.length / (13 * rate)) * 1000 + 1400;
+      watchdog = setTimeout(()=>{
+        if(myToken !== token || advanced) return;
+        try{ if(speechSynthesis.speaking) return void (watchdog = setTimeout(()=>step(), 2500)); }catch(e){}
+        step();
+      }, est);
+    }catch(e){ step(); }
   }
 
   return {
@@ -422,16 +450,21 @@ const Voice = (()=>{
     rate(r){ if(r!=null){ rate=r; store.set('nova.rate', r); } return rate; },
     enabled(on){ if(on!=null){ enabled=on; store.set('nova.sound', on); if(!on) this.stop(); } return enabled; },
 
-    /* say() accepts a string, or an array of {text, pause} segments */
+    /* say() takes a string or an array of strings spoken back to back */
     say(text){
       if(!enabled || !('speechSynthesis' in window) || !text) return;
       if(!v) refresh();
       this.stop();
       const parts = Array.isArray(text) ? text : [text];
       queue = parts.flatMap(p=>chunk(p)).filter(Boolean);
-      speaking=true; guard(true); next();
+      speaking = true; guard(true);
+      const myToken = token;
+      // Chrome ignores a newly-assigned voice if speak() lands in the same tick
+      // as cancel() — it reuses the previous one. The gap is what makes the
+      // voice actually change.
+      setTimeout(()=>next(myToken), 160);
     },
-    stop(){ queue=[]; speaking=false; guard(false); try{speechSynthesis.cancel()}catch(e){} }
+    stop(){ token++; clearTimeout(watchdog); queue=[]; speaking=false; guard(false); try{speechSynthesis.cancel()}catch(e){} }
   };
 })();
 Voice.rate(store.get('nova.rate', 0.95));
@@ -446,9 +479,94 @@ function speakable(word){
     .replace(/-($|[\s,;)])/g,'$1')
     .replace(/\s+/g,' ').trim();
 }
-function sayCard(c, withMeaning){
+
+/* ---------- Nova's real recorded voice ----------
+   Each chapter has one MP3 "sprite" holding every clip end to end, plus a JSON
+   index of [startSeconds, durationSeconds]. We seek into the sprite and stop on
+   time. If a clip is missing we fall back to the device's own speech engine so
+   nothing ever goes silent.                                                     */
+const Rec = (()=>{
+  const sprites = {};              // "ch1.term" -> {audio, index, state}
+  let unlocked = false, stopTimer = null, useRecorded = store.get('nova.recorded', true);
+
+  const CAN_FETCH = location.protocol === 'http:' || location.protocol === 'https:';
+  function load(cid, mode){
+    const k = cid+'.'+mode;
+    if(sprites[k]) return sprites[k];
+    const s = sprites[k] = {audio:null, index:null, failed:!CAN_FETCH};
+    if(!CAN_FETCH) return s;   // opened as a local file — recorded audio isn't available
+    fetch(`audio/${k}.json`).then(r=>{ if(!r.ok) throw 0; return r.json(); })
+      .then(idx=>{
+        s.index = idx;
+        const a = new Audio(`audio/${k}.mp3`);
+        a.preload = 'auto'; a.playsInline = true;
+        a.addEventListener('error', ()=>{ s.failed = true; });
+        s.audio = a;
+      })
+      .catch(()=>{ s.failed = true; });
+    return s;
+  }
+  function ready(cid, mode){
+    const s = sprites[cid+'.'+mode];
+    return !!(s && s.index && s.audio && !s.failed);
+  }
+  return {
+    on(v){ if(v!=null){ useRecorded=v; store.set('nova.recorded', v); } return useRecorded; },
+    warm(cid){ if(useRecorded){ load(cid,'term'); load(cid,'meaning'); } },
+    unlock(){                       // iOS needs one gesture before audio will play
+      if(unlocked) return; unlocked = true;
+      try{ const a=new Audio(); a.muted=true; a.play().catch(()=>{}); }catch(e){}
+    },
+    stop(){ clearTimeout(stopTimer);
+      Object.values(sprites).forEach(s=>{ try{ if(s.audio && !s.audio.paused) s.audio.pause(); }catch(e){} }); },
+
+    /* returns true if it handled playback */
+    play(cid, mode, i, onDone){
+      if(!useRecorded) return false;
+      const s = load(cid, mode);
+      if(!ready(cid, mode)) return false;
+      const clip = s.index[i];
+      if(!clip || !clip[1]) return false;
+      const [start, dur] = clip;
+      this.stop();
+      try{
+        s.audio.currentTime = Math.max(0, start - 0.03);
+        const p = s.audio.play();
+        if(p && p.catch) p.catch(()=>{});
+        stopTimer = setTimeout(()=>{
+          try{ s.audio.pause(); }catch(e){}
+          if(onDone) onDone();
+        }, (dur + 0.10) * 1000);
+        return true;
+      }catch(e){ return false; }
+    }
+  };
+})();
+
+function cardIndex(cid, card){
+  const list = DATA[cid] && DATA[cid].cards;
+  if(!list) return -1;
+  if(card._i != null) return card._i;
+  const i = list.indexOf(card);
+  if(i >= 0) card._i = i;
+  return i;
+}
+
+function stopAllAudio(){ Rec.stop(); Voice.stop(); }
+
+/* Say a card: recorded voice first, device voice as backup. */
+function sayCard(c, withMeaning, cid){
   if(!c) return;
+  Rec.unlock();
+  stopAllAudio();
+  cid = cid || c._cid;
+  const i = cid ? cardIndex(cid, c) : -1;
   const w = speakable(c.front);
+
+  if(cid && i >= 0){
+    const after = withMeaning ? ()=>{ if(!Rec.play(cid,'meaning',i)) Voice.say([c.back]); } : null;
+    if(Rec.play(cid, 'term', i, after)) return;
+  }
   Voice.say(withMeaning ? [w + '.', c.back + '.'] : [w]);
 }
 
@@ -506,7 +624,7 @@ const rand = a => a[Math.floor(Math.random()*a.length)];
 let cur='home', ctxMode='quest';
 function go(id, mode){
   if(mode) ctxMode=mode;
-  Voice.stop();
+  stopAllAudio();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
   const el=document.getElementById('s-'+id); if(el) el.classList.add('on');
   cur=id; window.scrollTo(0,0);
@@ -694,6 +812,7 @@ function startQuest(cids, n, boss, weakOnly){
   const qs = buildQuestions(cids, n, boss, weakOnly);
   if(!qs.length){ toast('Nothing to practice there yet'); return; }
   Q = {qs, i:0, right:0, wrong:0, hearts: boss?99:5, combo:0, boss:!!boss, cids, missed:[], n:qs.length};
+  cids.slice(0,2).forEach(c=>Rec.warm(c));
   touchStreak();
   go('quest'); renderQ();
 }
@@ -710,14 +829,14 @@ function renderQ(){
   } else if(q.kind==='listen'){
     document.getElementById('qPrompt').textContent=q.prompt;
     termEl.textContent='🔊 ? ? ?'; termEl.classList.remove('small'); sayEl.textContent=''; spk.style.display='';
-    spk.textContent='🔊 Play again'; setTimeout(()=>sayCard(q.card),350);
+    spk.textContent='🔊 Play again'; setTimeout(()=>sayCard(q.card,false,q.cid),350);
   } else {
     document.getElementById('qPrompt').textContent=q.prompt;
     termEl.textContent=q.term; termEl.classList.toggle('small', String(q.term).length>26);
     sayEl.textContent = (q.kind==='meaning' && q.card.say) ? q.card.say : '';
     spk.style.display=''; spk.textContent='🔊 Say it';
   }
-  spk.onclick=()=>{ q.card ? sayCard(q.card) : Voice.say(q.q); };
+  spk.onclick=()=>{ q.card ? sayCard(q.card,false,q.cid) : Voice.say(q.q); };
   const box=document.getElementById('qOpts'); box.innerHTML='';
   q.choices.forEach((c,idx)=>{
     const b=document.createElement('button'); b.className='opt'; b.textContent=c;
@@ -744,7 +863,7 @@ function answer(idx, btn){
     fb.className='feedback bad on';
     document.getElementById('fbT').textContent = rand(OOPS);
     document.getElementById('fbP').textContent = (q.kind==='mcq' ? '' : (q.term+' → '+q.choices[q.answer]+'. ')) + (q.why||'');
-    if(q.card) setTimeout(()=>sayCard(q.card),260);
+    if(q.card) setTimeout(()=>sayCard(q.card,false,q.cid),260);
   }
   save();
   document.getElementById('qHearts').textContent = Q.boss ? `${Q.i+1}/${Q.n}` : '❤️'.repeat(Math.max(Q.hearts,0));
@@ -813,7 +932,7 @@ function startCards(cid){
     F.list = v==='all' ? shuffle(F.all) : shuffle(F.all.filter(c=>(c.system||c.type)===v));
     F.i=0; showCard();
   });
-  go('cards'); touchStreak(); showCard();
+  Rec.warm(cid); go('cards'); touchStreak(); showCard();
 }
 function showCard(){
   const c=F.list[F.i]; if(!c) return;
@@ -829,9 +948,9 @@ function showCard(){
 }
 document.getElementById('fcCard').onclick=function(){
   this.classList.toggle('flip');
-  if(this.classList.contains('flip')) sayCard(F.list[F.i]);
+  if(this.classList.contains('flip')) sayCard(F.list[F.i], true, F.cid);
 };
-document.getElementById('fcSpeak').onclick=e=>{e.stopPropagation(); sayCard(F.list[F.i], true);};
+document.getElementById('fcSpeak').onclick=e=>{e.stopPropagation(); sayCard(F.list[F.i], true, F.cid);};
 function nextCard(right){
   bump(F.cid, F.list[F.i], right); if(right) S.xp+=2; save();
   F.i++;
@@ -891,11 +1010,15 @@ function renderVoice(){
   }).join('');
 
   box.querySelectorAll('[data-v]').forEach(el=>el.onclick=()=>{
-    Voice.setVoice(el.dataset.v);
+    const name = el.dataset.v;
+    Voice.setVoice(name);
     Voice.enabled(true);
     document.getElementById('soundToggle').textContent='On';
-    Voice.say(SAMPLE);
     renderVoice();
+    // name itself first, so it's obvious which voice is actually talking
+    Voice.say([name.replace(/ - English.*/,'') + '.'].concat(SAMPLE));
+    const active = document.querySelector(`[data-v="${name.replace(/"/g,'&quot;')}"] .ic`);
+    if(active){ active.textContent='🔈'; setTimeout(()=>{ if(active.isConnected) active.textContent='✓'; }, 4000); }
   });
 
   const bad = list.length && scoreVoice(list[0]) < 70;
@@ -914,6 +1037,22 @@ function renderVoice(){
   const st = document.getElementById('soundToggle');
   st.textContent = Voice.enabled() ? 'On' : 'Off';
   st.onclick = ()=>{ const on = !Voice.enabled(); Voice.enabled(on); st.textContent = on?'On':'Off'; if(on) Voice.say(['Sound is back on.']); };
+
+  const rt = document.getElementById('recTile');
+  const paint = ()=>{
+    const on = Rec.on();
+    document.getElementById('recState').textContent = on ? '✓' : '';
+    rt.style.borderColor = on ? 'var(--accent2)' : 'var(--line)';
+    document.getElementById('recSub').textContent = on
+      ? 'On — a real recorded voice says every term'
+      : 'Off — using the phone voice below instead';
+  };
+  paint();
+  rt.onclick = ()=>{
+    const on = !Rec.on(); Rec.on(on); paint();
+    if(on){ Rec.unlock(); Rec.warm('ch1'); setTimeout(()=>{ if(!Rec.play('ch1','term',0)) Voice.say(['Recorded audio is still downloading. One moment.']); }, 700); }
+    else Voice.say(SAMPLE);
+  };
 }
 
 /* ---------- daily quest ---------- */
