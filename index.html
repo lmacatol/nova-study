@@ -578,9 +578,18 @@ const Rec = (()=>{
     on(v){ if(v!=null){ useRecorded=v; store.set('nova.recorded', v); } return useRecorded; },
     _dbg(){ return sprites; },
     warm(cid, alsoLesson){ if(useRecorded){ load(cid,'term'); load(cid,'meaning'); if(alsoLesson) load(cid,'lesson'); } },
-    unlock(){                       // iOS needs one gesture before audio will play
+    unlock(){   // first tap: browsers won't fetch or play media before this
       if(unlocked) return; unlocked = true;
       try{ const a=new Audio(); a.muted=true; a.play().catch(()=>{}); }catch(e){}
+      // now that we're allowed, pull the metadata for anything already queued up
+      Object.values(sprites).forEach(s=>{
+        if(!s.audio || s.audio.readyState >= 1) return;
+        try{
+          s.audio.muted = true;
+          const p = s.audio.play();
+          if(p && p.then) p.then(()=>{ s.audio.pause(); s.audio.currentTime = 0; s.audio.muted = false; }).catch(()=>{ s.audio.muted = false; });
+        }catch(e){}
+      });
     },
     ready, load,
 
@@ -639,33 +648,39 @@ const Rec = (()=>{
       this.stop();
 
       const a = s.audio;
-      // Seeking only sticks once the browser knows the file's duration. Until
-      // then, tell the caller we can't help so it uses the device voice instead
-      // of us silently playing the wrong clip from the top of the file.
-      if(a.readyState < 1) return false;
-
       const target = Math.max(0, start - 0.02);
-      try{ a.currentTime = target; }catch(e){ return false; }
-      if(start > 0.6 && Math.abs(a.currentTime - target) > 0.8){
-        s.failed = true;            // host isn't serving range requests — unusable
-        return false;
-      }
-
       const endAt = start + dur + 0.05;
       let finished = false;
       const done = ()=>{
         if(finished) return; finished = true;
         if(detach){ detach(); detach = null; }
-        try{ a.pause(); }catch(e){}
+        try{ a.pause(); a.muted = false; }catch(e){}
         if(onDone) onDone();
       };
       const onTime = ()=>{ if(a.currentTime >= endAt) done(); };
-      detach = ()=>{ a.removeEventListener('timeupdate', onTime); clearTimeout(stopTimer); };
+      detach = ()=>{ a.removeEventListener('timeupdate', onTime); clearTimeout(stopTimer); a.muted = false; };
 
-      a.addEventListener('timeupdate', onTime);
-      const pr = a.play();
-      if(pr && pr.catch) pr.catch(()=>{});
-      stopTimer = setTimeout(done, (dur + 1.3) * 1000);   // backstop
+      const run = ()=>{
+        if(finished) return;
+        try{ a.currentTime = target; }catch(e){ return done(); }
+        // Seeking silently fails if the host won't serve byte ranges. Catch that
+        // rather than playing the wrong word.
+        if(start > 0.6 && Math.abs(a.currentTime - target) > 0.8){ s.failed = true; return done(); }
+        a.muted = false;
+        a.addEventListener('timeupdate', onTime);
+        const pr = a.play(); if(pr && pr.catch) pr.catch(()=>{});
+        stopTimer = setTimeout(done, (dur + 1.3) * 1000);   // backstop
+      };
+
+      if(a.readyState >= 1){ run(); return true; }
+
+      // Chrome often refuses to touch the network for media until the user has
+      // interacted. Starting playback muted forces the download; we seek to the
+      // right spot the moment the duration is known, then unmute.
+      a.muted = true;
+      const kick = a.play(); if(kick && kick.catch) kick.catch(()=>{});
+      a.addEventListener('loadedmetadata', run, {once:true});
+      stopTimer = setTimeout(()=>{ if(a.readyState < 1) done(); }, 6000);
       return true;
     }
   };
