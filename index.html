@@ -560,9 +560,11 @@ const Rec = (()=>{
     fetch(`${k}.json`).then(r=>{ if(!r.ok) throw 0; return r.json(); })
       .then(idx=>{
         s.index = idx;
-        const a = new Audio(`${k}.mp3`);
+        const a = new Audio();
         a.preload = 'auto'; a.playsInline = true;
         a.addEventListener('error', ()=>{ s.failed = true; });
+        a.src = `${k}.mp3`;
+        try{ a.load(); }catch(e){}          // some browsers won't start without this
         s.audio = a;
       })
       .catch(()=>{ s.failed = true; });
