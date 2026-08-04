@@ -217,6 +217,32 @@ select,input{font-family:inherit}
 
   <div class="sechead">Your class</div>
   <div id="planBox"></div>
+
+  <div class="sechead">Settings</div>
+  <div class="tile" data-go="voice">
+    <div class="ic">🎙️</div><div class="tx"><b>Nova's voice</b><span id="voiceNow">Pick how she sounds</span></div><div class="chev">›</div>
+  </div>
+</section>
+
+<!-- ===================== VOICE ===================== -->
+<section class="screen" id="s-voice">
+  <div class="top"><button class="back" data-go="home">‹</button><h2>Nova's voice</h2></div>
+  <p class="muted" style="margin:0 0 16px">Tap a voice to hear it. The ones at the top sound the most human — the ones at the bottom are old built-in robot voices. Whatever you pick is remembered.</p>
+
+  <div class="tile" style="cursor:default;display:block">
+    <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:800;margin-bottom:9px">
+      <span>Speaking speed</span><span id="rateVal">Normal</span></div>
+    <input type="range" id="rateSlide" min="60" max="130" step="5" style="width:100%;accent-color:#ff8fc7">
+  </div>
+
+  <div class="tile" style="cursor:default">
+    <div class="tx"><b>Sound</b><span>Turn Nova's voice on or off everywhere</span></div>
+    <button class="btn ghost sm" id="soundToggle" style="width:auto;padding:10px 16px">On</button>
+  </div>
+
+  <div class="sechead">Voices on this device</div>
+  <div id="voiceList"></div>
+  <p class="muted" id="voiceTip" style="margin-top:14px"></p>
 </section>
 
 <!-- ===================== CHAPTERS ===================== -->
@@ -326,36 +352,105 @@ function save(){ store.set('nova.state', S); }
 const lvlFor = xp => Math.floor(xp/100)+1;
 const xpInLvl = xp => xp%100;
 
-/* ---------- voice ---------- */
+/* ---------- voice ----------
+   Scores every voice the device offers and picks the best-sounding one.
+   Modern neural voices (Google / Siri / Microsoft *Natural*) score high;
+   the ancient SAPI5 robots (David, Zira, Mark, Hazel) score low.        */
+const BAD_VOICE = /david|mark|zira|hazel|espeak|microsoft (david|mark|zira|hazel)|desktop$/i;
+const GREAT_VOICE = /natural|neural|premium|enhanced|siri/i;
+const FEMALE_HINT = /female|aria|jenny|michelle|ava|emma|samantha|allison|serena|karen|moira|tessa|fiona|nicky|susan|victoria|zoe|amelie|joanna|salli|kendra/i;
+
+function scoreVoice(v){
+  const n = (v.name||'') + ' ' + (v.voiceURI||'');
+  if(!/^en/i.test(v.lang)) return -1000;
+  let s = 0;
+  if(GREAT_VOICE.test(n)) s += 100;
+  if(/^google/i.test(n)) s += 70;          // Chrome's Google voices — big upgrade over SAPI
+  if(FEMALE_HINT.test(n)) s += 30;
+  if(BAD_VOICE.test(n)) s -= 90;           // the robots
+  if(/en-US/i.test(v.lang)) s += 8;
+  if(!v.localService) s += 4;              // cloud voices are usually the nicer ones
+  return s;
+}
+
 const Voice = (()=>{
-  let v=null, ready=false, enabled=true;
-  function pick(){
+  let all=[], v=null, enabled=true, rate=0.95, queue=[], speaking=false, keepAlive=null;
+
+  function refresh(){
     if(!('speechSynthesis' in window)) return;
     const list = speechSynthesis.getVoices(); if(!list.length) return;
-    const pref=[/zira/i,/aria/i,/jenny/i,/michelle/i,/samantha/i,/ava/i,/susan/i,/female/i,
-                /google us english/i,/google uk english female/i,/en-US/i];
-    for(const p of pref){ const f=list.find(x=>p.test(x.name)||p.test(x.voiceURI)); if(f){v=f;break;} }
-    if(!v) v = list.find(x=>/^en/i.test(x.lang)) || list[0];
-    ready=true;
+    all = list.filter(x=>/^en/i.test(x.lang)).sort((a,b)=>scoreVoice(b)-scoreVoice(a));
+    const savedName = store.get('nova.voice', null);
+    v = (savedName && all.find(x=>x.name===savedName)) || all[0] || list[0];
   }
-  if('speechSynthesis' in window){ pick(); speechSynthesis.onvoiceschanged = pick; }
+  if('speechSynthesis' in window){ refresh(); speechSynthesis.onvoiceschanged = refresh; }
+
+  // Chrome silently pauses long speech — nudge it awake.
+  function guard(on){
+    clearInterval(keepAlive);
+    if(on) keepAlive = setInterval(()=>{ try{ if(speechSynthesis.speaking && !speechSynthesis.paused){ speechSynthesis.pause(); speechSynthesis.resume(); } }catch(e){} }, 8000);
+  }
+
+  // Long text must be broken up or cloud voices cut off mid-sentence.
+  function chunk(text){
+    const out=[]; let buf='';
+    String(text).replace(/\s+/g,' ').split(/(?<=[.!?;:])\s+/).forEach(s=>{
+      if((buf+' '+s).trim().length > 170){ if(buf) out.push(buf.trim()); buf=s; }
+      else buf = (buf?buf+' ':'')+s;
+    });
+    if(buf.trim()) out.push(buf.trim());
+    return out.length?out:[String(text)];
+  }
+
+  function next(){
+    if(!queue.length){ speaking=false; guard(false); return; }
+    const text = queue.shift();
+    try{
+      const u = new SpeechSynthesisUtterance(text);
+      if(v) { u.voice=v; u.lang = v.lang; }
+      u.rate = rate; u.pitch = 1.05; u.volume = 1;
+      u.onend = next;
+      u.onerror = next;
+      speechSynthesis.speak(u);
+    }catch(e){ next(); }
+  }
+
   return {
-    say(text, rate){
+    voices(){ if(!all.length) refresh(); return all; },
+    current(){ if(!v) refresh(); return v; },
+    setVoice(name){ refresh(); const f=all.find(x=>x.name===name); if(f){ v=f; store.set('nova.voice', name); } },
+    rate(r){ if(r!=null){ rate=r; store.set('nova.rate', r); } return rate; },
+    enabled(on){ if(on!=null){ enabled=on; store.set('nova.sound', on); if(!on) this.stop(); } return enabled; },
+
+    /* say() accepts a string, or an array of {text, pause} segments */
+    say(text){
       if(!enabled || !('speechSynthesis' in window) || !text) return;
-      if(!ready) pick();
-      try{
-        speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(String(text));
-        if(v) u.voice=v; u.rate = rate||0.92; u.pitch=1.12; u.volume=1;
-        speechSynthesis.speak(u);
-      }catch(e){}
+      if(!v) refresh();
+      this.stop();
+      const parts = Array.isArray(text) ? text : [text];
+      queue = parts.flatMap(p=>chunk(p)).filter(Boolean);
+      speaking=true; guard(true); next();
     },
-    stop(){ try{speechSynthesis.cancel()}catch(e){} },
-    toggle(){ enabled=!enabled; if(!enabled) this.stop(); return enabled; }
+    stop(){ queue=[]; speaking=false; guard(false); try{speechSynthesis.cancel()}catch(e){} }
   };
 })();
-// speak the pronunciation respelling if we have one, else the word itself
-function sayCard(c){ Voice.say(c.say ? c.say.replace(/-/g,' ') : c.front); }
+Voice.rate(store.get('nova.rate', 0.95));
+Voice.enabled(store.get('nova.sound', true));
+
+/* Speak the ACTUAL word, not the respelling — respellings are for her eyes only.
+   "aden/o" -> "adeno",  "-itis" -> "itis",  "hem/o, hemat/o" -> "hemo, hemato" */
+function speakable(word){
+  return String(word||'')
+    .replace(/\//g,'')
+    .replace(/(^|[\s,;(])-/g,'$1')
+    .replace(/-($|[\s,;)])/g,'$1')
+    .replace(/\s+/g,' ').trim();
+}
+function sayCard(c, withMeaning){
+  if(!c) return;
+  const w = speakable(c.front);
+  Voice.say(withMeaning ? [w + '.', c.back + '.'] : [w]);
+}
 
 /* ---------- sound effects (no files) ---------- */
 const SFX=(()=>{ let ctx=null;
@@ -419,6 +514,7 @@ function go(id, mode){
   document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on', b.dataset.go===id && (!b.dataset.mode||b.dataset.mode===ctxMode)));
   if(id==='home') renderHome();
   if(id==='chapters') renderChapters();
+  if(id==='voice') renderVoice();
 }
 document.addEventListener('click', e=>{
   const t=e.target.closest('[data-go]'); if(!t) return;
@@ -456,6 +552,8 @@ function renderHome(){
   document.getElementById('h-streak').textContent = '🔥 '+S.streak+' day streak';
   document.getElementById('h-xpbar').style.width = xpInLvl(S.xp)+'%';
   document.getElementById('novaSays').innerHTML = rand(HELLO);
+  const cv = Voice.current();
+  document.getElementById('voiceNow').textContent = cv ? ('Currently: ' + cv.name.replace(/ - English.*/,'')) : 'Pick how she sounds';
   renderPlan();
 }
 
@@ -733,7 +831,7 @@ document.getElementById('fcCard').onclick=function(){
   this.classList.toggle('flip');
   if(this.classList.contains('flip')) sayCard(F.list[F.i]);
 };
-document.getElementById('fcSpeak').onclick=e=>{e.stopPropagation(); sayCard(F.list[F.i]);};
+document.getElementById('fcSpeak').onclick=e=>{e.stopPropagation(); sayCard(F.list[F.i], true);};
 function nextCard(right){
   bump(F.cid, F.list[F.i], right); if(right) S.xp+=2; save();
   F.i++;
@@ -763,11 +861,59 @@ function startLearn(cid){
      <button class="btn" id="lnPlay">I've got it — quiz me 🎯</button>`;
   document.getElementById('lnPlay').onclick=()=>startQuest([cid],12);
   document.getElementById('readAll').onclick=function(){
-    const txt = d.lesson.map(s=>s.heading+'. '+s.body).join(' ');
     if(this.dataset.on){ Voice.stop(); this.dataset.on=''; this.textContent='🔊 Read this to me'; }
-    else { Voice.say(txt, .95); this.dataset.on='1'; this.textContent='⏹ Stop reading'; }
+    else {
+      Voice.say(d.lesson.flatMap(s=>[s.heading+'.', s.body]));
+      this.dataset.on='1'; this.textContent='⏹ Stop reading';
+    }
   };
   go('learn'); touchStreak();
+}
+
+/* ---------- voice settings ---------- */
+const SAMPLE = ['Hi Cheyenne, it is Nova.', 'Gastroenterology. The study of the stomach and intestines.'];
+function renderVoice(){
+  const list = Voice.voices();
+  const cur = Voice.current();
+  const box = document.getElementById('voiceList');
+  if(!list.length){ box.innerHTML = '<p class="muted">This device isn\'t offering any voices yet. Try closing and reopening Nova.</p>'; return; }
+
+  box.innerHTML = list.map(v=>{
+    const s = scoreVoice(v);
+    const label = s>=100 ? 'Very natural' : s>=70 ? 'Natural' : s>=0 ? 'Basic' : 'Old robot voice';
+    const col = s>=70 ? 'var(--good)' : s>=0 ? 'var(--dim)' : '#ff6b81';
+    const on = cur && cur.name===v.name;
+    return `<div class="tile" data-v="${v.name.replace(/"/g,'&quot;')}" style="${on?'border-color:var(--accent2)':''}">
+      <div class="ic" style="${on?'background:linear-gradient(135deg,#ff8fc7,#8b6dff)':''}">${on?'✓':'🔊'}</div>
+      <div class="tx"><b>${v.name.replace(/ - English.*/,'')}</b>
+      <span style="color:${col}">${label}${v.localService?'':' · needs internet'}</span></div>
+      <div class="chev">›</div></div>`;
+  }).join('');
+
+  box.querySelectorAll('[data-v]').forEach(el=>el.onclick=()=>{
+    Voice.setVoice(el.dataset.v);
+    Voice.enabled(true);
+    document.getElementById('soundToggle').textContent='On';
+    Voice.say(SAMPLE);
+    renderVoice();
+  });
+
+  const bad = list.length && scoreVoice(list[0]) < 70;
+  document.getElementById('voiceTip').innerHTML = bad
+    ? 'Only basic voices here. On an Android phone, installing <b>Google Speech Services</b> from the Play Store adds much better ones. On Windows, go to Settings, then Time &amp; language, then Speech, and add a Natural voice.'
+    : 'Tip: the voices marked <b>needs internet</b> sound the best but go quiet if she has no signal. Nova falls back to a built-in one automatically.';
+
+  const r = document.getElementById('rateSlide');
+  r.value = Math.round(Voice.rate()*100);
+  const rl = document.getElementById('rateVal');
+  const word = x => x<80?'Slower':x<105?'Normal':x<120?'Quicker':'Fast';
+  rl.textContent = word(r.value);
+  r.oninput = ()=>{ rl.textContent = word(r.value); Voice.rate(r.value/100); };
+  r.onchange = ()=> Voice.say(['Speaking speed set. Osteoarthritis.']);
+
+  const st = document.getElementById('soundToggle');
+  st.textContent = Voice.enabled() ? 'On' : 'Off';
+  st.onclick = ()=>{ const on = !Voice.enabled(); Voice.enabled(on); st.textContent = on?'On':'Off'; if(on) Voice.say(['Sound is back on.']); };
 }
 
 /* ---------- daily quest ---------- */
