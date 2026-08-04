@@ -548,140 +548,166 @@ function speakable(word){
    time. If a clip is missing we fall back to the device's own speech engine so
    nothing ever goes silent.                                                     */
 const Rec = (()=>{
-  const sprites = {};              // "ch1.term" -> {audio, index, state}
-  let unlocked = false, stopTimer = null, detach = null, useRecorded = store.get('nova.recorded', true);
+  /* Two playback engines. The <audio> element streams and uses little memory,
+     but on some machines it simply never loads (readyState stays 0 forever).
+     Web Audio decodes the same file reliably and plays exact segments, at the
+     cost of holding decoded audio in memory — so it's the fallback. */
+  const sprites = {};
+  let unlocked=false, useRecorded=store.get('nova.recorded',true), ctx=null, active=null, decodedOrder=[];
 
-  const CAN_FETCH = location.protocol === 'http:' || location.protocol === 'https:';
+  function audioCtx(){
+    if(!ctx){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)({sampleRate:24000}); }catch(e){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e2){} } }
+    if(ctx && ctx.state==='suspended') ctx.resume().catch(()=>{});
+    return ctx;
+  }
+  const CAN_FETCH = location.protocol==='http:' || location.protocol==='https:';
+
   function load(cid, mode){
     const k = cid+'.'+mode;
     if(sprites[k]) return sprites[k];
-    const s = sprites[k] = {audio:null, index:null, failed:!CAN_FETCH};
-    if(!CAN_FETCH) return s;   // opened as a local file — recorded audio isn't available
-    fetch(`${k}.json`).then(r=>{ if(!r.ok) throw 0; return r.json(); })
-      .then(idx=>{
-        s.index = idx;
-        const a = new Audio();
-        a.preload = 'auto'; a.playsInline = true;
-        a.addEventListener('error', ()=>{ s.failed = true; });
-        a.src = `${k}.mp3`;
-        try{ a.load(); }catch(e){}          // some browsers won't start without this
-        s.audio = a;
+    const s = sprites[k] = {index:null, el:null, abuf:null, raw:null, engine:null, failed:!CAN_FETCH, loading:true};
+    if(!CAN_FETCH){ s.loading=false; return s; }
+
+    fetch(k+'.json').then(r=>{ if(!r.ok) throw 0; return r.json(); })
+      .then(idx=>{ s.index = idx; return fetch(k+'.mp3'); })
+      .then(r=>{ if(!r.ok) throw 0; return r.arrayBuffer(); })
+      .then(buf=>{
+        s.raw = buf;
+        // fast path: try the element first
+        return new Promise(res=>{
+          let settled=false;
+          const done=v=>{ if(!settled){ settled=true; res(v); } };
+          try{
+            const el = new Audio();
+            el.preload='auto'; el.playsInline=true;
+            el.src = URL.createObjectURL(new Blob([buf],{type:'audio/mpeg'}));
+            el.addEventListener('loadedmetadata', ()=>{ s.el = el; done('el'); }, {once:true});
+            el.addEventListener('error', ()=>done(null), {once:true});
+            el.load();
+          }catch(e){ done(null); }
+          setTimeout(()=>done(null), 2500);
+        });
       })
-      .catch(()=>{ s.failed = true; });
+      .then(engine=>{
+        if(engine==='el'){ s.engine='el'; s.loading=false; s.raw=null; return; }
+        const c = audioCtx();
+        if(!c) throw 0;
+        return c.decodeAudioData(s.raw.slice(0)).then(ab=>{
+          s.abuf = ab; s.engine='wa'; s.loading=false; s.raw=null;
+          decodedOrder.push(k);
+          // don't hoard decoded audio on a phone — keep the two most recent
+          while(decodedOrder.length > 2){
+            const old = decodedOrder.shift();
+            if(sprites[old] && sprites[old] !== s){ sprites[old].abuf = null; sprites[old].engine=null; sprites[old].loading=true;
+              delete sprites[old]; }
+          }
+        });
+      })
+      .catch(()=>{ s.failed=true; s.loading=false; });
     return s;
   }
-  function ready(cid, mode){
-    const s = sprites[cid+'.'+mode];
-    return !!(s && s.index && s.audio && !s.failed);
+  const ready = (cid,mode)=>{ const s=sprites[cid+'.'+mode]; return !!(s && s.index && s.engine && !s.failed); };
+
+  function stopActive(){
+    if(!active) return;
+    const a = active; active = null;
+    clearTimeout(a.timer);
+    if(a.src){ try{ a.src.onended=null; a.src.stop(); }catch(e){} }
+    if(a.el){ try{ a.el.removeEventListener('timeupdate', a.onTime); a.el.pause(); }catch(e){} }
   }
+
   return {
-    on(v){ if(v!=null){ useRecorded=v; store.set('nova.recorded', v); } return useRecorded; },
+    on(v){ if(v!=null){ useRecorded=v; store.set('nova.recorded',v); } return useRecorded; },
     _dbg(){ return sprites; },
-    warm(cid, alsoLesson){ if(useRecorded){ load(cid,'term'); load(cid,'meaning'); if(alsoLesson) load(cid,'lesson'); } },
-    unlock(){   // first tap: browsers won't fetch or play media before this
-      if(unlocked) return; unlocked = true;
-      try{ const a=new Audio(); a.muted=true; a.play().catch(()=>{}); }catch(e){}
-      // now that we're allowed, pull the metadata for anything already queued up
-      Object.values(sprites).forEach(s=>{
-        if(!s.audio || s.audio.readyState >= 1) return;
-        try{
-          s.audio.muted = true;
-          const p = s.audio.play();
-          if(p && p.then) p.then(()=>{ s.audio.pause(); s.audio.currentTime = 0; s.audio.muted = false; }).catch(()=>{ s.audio.muted = false; });
-        }catch(e){}
-      });
-    },
     ready, load,
-
-    /* Lesson playback: one continuous track that keeps going with the screen off,
-       remembers where she stopped, and shows up on the lock screen. */
-    lesson(cid, fromSec, onState){
-      const s = load(cid, 'lesson');
-      if(!ready(cid, 'lesson')) return false;
-      const a = s.audio;
-      this.stop();
-      const begin = ()=>{
-        try{
-          if(fromSec != null) a.currentTime = Math.max(0, fromSec);
-          const p = a.play(); if(p && p.catch) p.catch(()=>{});
-        }catch(e){}
-      };
-      if(a.readyState >= 1) begin(); else a.addEventListener('loadedmetadata', begin, {once:true});
-
-      a.onpause = ()=>{ store.set('nova.lessonPos.'+cid, a.currentTime); if(onState) onState(false, a); };
-      a.onplay  = ()=>{ if(onState) onState(true, a); };
-      a.ontimeupdate = ()=>{ if(!a.paused) store.set('nova.lessonPos.'+cid, a.currentTime); };
-      a.onended = ()=>{ store.set('nova.lessonPos.'+cid, 0); if(onState) onState(false, a); };
-
-      if('mediaSession' in navigator){
-        try{
-          navigator.mediaSession.metadata = new MediaMetadata({
-            title: (DATA[cid]||{}).title || 'Lesson',
-            artist: 'Nova — your study buddy',
-            album: 'Medical Terminology',
-            artwork: [{src:'icon-512.png', sizes:'512x512', type:'image/png'}]
-          });
-          navigator.mediaSession.setActionHandler('play',  ()=>a.play().catch(()=>{}));
-          navigator.mediaSession.setActionHandler('pause', ()=>a.pause());
-          navigator.mediaSession.setActionHandler('seekbackward', ()=>{ a.currentTime = Math.max(0, a.currentTime-15); });
-          navigator.mediaSession.setActionHandler('seekforward', ()=>{ a.currentTime = Math.min(a.duration||1e9, a.currentTime+15); });
-        }catch(e){}
-      }
-      return true;
-    },
-    lessonEl(cid){ const s = sprites[cid+'.lesson']; return s && s.audio; },
+    warm(cid, alsoLesson){ if(useRecorded){ load(cid,'term'); load(cid,'meaning'); if(alsoLesson) load(cid,'lesson'); } },
+    loading(cid, mode){ const s=sprites[cid+'.'+mode]; return !!(s && s.loading); },
+    unlock(){ if(unlocked) return; unlocked=true; audioCtx(); },
+    stop(){ stopActive(); },
     lessonPos(cid){ return store.get('nova.lessonPos.'+cid, 0); },
-    stop(){
-      clearTimeout(stopTimer);
-      if(detach){ detach(); detach = null; }
-      Object.values(sprites).forEach(s=>{ try{ if(s.audio && !s.audio.paused) s.audio.pause(); }catch(e){} });
-    },
 
-    /* returns true if it handled playback */
     play(cid, mode, i, onDone){
       if(!useRecorded) return false;
       const s = load(cid, mode);
-      if(!ready(cid, mode)) return false;
+      if(!ready(cid,mode)) return false;
       const clip = s.index[i];
       if(!clip || !clip[1]) return false;
-      const [start, dur] = clip;
-      this.stop();
+      const [start,dur] = clip;
+      stopActive();
 
-      const a = s.audio;
-      const target = Math.max(0, start - 0.02);
+      if(s.engine==='wa'){
+        const c = audioCtx(); if(!c) return false;
+        const src = c.createBufferSource();
+        src.buffer = s.abuf; src.connect(c.destination);
+        const a = active = {src};
+        src.onended = ()=>{ if(active===a){ active=null; if(onDone) onDone(); } };
+        try{ src.start(0, start, dur + 0.04); }catch(e){ active=null; return false; }
+        return true;
+      }
+
+      const el = s.el;
+      const target = Math.max(0, start-0.02);
+      try{ el.currentTime = target; }catch(e){ return false; }
+      if(start > 0.6 && Math.abs(el.currentTime-target) > 0.8){ s.failed=true; return false; }
       const endAt = start + dur + 0.05;
-      let finished = false;
-      const done = ()=>{
-        if(finished) return; finished = true;
-        if(detach){ detach(); detach = null; }
-        try{ a.pause(); a.muted = false; }catch(e){}
-        if(onDone) onDone();
-      };
-      const onTime = ()=>{ if(a.currentTime >= endAt) done(); };
-      detach = ()=>{ a.removeEventListener('timeupdate', onTime); clearTimeout(stopTimer); a.muted = false; };
-
-      const run = ()=>{
-        if(finished) return;
-        try{ a.currentTime = target; }catch(e){ return done(); }
-        // Seeking silently fails if the host won't serve byte ranges. Catch that
-        // rather than playing the wrong word.
-        if(start > 0.6 && Math.abs(a.currentTime - target) > 0.8){ s.failed = true; return done(); }
-        a.muted = false;
-        a.addEventListener('timeupdate', onTime);
-        const pr = a.play(); if(pr && pr.catch) pr.catch(()=>{});
-        stopTimer = setTimeout(done, (dur + 1.3) * 1000);   // backstop
-      };
-
-      if(a.readyState >= 1){ run(); return true; }
-
-      // Chrome often refuses to touch the network for media until the user has
-      // interacted. Starting playback muted forces the download; we seek to the
-      // right spot the moment the duration is known, then unmute.
-      a.muted = true;
-      const kick = a.play(); if(kick && kick.catch) kick.catch(()=>{});
-      a.addEventListener('loadedmetadata', run, {once:true});
-      stopTimer = setTimeout(()=>{ if(a.readyState < 1) done(); }, 6000);
+      const a = active = {el};
+      a.onTime = ()=>{ if(el.currentTime >= endAt){ stopActive(); if(onDone) onDone(); } };
+      el.addEventListener('timeupdate', a.onTime);
+      const pr = el.play(); if(pr && pr.catch) pr.catch(()=>{});
+      a.timer = setTimeout(()=>{ stopActive(); if(onDone) onDone(); }, (dur+1.3)*1000);
       return true;
+    },
+
+    /* ---- lesson transport: play / pause / seek / rate, on either engine ---- */
+    lesson(cid){
+      const s = load(cid,'lesson');
+      if(!ready(cid,'lesson')) return null;
+      const self = {
+        engine: s.engine,
+        duration: s.engine==='wa' ? s.abuf.duration : (s.el.duration||0),
+        rate: 1, _pos: 0, _t0: 0, _playing:false, _src:null, onstate:null,
+        get playing(){ return this.engine==='el' ? !s.el.paused : this._playing; },
+        get time(){
+          if(this.engine==='el') return s.el.currentTime;
+          return this._playing ? Math.min(this.duration, this._pos + (audioCtx().currentTime - this._t0) * this.rate) : this._pos;
+        },
+        setRate(r){
+          this.rate = r;
+          if(this.engine==='el'){ s.el.playbackRate = r; }
+          else if(this._playing){ const at=this.time; this.pause(); this.seek(at); this.play(); }
+        },
+        seek(t){
+          t = Math.max(0, Math.min(this.duration-0.05, t));
+          if(this.engine==='el'){ s.el.currentTime = t; return; }
+          const was = this._playing;
+          if(was) this.pause();
+          this._pos = t;
+          if(was) this.play();
+        },
+        play(){
+          if(this.engine==='el'){ s.el.play().catch(()=>{}); if(this.onstate) this.onstate(); return; }
+          const c = audioCtx(); if(!c) return;
+          stopActive();
+          const src = c.createBufferSource();
+          src.buffer = s.abuf; src.playbackRate.value = this.rate; src.connect(c.destination);
+          src.onended = ()=>{ if(this._src===src){ this._playing=false; this._pos=0; if(this.onstate) this.onstate(); } };
+          src.start(0, this._pos);
+          this._src = src; this._t0 = c.currentTime; this._playing = true;
+          active = {src};
+          if(this.onstate) this.onstate();
+        },
+        pause(){
+          if(this.engine==='el'){ s.el.pause(); if(this.onstate) this.onstate(); return; }
+          if(!this._playing) return;
+          this._pos = this.time; this._playing = false;
+          if(this._src){ try{ this._src.onended=null; this._src.stop(); }catch(e){} this._src=null; }
+          active = null;
+          if(this.onstate) this.onstate();
+        },
+        toggle(){ this.playing ? this.pause() : this.play(); }
+      };
+      if(s.engine==='el'){ s.el.onplay = ()=>self.onstate&&self.onstate(); s.el.onpause = ()=>self.onstate&&self.onstate(); }
+      return self;
     }
   };
 })();
@@ -1351,21 +1377,27 @@ function startLearn(cid){
     sectionStarts.map(s0=>`<div class="chip" data-jump="${s0.u}">${s0.name}</div>`).join('');
 
   Rec.warm(cid, true);
-  const P = {cid, idx:null, el:null, speed:1, ttsMode:false};
+  const P = {cid, idx:null, tr:null, speed:1, ttsMode:false};
   const playBtn = document.getElementById('lnPlay');
   const seek    = document.getElementById('lnSeek');
   const timeEl  = document.getElementById('lnTime');
 
   fetch(`${cid}.lesson.json`).then(r=>r.ok?r.json():null).then(j=>{ P.idx=j; }).catch(()=>{});
 
-  function el(){ P.el = P.el || Rec.lessonEl(cid); return P.el; }
+  function transport(){
+    if(P.tr) return P.tr;
+    P.tr = Rec.lesson(cid);
+    if(P.tr){ P.tr.setRate(P.speed); P.tr.onstate = paint; P.tr._pos = Rec.lessonPos(cid) || 0; }
+    return P.tr;
+  }
   function paint(){
-    const a = el();
-    if(!a || !a.duration || !isFinite(a.duration)){ timeEl.textContent = P.ttsMode ? 'reading…' : '0:00 / --:--'; return; }
-    playBtn.textContent = a.paused ? '▶︎' : '⏸';
-    timeEl.textContent = fmt(a.currentTime)+' / '+fmt(a.duration);
-    if(!seek.dataset.dragging) seek.value = Math.round(1000*a.currentTime/a.duration);
-    highlight(a.currentTime);
+    const t = P.tr;
+    if(!t){ timeEl.textContent = P.ttsMode ? 'reading…' : (Rec.loading(cid,'lesson') ? 'loading audio…' : '0:00 / --:--'); return; }
+    playBtn.textContent = t.playing ? '⏸' : '▶︎';
+    timeEl.textContent = fmt(t.time)+' / '+fmt(t.duration);
+    if(!seek.dataset.dragging && t.duration) seek.value = Math.round(1000*t.time/t.duration);
+    if(t.playing) store.set('nova.lessonPos.'+cid, t.time);
+    highlight(t.time);
   }
   let lastU = -1, lastW = -1, curNode = null;
   function highlight(t){
@@ -1373,10 +1405,10 @@ function startLearn(cid){
     let cur = -1;
     for(let i=0;i<P.idx.length;i++){ if(P.idx[i][0] <= t + 0.12) cur = i; else break; }
     if(cur < 0) return;
-
     if(cur !== lastU){
       lastU = cur; lastW = -1;
       document.querySelectorAll('#lnTap .nowplaying').forEach(n=>n.classList.remove('nowplaying'));
+      document.querySelectorAll('#lnTap [data-w].saying').forEach(n=>n.classList.remove('saying'));
       curNode = document.querySelector(`#lnTap [data-u="${cur}"]`);
       if(curNode){
         curNode.classList.add('nowplaying');
@@ -1399,25 +1431,18 @@ function startLearn(cid){
     lastW = w;
   }
 
-  function ensure(from){
-    if(el()) return true;
-    const ok = Rec.lesson(cid, from != null ? from : Rec.lessonPos(cid), ()=>paint());
-    if(ok){ P.el = Rec.lessonEl(cid); if(P.el) P.el.playbackRate = P.speed; }
-    return ok;
-  }
-
   playBtn.onclick = ()=>{
     Rec.unlock();
-    const a = el();
-    if(a){ a.paused ? a.play().catch(()=>{}) : a.pause(); paint(); return; }
-    if(ensure()){ paint(); return; }
-    // No recorded track for this chapter yet — device voice, no scrubbing possible.
+    const t = transport();
+    if(t){ t.toggle(); paint(); return; }
+    if(Rec.loading(cid,'lesson')){ toast('Audio is still downloading — one sec'); return; }
     P.ttsMode = !P.ttsMode;
     if(P.ttsMode){ Voice.say(d.lesson.flatMap(s=>[s.heading+'.', s.body])); playBtn.textContent='⏸'; timeEl.textContent='reading…'; }
     else { Voice.stop(); playBtn.textContent='▶︎'; timeEl.textContent='0:00 / --:--'; }
   };
-  const nudge = sec=>{ Rec.unlock(); if(!el() && !ensure()) return toast('Audio for this chapter is still downloading');
-    const a=el(); a.currentTime = Math.max(0, Math.min((a.duration||1e9), a.currentTime + sec)); paint(); };
+  const nudge = sec=>{ Rec.unlock(); const t=transport();
+    if(!t){ toast(Rec.loading(cid,'lesson') ? 'Audio still downloading' : 'No recorded audio for this chapter yet'); return; }
+    t.seek(t.time + sec); paint(); };
   document.getElementById('lnBack').onclick = ()=>nudge(-10);
   document.getElementById('lnFwd').onclick  = ()=>nudge(10);
 
@@ -1425,22 +1450,22 @@ function startLearn(cid){
   document.getElementById('lnSpeed').onclick = function(){
     P.speed = SPEEDS[(SPEEDS.indexOf(P.speed)+1) % SPEEDS.length];
     this.textContent = P.speed+'×';
-    const a=el(); if(a) a.playbackRate = P.speed;
+    if(P.tr) P.tr.setRate(P.speed);
     Voice.rate(P.speed*0.95);
   };
 
   seek.oninput = ()=>{ seek.dataset.dragging='1';
-    const a=el(); if(a && a.duration){ timeEl.textContent = fmt(seek.value/1000*a.duration)+' / '+fmt(a.duration); } };
-  seek.onchange = ()=>{ Rec.unlock(); if(!el() && !ensure()){ seek.dataset.dragging=''; return; }
-    const a=el(); if(a && a.duration){ a.currentTime = seek.value/1000*a.duration; if(a.paused) a.play().catch(()=>{}); }
+    const t=P.tr; if(t && t.duration) timeEl.textContent = fmt(seek.value/1000*t.duration)+' / '+fmt(t.duration); };
+  seek.onchange = ()=>{ Rec.unlock(); const t=transport();
+    if(t && t.duration){ const was=t.playing; t.seek(seek.value/1000*t.duration); if(!was) t.play(); }
     seek.dataset.dragging=''; paint(); };
 
   document.getElementById('lnJump').querySelectorAll('[data-jump]').forEach(ch=>ch.onclick=()=>{
     Rec.unlock();
     const uIdx = +ch.dataset.jump;
-    if(!P.idx || !P.idx[uIdx]){ toast('Audio still downloading — one moment'); return; }
-    if(!el() && !ensure(P.idx[uIdx][0])) return;
-    const a=el(); a.currentTime = P.idx[uIdx][0]; a.play().catch(()=>{}); paint();
+    const t = transport();
+    if(!P.idx || !P.idx[uIdx] || !t){ toast('Audio still downloading — one moment'); return; }
+    t.seek(P.idx[uIdx][0]); if(!t.playing) t.play(); paint();
   });
 
   // double-tap the left or right side of the text to jump 10 seconds
