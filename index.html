@@ -144,6 +144,30 @@ body{
 .lesson h3{font-size:18px;margin:22px 0 8px;color:var(--accent2)}
 .lesson p{font-size:15px;line-height:1.62;color:#e8e3ff;margin:0 0 12px}
 .lesson .readbtn{margin-bottom:6px}
+.lesson [data-u]{border-radius:10px;transition:background .35s,color .35s;padding:2px 6px;margin-left:-6px}
+.lesson [data-u].nowplaying{background:rgba(255,143,199,.13);color:#fff}
+.lesson [data-w]{transition:color .12s,background .12s;border-radius:5px;padding:0 1px}
+.lesson [data-w].saying{background:var(--accent2);color:#1a1035;font-weight:700}
+
+/* lesson player */
+.player{position:sticky;top:0;z-index:20;background:rgba(26,17,58,.97);backdrop-filter:blur(12px);
+  border:1px solid var(--line);border-radius:20px;padding:12px 14px 10px;margin:0 0 14px}
+.player .row{display:flex;align-items:center;gap:10px}
+.player button{background:var(--card2);border:1px solid var(--line);color:var(--ink);border-radius:14px;
+  height:44px;min-width:44px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0 10px}
+.player button:active{transform:scale(.94)}
+.player .big{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#1a1035;border:none;
+  height:52px;min-width:52px;border-radius:18px;font-size:20px}
+.player .time{font-size:11.5px;color:var(--dim);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.player input[type=range]{width:100%;accent-color:#ff8fc7;height:22px}
+.player .scrub{display:flex;align-items:center;gap:9px;margin-top:4px}
+.tapflash{position:fixed;top:50%;transform:translateY(-50%);background:rgba(20,13,41,.85);border:1px solid var(--line);
+  color:#fff;font-weight:900;font-size:15px;border-radius:18px;padding:14px 18px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none}
+.tapflash.on{opacity:1}
+.tapzone{position:relative}
+.jumpbar{display:flex;gap:8px;overflow-x:auto;padding:10px 0 2px}
+.jumpbar::-webkit-scrollbar{display:none}
+.jumpbar .chip{font-size:12px;padding:8px 12px}
 
 /* ---------- results ---------- */
 .result{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px}
@@ -222,10 +246,47 @@ select,input{font-family:inherit}
   <div class="sechead">Your class</div>
   <div id="planBox"></div>
 
+  <div class="sechead">Her progress</div>
+  <div class="tile" data-go="progress">
+    <div class="ic">📊</div><div class="tx"><b>What you know so far</b><span id="progNow">See what's solid and what still needs work</span></div><div class="chev">›</div>
+  </div>
+
   <div class="sechead">Settings</div>
   <div class="tile" data-go="voice">
     <div class="ic">🎙️</div><div class="tx"><b>Nova's voice</b><span id="voiceNow">Pick how she sounds</span></div><div class="chev">›</div>
   </div>
+</section>
+
+<!-- ===================== PROGRESS ===================== -->
+<section class="screen" id="s-progress">
+  <div class="top"><button class="back" data-go="home">‹</button><h2>What you know</h2></div>
+
+  <div class="tile" style="cursor:default;display:block">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px">
+      <b style="font-size:15px">Whole course</b><span id="pgOverall" style="font-size:22px;font-weight:900">0%</span>
+    </div>
+    <div class="bar" style="height:11px"><i id="pgBar" style="width:0%"></i></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <div class="stat"><b id="pgSolid">0</b><span>SOLID</span></div>
+      <div class="stat"><b id="pgShaky">0</b><span>SHAKY</span></div>
+      <div class="stat"><b id="pgNew">0</b><span>NOT SEEN</span></div>
+    </div>
+  </div>
+
+  <button class="btn" id="pgDrill">🩹 Drill what I keep missing</button>
+
+  <div class="sechead">Chapter by chapter</div>
+  <div id="pgChaps"></div>
+
+  <div class="sechead">Still working on these</div>
+  <div id="pgWeak"></div>
+
+  <div class="sechead">Keep it safe</div>
+  <p class="muted" style="margin:0 0 12px">Phones sometimes clear website data on their own. Saving a backup file every week or so means her progress can always come back.</p>
+  <button class="btn ghost sm" id="pgExport" style="margin-bottom:10px">⬇︎ Save a backup file</button>
+  <button class="btn ghost sm" id="pgImport">⬆︎ Restore from a backup</button>
+  <input type="file" id="pgFile" accept="application/json,.json" style="display:none">
+  <p class="muted" id="pgStore" style="margin-top:14px"></p>
 </section>
 
 <!-- ===================== VOICE ===================== -->
@@ -336,6 +397,7 @@ select,input{font-family:inherit}
   <button data-go="chapters" data-mode="cards"><i>🃏</i>Cards</button>
   <button data-go="chapters" data-mode="quest"><i>🎯</i>Play</button>
   <button data-go="chapters" data-mode="learn"><i>📖</i>Learn</button>
+  <button data-go="progress"><i>📊</i>Progress</button>
 </nav>
 <div class="toast" id="toast"></div>
 </div>
@@ -487,7 +549,7 @@ function speakable(word){
    nothing ever goes silent.                                                     */
 const Rec = (()=>{
   const sprites = {};              // "ch1.term" -> {audio, index, state}
-  let unlocked = false, stopTimer = null, useRecorded = store.get('nova.recorded', true);
+  let unlocked = false, stopTimer = null, detach = null, useRecorded = store.get('nova.recorded', true);
 
   const CAN_FETCH = location.protocol === 'http:' || location.protocol === 'https:';
   function load(cid, mode){
@@ -495,10 +557,10 @@ const Rec = (()=>{
     if(sprites[k]) return sprites[k];
     const s = sprites[k] = {audio:null, index:null, failed:!CAN_FETCH};
     if(!CAN_FETCH) return s;   // opened as a local file — recorded audio isn't available
-    fetch(`audio/${k}.json`).then(r=>{ if(!r.ok) throw 0; return r.json(); })
+    fetch(`${k}.json`).then(r=>{ if(!r.ok) throw 0; return r.json(); })
       .then(idx=>{
         s.index = idx;
-        const a = new Audio(`audio/${k}.mp3`);
+        const a = new Audio(`${k}.mp3`);
         a.preload = 'auto'; a.playsInline = true;
         a.addEventListener('error', ()=>{ s.failed = true; });
         s.audio = a;
@@ -512,13 +574,57 @@ const Rec = (()=>{
   }
   return {
     on(v){ if(v!=null){ useRecorded=v; store.set('nova.recorded', v); } return useRecorded; },
-    warm(cid){ if(useRecorded){ load(cid,'term'); load(cid,'meaning'); } },
+    _dbg(){ return sprites; },
+    warm(cid, alsoLesson){ if(useRecorded){ load(cid,'term'); load(cid,'meaning'); if(alsoLesson) load(cid,'lesson'); } },
     unlock(){                       // iOS needs one gesture before audio will play
       if(unlocked) return; unlocked = true;
       try{ const a=new Audio(); a.muted=true; a.play().catch(()=>{}); }catch(e){}
     },
-    stop(){ clearTimeout(stopTimer);
-      Object.values(sprites).forEach(s=>{ try{ if(s.audio && !s.audio.paused) s.audio.pause(); }catch(e){} }); },
+    ready, load,
+
+    /* Lesson playback: one continuous track that keeps going with the screen off,
+       remembers where she stopped, and shows up on the lock screen. */
+    lesson(cid, fromSec, onState){
+      const s = load(cid, 'lesson');
+      if(!ready(cid, 'lesson')) return false;
+      const a = s.audio;
+      this.stop();
+      const begin = ()=>{
+        try{
+          if(fromSec != null) a.currentTime = Math.max(0, fromSec);
+          const p = a.play(); if(p && p.catch) p.catch(()=>{});
+        }catch(e){}
+      };
+      if(a.readyState >= 1) begin(); else a.addEventListener('loadedmetadata', begin, {once:true});
+
+      a.onpause = ()=>{ store.set('nova.lessonPos.'+cid, a.currentTime); if(onState) onState(false, a); };
+      a.onplay  = ()=>{ if(onState) onState(true, a); };
+      a.ontimeupdate = ()=>{ if(!a.paused) store.set('nova.lessonPos.'+cid, a.currentTime); };
+      a.onended = ()=>{ store.set('nova.lessonPos.'+cid, 0); if(onState) onState(false, a); };
+
+      if('mediaSession' in navigator){
+        try{
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: (DATA[cid]||{}).title || 'Lesson',
+            artist: 'Nova — your study buddy',
+            album: 'Medical Terminology',
+            artwork: [{src:'icon-512.png', sizes:'512x512', type:'image/png'}]
+          });
+          navigator.mediaSession.setActionHandler('play',  ()=>a.play().catch(()=>{}));
+          navigator.mediaSession.setActionHandler('pause', ()=>a.pause());
+          navigator.mediaSession.setActionHandler('seekbackward', ()=>{ a.currentTime = Math.max(0, a.currentTime-15); });
+          navigator.mediaSession.setActionHandler('seekforward', ()=>{ a.currentTime = Math.min(a.duration||1e9, a.currentTime+15); });
+        }catch(e){}
+      }
+      return true;
+    },
+    lessonEl(cid){ const s = sprites[cid+'.lesson']; return s && s.audio; },
+    lessonPos(cid){ return store.get('nova.lessonPos.'+cid, 0); },
+    stop(){
+      clearTimeout(stopTimer);
+      if(detach){ detach(); detach = null; }
+      Object.values(sprites).forEach(s=>{ try{ if(s.audio && !s.audio.paused) s.audio.pause(); }catch(e){} });
+    },
 
     /* returns true if it handled playback */
     play(cid, mode, i, onDone){
@@ -529,16 +635,36 @@ const Rec = (()=>{
       if(!clip || !clip[1]) return false;
       const [start, dur] = clip;
       this.stop();
-      try{
-        s.audio.currentTime = Math.max(0, start - 0.03);
-        const p = s.audio.play();
-        if(p && p.catch) p.catch(()=>{});
-        stopTimer = setTimeout(()=>{
-          try{ s.audio.pause(); }catch(e){}
-          if(onDone) onDone();
-        }, (dur + 0.10) * 1000);
-        return true;
-      }catch(e){ return false; }
+
+      const a = s.audio;
+      // Seeking only sticks once the browser knows the file's duration. Until
+      // then, tell the caller we can't help so it uses the device voice instead
+      // of us silently playing the wrong clip from the top of the file.
+      if(a.readyState < 1) return false;
+
+      const target = Math.max(0, start - 0.02);
+      try{ a.currentTime = target; }catch(e){ return false; }
+      if(start > 0.6 && Math.abs(a.currentTime - target) > 0.8){
+        s.failed = true;            // host isn't serving range requests — unusable
+        return false;
+      }
+
+      const endAt = start + dur + 0.05;
+      let finished = false;
+      const done = ()=>{
+        if(finished) return; finished = true;
+        if(detach){ detach(); detach = null; }
+        try{ a.pause(); }catch(e){}
+        if(onDone) onDone();
+      };
+      const onTime = ()=>{ if(a.currentTime >= endAt) done(); };
+      detach = ()=>{ a.removeEventListener('timeupdate', onTime); clearTimeout(stopTimer); };
+
+      a.addEventListener('timeupdate', onTime);
+      const pr = a.play();
+      if(pr && pr.catch) pr.catch(()=>{});
+      stopTimer = setTimeout(done, (dur + 1.3) * 1000);   // backstop
+      return true;
     }
   };
 })();
@@ -633,6 +759,7 @@ function go(id, mode){
   if(id==='home') renderHome();
   if(id==='chapters') renderChapters();
   if(id==='voice') renderVoice();
+  if(id==='progress') renderProgress();
 }
 document.addEventListener('click', e=>{
   const t=e.target.closest('[data-go]'); if(!t) return;
@@ -671,7 +798,12 @@ function renderHome(){
   document.getElementById('h-xpbar').style.width = xpInLvl(S.xp)+'%';
   document.getElementById('novaSays').innerHTML = rand(HELLO);
   const cv = Voice.current();
-  document.getElementById('voiceNow').textContent = cv ? ('Currently: ' + cv.name.replace(/ - English.*/,'')) : 'Pick how she sounds';
+  document.getElementById('voiceNow').textContent = Rec.on()
+    ? 'Nova (recorded)' : (cv ? ('Phone voice: ' + cv.name.replace(/ - English.*/,'')) : 'Pick how she sounds');
+  const all = allCards(), solid = all.filter(p=>bucket(p.cid,p.c)==='solid').length;
+  const weak = weakList().length;
+  document.getElementById('progNow').textContent =
+    solid || weak ? `${solid} terms solid · ${weak} still shaky` : "See what's solid and what still needs work";
   renderPlan();
 }
 
@@ -801,7 +933,7 @@ function buildQuestions(cids, n, boss, weakOnly){
     } else {
       const choices=shuffle([p.c.back, ...distract.map(d=>d.back)]);
       qs.push({kind, cid:p.cid, card:p.c,
-        prompt: kind==='listen'?'Listen — what does it mean?':'What does this mean?',
+        prompt: kind==='listen'?'Listen, then pick the meaning':'What does this mean?',
         term:p.c.front, choices, answer:choices.indexOf(p.c.back), why:p.c.example});
     }
   }
@@ -825,10 +957,11 @@ function renderQ(){
   const termEl=document.getElementById('qTerm'), sayEl=document.getElementById('qSay'), spk=document.getElementById('qSpeak');
   if(q.kind==='mcq'){
     document.getElementById('qPrompt').textContent='Question';
-    termEl.textContent=q.q; termEl.classList.add('small'); sayEl.textContent=''; spk.style.display='none';
+    termEl.textContent=q.q; termEl.classList.add('small'); sayEl.textContent=''; spk.style.display='';
   } else if(q.kind==='listen'){
     document.getElementById('qPrompt').textContent=q.prompt;
-    termEl.textContent='🔊 ? ? ?'; termEl.classList.remove('small'); sayEl.textContent=''; spk.style.display='';
+    termEl.textContent='🔊 🙈'; termEl.classList.remove('small');
+    sayEl.textContent='the word is hidden on purpose — go by ear'; spk.style.display='';
     spk.textContent='🔊 Play again'; setTimeout(()=>sayCard(q.card,false,q.cid),350);
   } else {
     document.getElementById('qPrompt').textContent=q.prompt;
@@ -836,7 +969,17 @@ function renderQ(){
     sayEl.textContent = (q.kind==='meaning' && q.card.say) ? q.card.say : '';
     spk.style.display=''; spk.textContent='🔊 Say it';
   }
-  spk.onclick=()=>{ q.card ? sayCard(q.card,false,q.cid) : Voice.say(q.q); };
+  // Careful: on a "which one means…" question the card's FRONT is the answer,
+  // so the speaker must read the clue on screen, never the card.
+  if(q.kind==='reverse'){
+    spk.textContent = '🔊 Read the clue';
+    spk.onclick = ()=>{ stopAllAudio(); Voice.say([String(q.term)]); };
+  } else if(q.kind==='mcq'){
+    spk.textContent = '🔊 Read the question';
+    spk.onclick = ()=>{ stopAllAudio(); Voice.say([String(q.q)]); };
+  } else if(q.card){
+    spk.onclick = ()=> sayCard(q.card,false,q.cid);
+  }
   const box=document.getElementById('qOpts'); box.innerHTML='';
   q.choices.forEach((c,idx)=>{
     const b=document.createElement('button'); b.className='opt'; b.textContent=c;
@@ -856,13 +999,16 @@ function answer(idx, btn){
     Q.right++; Q.combo++; SFX.good();
     fb.className='feedback good on';
     document.getElementById('fbT').textContent = Q.combo>=4 ? `${rand(NICE)} ${Q.combo} in a row!` : rand(NICE);
-    document.getElementById('fbP').textContent = q.why||'';
+    document.getElementById('fbP').textContent =
+      (q.kind==='listen' ? 'That word was ' + q.term + '. ' : '') + (q.why||'');
+    if(q.kind==='listen'){ document.getElementById('qTerm').textContent = q.term; document.getElementById('qSay').textContent = q.card.say||''; }
   } else {
     Q.wrong++; Q.combo=0; if(!Q.boss) Q.hearts--; SFX.bad();
     Q.missed.push(q);
     fb.className='feedback bad on';
     document.getElementById('fbT').textContent = rand(OOPS);
     document.getElementById('fbP').textContent = (q.kind==='mcq' ? '' : (q.term+' → '+q.choices[q.answer]+'. ')) + (q.why||'');
+    if(q.kind==='listen'){ document.getElementById('qTerm').textContent = q.term; document.getElementById('qSay').textContent = q.card.say||''; }
     if(q.card) setTimeout(()=>sayCard(q.card,false,q.cid),260);
   }
   save();
@@ -969,24 +1115,102 @@ document.getElementById('fcNo').onclick=()=>nextCard(false);
 /* ============================================================
    LEARN
    ============================================================ */
-function startLearn(cid){
-  const d=DATA[cid]; if(!d) return;
-  document.getElementById('lnTitle').textContent=d.title;
-  const body=document.getElementById('lnBody');
-  body.innerHTML = `<p class="muted" style="margin-bottom:14px">${d.blurb||''}</p>
-    <button class="btn ghost sm readbtn" id="readAll">🔊 Read this to me</button>` +
-    d.lesson.map((s,i)=>`<h3>${s.heading}</h3>` + s.body.split(/\n\n+/).map(p=>`<p>${p}</p>`).join('')).join('') +
-    `<div style="height:10px"></div>
-     <button class="btn" id="lnPlay">I've got it — quiz me 🎯</button>`;
-  document.getElementById('lnPlay').onclick=()=>startQuest([cid],12);
-  document.getElementById('readAll').onclick=function(){
-    if(this.dataset.on){ Voice.stop(); this.dataset.on=''; this.textContent='🔊 Read this to me'; }
-    else {
-      Voice.say(d.lesson.flatMap(s=>[s.heading+'.', s.body]));
-      this.dataset.on='1'; this.textContent='⏹ Stop reading';
-    }
+/* ---------- progress ----------
+   box 0   = missed it last time
+   box 1-2 = shaky
+   box 3+  = solid                                     */
+function allCards(){
+  const out=[];
+  ORDER.forEach(cid=>{ const d=DATA[cid]; if(d) d.cards.forEach(c=>out.push({cid,c})); });
+  return out;
+}
+function bucket(cid,c){
+  const m = S.mastery[key(cid,c)];
+  if(!m || !m.seen) return 'new';
+  return (m.box>=3) ? 'solid' : 'shaky';
+}
+function weakList(){
+  return allCards()
+    .map(p=>({...p, m:S.mastery[key(p.cid,p.c)]}))
+    .filter(p=>p.m && p.m.seen && p.m.box < 2)
+    .sort((a,b)=>(a.m.box-b.m.box) || (b.m.seen-a.m.seen));
+}
+
+function renderProgress(){
+  const all = allCards();
+  const counts = {solid:0, shaky:0, new:0};
+  all.forEach(p=>counts[bucket(p.cid,p.c)]++);
+  const pct = all.length ? Math.round(100*counts.solid/all.length) : 0;
+  document.getElementById('pgOverall').textContent = pct+'%';
+  document.getElementById('pgBar').style.width = pct+'%';
+  document.getElementById('pgSolid').textContent = counts.solid;
+  document.getElementById('pgShaky').textContent = counts.shaky;
+  document.getElementById('pgNew').textContent = counts.new;
+
+  document.getElementById('pgChaps').innerHTML = ORDER.map(cid=>{
+    const d=DATA[cid]; if(!d) return '';
+    const solid = d.cards.filter(c=>bucket(cid,c)==='solid').length;
+    const p = Math.round(100*solid/d.cards.length);
+    return `<div class="tile" data-pg="${cid}"><div class="ic">${ICONS[cid]||'📘'}</div>
+      <div class="tx"><b>${d.title.replace(/^(Chapter \d+|Appendix 1): /,'')}</b>
+      <span>${solid} of ${d.cards.length} solid</span>
+      <div class="bar" style="margin-top:7px;height:6px"><i style="width:${p}%"></i></div></div>
+      <div class="chev">${p}%</div></div>`;
+  }).join('');
+  document.querySelectorAll('#pgChaps [data-pg]').forEach(el=>el.onclick=()=>startQuest([el.dataset.pg],12));
+
+  const weak = weakList();
+  const box = document.getElementById('pgWeak');
+  box.innerHTML = weak.length
+    ? weak.slice(0,40).map(p=>`<div class="tile" style="cursor:default"><div class="tx">
+        <b>${p.c.front}</b><span>${p.c.back}</span></div>
+        <div class="chev" style="font-size:12px;color:${p.m.box?'var(--gold)':'var(--bad)'}">${p.m.box?'shaky':'missed'}</div></div>`).join('')
+      + (weak.length>40 ? `<p class="muted">…and ${weak.length-40} more.</p>` : '')
+    : '<p class="muted">Nothing here yet. Play a round and anything you miss shows up in this list.</p>';
+
+  document.getElementById('pgDrill').onclick = ()=>{
+    if(!weakList().length){ toast('Nothing to drill yet — play a round first'); return; }
+    startQuest(ORDER, 12, false, true);
   };
-  go('learn'); touchStreak();
+  navigator.storage && navigator.storage.persisted && navigator.storage.persisted().then(ok=>{
+    document.getElementById('pgStore').textContent = ok
+      ? 'Her progress is marked as protected on this device, so the phone will not clear it on its own.'
+      : 'Tip: adding Nova to her home screen makes the phone far less likely to clear her progress.';
+  });
+}
+
+/* ---------- backup / restore ---------- */
+function exportProgress(){
+  const payload = {app:'nova', v:1, saved:new Date().toISOString(), state:S};
+  const blob = new Blob([JSON.stringify(payload)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'nova-progress-' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  toast('Backup saved to your downloads');
+}
+function importProgress(file){
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const d = JSON.parse(r.result);
+      const st = d && d.state;
+      if(!st || typeof st.mastery !== 'object') throw 0;
+      const merged = Object.assign({}, S.mastery);
+      Object.entries(st.mastery).forEach(([k,v])=>{
+        const cur = merged[k];
+        if(!cur || (v.box||0) > (cur.box||0) || (v.seen||0) > (cur.seen||0)) merged[k]=v;
+      });
+      S.mastery = merged;
+      S.xp = Math.max(S.xp||0, st.xp||0);
+      S.streak = Math.max(S.streak||0, st.streak||0);
+      S.best = Object.assign({}, st.best||{}, S.best||{});
+      save(); renderProgress(); renderHome();
+      toast('Progress restored ✓');
+    }catch(e){ toast("That file didn't look like a Nova backup"); }
+  };
+  r.readAsText(file);
 }
 
 /* ---------- voice settings ---------- */
@@ -995,36 +1219,32 @@ function renderVoice(){
   const list = Voice.voices();
   const cur = Voice.current();
   const box = document.getElementById('voiceList');
-  if(!list.length){ box.innerHTML = '<p class="muted">This device isn\'t offering any voices yet. Try closing and reopening Nova.</p>'; return; }
-
-  box.innerHTML = list.map(v=>{
-    const s = scoreVoice(v);
-    const label = s>=100 ? 'Very natural' : s>=70 ? 'Natural' : s>=0 ? 'Basic' : 'Old robot voice';
-    const col = s>=70 ? 'var(--good)' : s>=0 ? 'var(--dim)' : '#ff6b81';
-    const on = cur && cur.name===v.name;
-    return `<div class="tile" data-v="${v.name.replace(/"/g,'&quot;')}" style="${on?'border-color:var(--accent2)':''}">
-      <div class="ic" style="${on?'background:linear-gradient(135deg,#ff8fc7,#8b6dff)':''}">${on?'✓':'🔊'}</div>
-      <div class="tx"><b>${v.name.replace(/ - English.*/,'')}</b>
-      <span style="color:${col}">${label}${v.localService?'':' · needs internet'}</span></div>
-      <div class="chev">›</div></div>`;
-  }).join('');
-
-  box.querySelectorAll('[data-v]').forEach(el=>el.onclick=()=>{
-    const name = el.dataset.v;
-    Voice.setVoice(name);
-    Voice.enabled(true);
-    document.getElementById('soundToggle').textContent='On';
-    renderVoice();
-    // name itself first, so it's obvious which voice is actually talking
-    Voice.say([name.replace(/ - English.*/,'') + '.'].concat(SAMPLE));
-    const active = document.querySelector(`[data-v="${name.replace(/"/g,'&quot;')}"] .ic`);
-    if(active){ active.textContent='🔈'; setTimeout(()=>{ if(active.isConnected) active.textContent='✓'; }, 4000); }
-  });
+  if(!list.length){ box.innerHTML = '<p class="muted">This device isn\'t offering any voices yet. Try closing and reopening Nova.</p>'; }
+  else {
+    box.innerHTML = list.map(v=>{
+      const sc = scoreVoice(v);
+      const label = sc>=100 ? 'Very natural' : sc>=70 ? 'Natural' : sc>=0 ? 'Basic' : 'Old robot voice';
+      const col = sc>=70 ? 'var(--good)' : sc>=0 ? 'var(--dim)' : '#ff6b81';
+      const on = cur && cur.name===v.name;
+      return `<div class="tile" data-v="${v.name.replace(/"/g,'&quot;')}" style="${on?'border-color:var(--accent2)':''}">
+        <div class="ic" style="${on?'background:linear-gradient(135deg,#ff8fc7,#8b6dff)':''}">${on?'✓':'🔊'}</div>
+        <div class="tx"><b>${v.name.replace(/ - English.*/,'')}</b>
+        <span style="color:${col}">${label}${v.localService?'':' · needs internet'}</span></div>
+        <div class="chev">›</div></div>`;
+    }).join('');
+    box.querySelectorAll('[data-v]').forEach(el=>el.onclick=()=>{
+      const name = el.dataset.v;
+      Voice.setVoice(name); Voice.enabled(true);
+      document.getElementById('soundToggle').textContent='On';
+      Rec.on(false); renderVoice();
+      Voice.say([name.replace(/ - English.*/,'') + '.'].concat(SAMPLE));
+    });
+  }
 
   const bad = list.length && scoreVoice(list[0]) < 70;
   document.getElementById('voiceTip').innerHTML = bad
-    ? 'Only basic voices here. On an Android phone, installing <b>Google Speech Services</b> from the Play Store adds much better ones. On Windows, go to Settings, then Time &amp; language, then Speech, and add a Natural voice.'
-    : 'Tip: the voices marked <b>needs internet</b> sound the best but go quiet if she has no signal. Nova falls back to a built-in one automatically.';
+    ? 'Only basic voices here. On an Android phone, installing <b>Google Speech Services</b> from the Play Store adds better ones — but Nova\'s own recorded voice above beats all of them.'
+    : 'These are only used when Nova\'s recorded voice is turned off or still downloading.';
 
   const r = document.getElementById('rateSlide');
   r.value = Math.round(Voice.rate()*100);
@@ -1045,14 +1265,188 @@ function renderVoice(){
     rt.style.borderColor = on ? 'var(--accent2)' : 'var(--line)';
     document.getElementById('recSub').textContent = on
       ? 'On — a real recorded voice says every term'
-      : 'Off — using the phone voice below instead';
+      : 'Off — using a phone voice from the list below';
   };
   paint();
   rt.onclick = ()=>{
-    const on = !Rec.on(); Rec.on(on); paint();
-    if(on){ Rec.unlock(); Rec.warm('ch1'); setTimeout(()=>{ if(!Rec.play('ch1','term',0)) Voice.say(['Recorded audio is still downloading. One moment.']); }, 700); }
+    const on = !Rec.on(); Rec.on(on); paint(); renderVoice();
+    if(on){ Rec.unlock(); Rec.warm('ch1'); setTimeout(()=>{ if(!Rec.play('ch1','term',0)) Voice.say(['Recorded audio is still downloading. One moment.']); }, 900); }
     else Voice.say(SAMPLE);
   };
+}
+
+function fmt(t){ t=Math.max(0,Math.floor(t||0)); const m=Math.floor(t/60), x=t%60; return m+':'+String(x).padStart(2,'0'); }
+
+function startLearn(cid){
+  const d=DATA[cid]; if(!d) return;
+  document.getElementById('lnTitle').textContent=d.title;
+  const body=document.getElementById('lnBody');
+
+  // Units are rendered in the exact order they were recorded:
+  // heading, then each paragraph, section after section.
+  let u = -1;
+  const sectionStarts = [];
+  const unitWords = [];        // per unit: [{start,end}] as fractions of that unit's duration
+  const esc = t => t.replace(/[&<>]/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch]));
+  // Wrap each word so it can light up as it's spoken. Kokoro doesn't hand back
+  // word timings, so each word's slot is proportional to its length — close
+  // enough to follow along with, and it re-anchors at every paragraph.
+  function wordify(text, uid){
+    const parts = String(text).split(/(\s+)/);
+    const total = parts.reduce((a,p)=>a + (/^\s+$/.test(p) ? p.length*0.35 : p.length), 0) || 1;
+    const spans = []; let acc = 0, w = 0;
+    const html = parts.map(pt=>{
+      const cost = /^\s+$/.test(pt) ? pt.length*0.35 : pt.length;
+      if(/^\s+$/.test(pt) || !pt){ acc += cost; return pt; }
+      const st = acc/total; acc += cost;
+      spans.push([st, acc/total]);
+      return `<span data-w="${w++}">${esc(pt)}</span>`;
+    }).join('');
+    unitWords[uid] = spans;
+    return html;
+  }
+  const html = d.lesson.map(sec=>{
+    u++; sectionStarts.push({u, name: sec.heading});
+    let h = `<h3 data-u="${u}">${wordify(sec.heading, u)}</h3>`;
+    sec.body.split(/\n\n+/).forEach(par=>{ if(par.trim()){ u++; h += `<p data-u="${u}">${wordify(par.trim(), u)}</p>`; } });
+    return h;
+  }).join('');
+
+  body.innerHTML = `
+    <div class="player" id="lnPlayer">
+      <div class="row">
+        <button id="lnBack">↺10</button>
+        <button class="big" id="lnPlay">▶︎</button>
+        <button id="lnFwd">10↻</button>
+        <button id="lnSpeed">1×</button>
+        <span class="time" id="lnTime">0:00 / --:--</span>
+      </div>
+      <div class="scrub"><input type="range" id="lnSeek" min="0" max="1000" value="0" step="1"></div>
+      <div class="jumpbar" id="lnJump"></div>
+    </div>
+    <p class="muted" style="margin:0 0 14px">${d.blurb||''}</p>
+    <div class="tapzone" id="lnTap">${html}</div>
+    <div style="height:14px"></div>
+    <button class="btn" id="lnPlayQuiz">I've got it — quiz me 🎯</button>`;
+
+  document.getElementById('lnPlayQuiz').onclick=()=>startQuest([cid],12);
+  document.getElementById('lnJump').innerHTML =
+    sectionStarts.map(s0=>`<div class="chip" data-jump="${s0.u}">${s0.name}</div>`).join('');
+
+  Rec.warm(cid, true);
+  const P = {cid, idx:null, el:null, speed:1, ttsMode:false};
+  const playBtn = document.getElementById('lnPlay');
+  const seek    = document.getElementById('lnSeek');
+  const timeEl  = document.getElementById('lnTime');
+
+  fetch(`${cid}.lesson.json`).then(r=>r.ok?r.json():null).then(j=>{ P.idx=j; }).catch(()=>{});
+
+  function el(){ P.el = P.el || Rec.lessonEl(cid); return P.el; }
+  function paint(){
+    const a = el();
+    if(!a || !a.duration || !isFinite(a.duration)){ timeEl.textContent = P.ttsMode ? 'reading…' : '0:00 / --:--'; return; }
+    playBtn.textContent = a.paused ? '▶︎' : '⏸';
+    timeEl.textContent = fmt(a.currentTime)+' / '+fmt(a.duration);
+    if(!seek.dataset.dragging) seek.value = Math.round(1000*a.currentTime/a.duration);
+    highlight(a.currentTime);
+  }
+  let lastU = -1, lastW = -1, curNode = null;
+  function highlight(t){
+    if(!P.idx) return;
+    let cur = -1;
+    for(let i=0;i<P.idx.length;i++){ if(P.idx[i][0] <= t + 0.12) cur = i; else break; }
+    if(cur < 0) return;
+
+    if(cur !== lastU){
+      lastU = cur; lastW = -1;
+      document.querySelectorAll('#lnTap .nowplaying').forEach(n=>n.classList.remove('nowplaying'));
+      curNode = document.querySelector(`#lnTap [data-u="${cur}"]`);
+      if(curNode){
+        curNode.classList.add('nowplaying');
+        const r = curNode.getBoundingClientRect();
+        if(r.top < 110 || r.bottom > innerHeight - 90) curNode.scrollIntoView({block:'center', behavior:'smooth'});
+      }
+    }
+    if(!curNode) return;
+    const [st, dur] = P.idx[cur];
+    if(!dur) return;
+    const frac = Math.max(0, Math.min(1, (t - st) / dur));
+    const slots = unitWords[cur] || [];
+    let w = -1;
+    for(let i=0;i<slots.length;i++){ if(frac >= slots[i][0]) w = i; else break; }
+    if(w === lastW) return;
+    const prev = curNode.querySelector('[data-w].saying');
+    if(prev) prev.classList.remove('saying');
+    const node = curNode.querySelector(`[data-w="${w}"]`);
+    if(node) node.classList.add('saying');
+    lastW = w;
+  }
+
+  function ensure(from){
+    if(el()) return true;
+    const ok = Rec.lesson(cid, from != null ? from : Rec.lessonPos(cid), ()=>paint());
+    if(ok){ P.el = Rec.lessonEl(cid); if(P.el) P.el.playbackRate = P.speed; }
+    return ok;
+  }
+
+  playBtn.onclick = ()=>{
+    Rec.unlock();
+    const a = el();
+    if(a){ a.paused ? a.play().catch(()=>{}) : a.pause(); paint(); return; }
+    if(ensure()){ paint(); return; }
+    // No recorded track for this chapter yet — device voice, no scrubbing possible.
+    P.ttsMode = !P.ttsMode;
+    if(P.ttsMode){ Voice.say(d.lesson.flatMap(s=>[s.heading+'.', s.body])); playBtn.textContent='⏸'; timeEl.textContent='reading…'; }
+    else { Voice.stop(); playBtn.textContent='▶︎'; timeEl.textContent='0:00 / --:--'; }
+  };
+  const nudge = sec=>{ Rec.unlock(); if(!el() && !ensure()) return toast('Audio for this chapter is still downloading');
+    const a=el(); a.currentTime = Math.max(0, Math.min((a.duration||1e9), a.currentTime + sec)); paint(); };
+  document.getElementById('lnBack').onclick = ()=>nudge(-10);
+  document.getElementById('lnFwd').onclick  = ()=>nudge(10);
+
+  const SPEEDS=[1,1.25,1.5,0.75];
+  document.getElementById('lnSpeed').onclick = function(){
+    P.speed = SPEEDS[(SPEEDS.indexOf(P.speed)+1) % SPEEDS.length];
+    this.textContent = P.speed+'×';
+    const a=el(); if(a) a.playbackRate = P.speed;
+    Voice.rate(P.speed*0.95);
+  };
+
+  seek.oninput = ()=>{ seek.dataset.dragging='1';
+    const a=el(); if(a && a.duration){ timeEl.textContent = fmt(seek.value/1000*a.duration)+' / '+fmt(a.duration); } };
+  seek.onchange = ()=>{ Rec.unlock(); if(!el() && !ensure()){ seek.dataset.dragging=''; return; }
+    const a=el(); if(a && a.duration){ a.currentTime = seek.value/1000*a.duration; if(a.paused) a.play().catch(()=>{}); }
+    seek.dataset.dragging=''; paint(); };
+
+  document.getElementById('lnJump').querySelectorAll('[data-jump]').forEach(ch=>ch.onclick=()=>{
+    Rec.unlock();
+    const uIdx = +ch.dataset.jump;
+    if(!P.idx || !P.idx[uIdx]){ toast('Audio still downloading — one moment'); return; }
+    if(!el() && !ensure(P.idx[uIdx][0])) return;
+    const a=el(); a.currentTime = P.idx[uIdx][0]; a.play().catch(()=>{}); paint();
+  });
+
+  // double-tap the left or right side of the text to jump 10 seconds
+  const flash = (txt)=>{ let f=document.getElementById('tapFlash');
+    if(!f){ f=document.createElement('div'); f.id='tapFlash'; f.className='tapflash'; document.body.appendChild(f); }
+    f.textContent=txt; f.style.left = txt[0]==='↺' ? '18px' : 'auto'; f.style.right = txt[0]==='↺' ? 'auto' : '18px';
+    f.classList.add('on'); clearTimeout(f._t); f._t=setTimeout(()=>f.classList.remove('on'), 550); };
+  const tap = document.getElementById('lnTap');
+  let lastTap = 0, lastX = 0;
+  tap.addEventListener('click', e=>{
+    const now = Date.now(), x = e.clientX;
+    if(now - lastTap < 320 && Math.abs(x - lastX) < 70){
+      const left = x < tap.getBoundingClientRect().width / 2;
+      nudge(left ? -10 : 10);
+      flash(left ? '↺ 10s' : '10s ↻');
+      lastTap = 0;
+    } else { lastTap = now; lastX = x; }
+  });
+
+  clearInterval(window._lnTick);
+  window._lnTick = setInterval(()=>{ if(cur==='learn') paint(); else clearInterval(window._lnTick); }, 90);
+
+  go('learn'); touchStreak(); paint();
 }
 
 /* ---------- daily quest ---------- */
@@ -1065,6 +1459,20 @@ document.getElementById('btnDaily').onclick=()=>{
   else if(day>=3 && day<=5) cids=['ch1','ch2','ch3','ch4','ch5'];
   startQuest(cids, 12);
 };
+
+/* ---------- keeping her progress safe ---------- */
+// Ask the browser not to evict this site's data. Granted automatically on
+// Android once the app is installed to the home screen.
+if(navigator.storage && navigator.storage.persist){
+  navigator.storage.persisted().then(ok=>{ if(!ok) navigator.storage.persist().catch(()=>{}); }).catch(()=>{});
+}
+// Phones kill backgrounded tabs without warning — flush before that happens.
+['pagehide','visibilitychange','blur'].forEach(ev=>{
+  window.addEventListener(ev, ()=>{ try{ save(); }catch(e){} });
+});
+document.getElementById('pgExport').onclick = exportProgress;
+document.getElementById('pgImport').onclick = ()=> document.getElementById('pgFile').click();
+document.getElementById('pgFile').onchange = function(){ if(this.files && this.files[0]) importProgress(this.files[0]); this.value=''; };
 
 /* ---------- boot ---------- */
 renderHome();
