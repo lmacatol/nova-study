@@ -689,7 +689,7 @@ const Voice = (()=>{
     return out.length?out:[String(text)];
   }
 
-  let token = 0, watchdog = null;     // token invalidates in-flight callbacks after stop()
+  let token = 0, watchdog = null, once = null;   // `once` = rate for this utterance only
   function next(myToken){
     clearTimeout(watchdog);
     if(myToken !== token) return;
@@ -700,13 +700,13 @@ const Voice = (()=>{
     try{
       const u = new SpeechSynthesisUtterance(text);
       if(v){ u.voice = v; u.lang = v.lang; }
-      u.rate = rate; u.pitch = 1.05; u.volume = 1;
+      u.rate = (once != null ? once : rate); u.pitch = 1.05; u.volume = 1;
       u.onend = step;
       u.onerror = step;
       speechSynthesis.speak(u);
       // Android frequently never fires onend, which strands the rest of the
       // lesson. Estimate how long this chunk should take and move on regardless.
-      const est = (text.length / (13 * rate)) * 1000 + 1400;
+      const est = (text.length / (13 * (once != null ? once : rate))) * 1000 + 1400;
       watchdog = setTimeout(()=>{
         if(myToken !== token || advanced) return;
         try{ if(speechSynthesis.speaking) return void (watchdog = setTimeout(()=>step(), 2500)); }catch(e){}
@@ -723,10 +723,11 @@ const Voice = (()=>{
     enabled(on){ if(on!=null){ enabled=on; store.set('nova.sound', on); if(!on) this.stop(); } return enabled; },
 
     /* say() takes a string or an array of strings spoken back to back */
-    say(text){
+    say(text, oneOffRate){
       if(!enabled || !('speechSynthesis' in window) || !text) return;
       if(!v) refresh();
       this.stop();
+      once = (oneOffRate != null) ? oneOffRate : null;
       const parts = Array.isArray(text) ? text : [text];
       queue = parts.flatMap(p=>chunk(p)).filter(Boolean);
       speaking = true; guard(true);
@@ -1321,14 +1322,14 @@ function sayCard(c, what, cid, rate){
 
   if(what === 'meaning'){
     if(cid && i >= 0 && Rec.play(cid, 'meaning', i, null, rate)) return;
-    Voice.say([c.back]);
+    Voice.say([c.back], (rate && rate < 1) ? Math.max(0.5, Voice.rate() * rate) : null);
     return;
   }
   if(cid && i >= 0){
     const after = (what === 'both') ? ()=>{ if(!Rec.play(cid,'meaning',i)) Voice.say([c.back]); } : null;
     if(Rec.play(cid, 'term', i, after, rate)) return;
   }
-  if(rate && rate < 1){ const r0 = Voice.rate(); Voice.rate(0.6); Voice.say([w]); setTimeout(()=>Voice.rate(r0), 60); return; }
+  if(rate && rate < 1){ Voice.say([w], Math.max(0.5, Voice.rate() * rate)); return; }
   Voice.say(what === 'both' ? [w + '.', c.back + '.'] : [w]);
 }
 
@@ -1708,7 +1709,7 @@ function renderQ(){
   }
   const slow = document.getElementById('qSlow');
   slow.style.display = q.card ? '' : 'none';
-  slow.onclick = ()=>{ if(q.card) sayCard(q.card,'term',q.cid,0.62); };
+  slow.onclick = ()=>{ if(q.card) sayCard(q.card,'term',q.cid,0.55); };
   const box=document.getElementById('qOpts'); box.innerHTML='';
   q.choices.forEach((c,idx)=>{
     const b=document.createElement('button'); b.className='opt'; b.textContent=c;
@@ -1854,7 +1855,7 @@ document.getElementById('fcSpeak').onclick=e=>{
 // same voice, slowed right down, so she can hear each syllable land
 document.getElementById('fcSlow').onclick=e=>{
   e.stopPropagation();
-  sayCard(F.list[F.i], fcFlipped() ? 'meaning' : 'term', F.cid, 0.62);
+  sayCard(F.list[F.i], fcFlipped() ? 'meaning' : 'term', F.cid, 0.55);
 };
 function nextCard(right){
   bump(F.cid, F.list[F.i], right); if(right) S.xp+=2; save();
