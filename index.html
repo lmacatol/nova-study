@@ -1134,8 +1134,17 @@ const Rec = (()=>{
     const s = sprites[k] = {index:null, el:null, abuf:null, raw:null, engine:null, failed:!CAN_FETCH, loading:true};
     if(!CAN_FETCH){ s.loading=false; return s; }
 
-    fetch(k+'.json').then(r=>{ if(!r.ok) throw 0; return r.json(); })
-      .then(idx=>{ s.index = idx; return fetch(k+'.mp3'); })
+    // prefer the chosen voice, but fall back to the original recordings for any
+    // chapter that voice hasn't been recorded in yet (better than robotic TTS)
+    const base = cid+'.'+mode;
+    const stems = (k === base) ? [base] : [k, base];
+    const findStem = stems.reduce((p, stem)=> p.catch(()=>
+        fetch(stem+'.json').then(r=>{ if(!r.ok) throw 0; return r.json(); })
+          .then(idx=>({idx, stem}))
+      ), Promise.reject(0));
+
+    findStem
+      .then(({idx, stem})=>{ s.index = idx; s.stem = stem; return fetch(stem+'.mp3'); })
       .then(r=>{ if(!r.ok) throw 0; return r.arrayBuffer(); })
       .then(buf=>{
         s.raw = buf;
