@@ -164,8 +164,21 @@ body{
 .lesson [data-w].saying{background:var(--accent2);color:#1a1035;font-weight:700}
 
 /* lesson player */
-.player{position:sticky;top:0;z-index:20;background:rgba(26,17,58,.97);backdrop-filter:blur(12px);
-  border:1px solid var(--line);border-radius:20px;padding:12px 14px 10px;margin:0 0 14px}
+.lnhead{position:sticky;top:calc(var(--safe-t) * -1);z-index:22;margin:0 0 14px;
+  padding:6px 0 8px;background:#150e2b;
+  box-shadow:0 10px 18px -6px rgba(10,6,24,.95), 0 1px 0 rgba(58,45,112,.6)}
+.lnhead .vwrap{margin-bottom:6px}
+.player{background:rgba(26,17,58,.97);backdrop-filter:blur(12px);
+  border:1px solid var(--line);border-radius:20px;padding:12px 14px 10px;margin:0 0 10px;
+  transition:padding .2s}
+/* once she's reading, shrink the controls so the diagram keeps its space */
+.lnhead.compact .player{padding:7px 12px 6px}
+.lnhead.compact .jumpbar{display:none}
+.lnhead.compact .player .big{height:42px;min-width:42px;font-size:17px}
+.lnhead.compact .player button{height:36px;min-width:36px}
+.lnhead.compact .vwrap{padding:6px 10px 4px}
+.lnhead.compact .vwrap .vlab{font-size:10px;margin-bottom:2px}
+.lnhead.compact .vwrap svg{max-height:104px}
 .player .row{display:flex;align-items:center;gap:10px}
 .player button{background:var(--card2);border:1px solid var(--line);color:var(--ink);border-radius:14px;
   height:44px;min-width:44px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0 10px}
@@ -2274,6 +2287,7 @@ function startLearn(cid){
   }).join('');
 
   body.innerHTML = `
+    <div class="lnhead" id="lnHead">
     <div class="player" id="lnPlayer">
       <div class="row">
         <button id="lnBack">↺10</button>
@@ -2294,6 +2308,7 @@ function startLearn(cid){
       <button class="btn ghost sm" id="lnDoneAgain" style="margin-top:10px">↺ Listen to it again</button>
     </div>
     <div class="vwrap hide" id="lnVisual"><div class="vlab" id="vLab"></div><div class="vstage" id="vStage"></div></div>
+    </div>
     <p class="muted" style="margin:0 0 14px">${d.blurb||''}</p>
     <div class="tapzone" id="lnTap">${html}</div>
     <div style="height:14px"></div>
@@ -2361,8 +2376,14 @@ function startLearn(cid){
       if(sec !== lastSection){ lastSection = sec; showVisual(sectionText[sec] || ''); }
       if(curNode){
         curNode.classList.add('nowplaying');
+        // scroll so the line sits BELOW the pinned player and diagram, never behind them
+        const headH = (document.getElementById('lnHead')||{offsetHeight:0}).offsetHeight;
         const r = curNode.getBoundingClientRect();
-        if(r.top < 110 || r.bottom > innerHeight - 90) curNode.scrollIntoView({block:'center', behavior:'smooth'});
+        const safeTop = headH + 16, safeBottom = innerHeight - 100;
+        if(r.top < safeTop || r.bottom > safeBottom){
+          const target = window.scrollY + r.top - safeTop - 8;
+          window.scrollTo({top: Math.max(0, target), behavior:'smooth'});
+        }
       }
     }
     if(!curNode) return;
@@ -2433,6 +2454,13 @@ function startLearn(cid){
       lastTap = 0;
     } else { lastTap = now; lastX = x; }
   });
+
+  const head = document.getElementById('lnHead');
+  const onScroll = ()=>{ head.classList.toggle('compact', window.scrollY > 90); };
+  window.removeEventListener('scroll', window._lnScroll || (()=>{}));
+  window._lnScroll = onScroll;
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
 
   clearInterval(window._lnTick);
   window._lnTick = setInterval(()=>{ if(cur==='learn') paint(); else clearInterval(window._lnTick); }, 90);
