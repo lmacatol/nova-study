@@ -779,21 +779,60 @@ const SFX=(()=>{ let ctx=null;
 
 /* ---------- Nova's face ---------- */
 const NOVA_SVG = `<svg viewBox="0 0 100 100" width="100%" height="100%">
- <defs><linearGradient id="ng" x1="0" y1="0" x2="1" y2="1">
-   <stop offset="0" stop-color="#ff9ed2"/><stop offset="1" stop-color="#8b6dff"/></linearGradient></defs>
- <circle cx="50" cy="50" r="46" fill="url(#ng)"/>
- <circle cx="50" cy="52" r="37" fill="#2a1c5c"/>
- <path d="M13 46a37 37 0 0 1 74 0c0-24-16-36-37-36S13 22 13 46z" fill="#ffb3dd"/>
- <path d="M16 52c-4 16 0 30 8 36-6-14-6-26-4-36z" fill="#ffb3dd"/>
- <path d="M84 52c4 16 0 30-8 36 6-14 6-26 4-36z" fill="#ffb3dd"/>
- <circle cx="39" cy="54" r="5.4" fill="#fff"/><circle cx="61" cy="54" r="5.4" fill="#fff"/>
- <circle cx="40" cy="55" r="2.8" fill="#2a1c5c"/><circle cx="62" cy="55" r="2.8" fill="#2a1c5c"/>
- <circle cx="41.2" cy="53.6" r="1" fill="#fff"/><circle cx="63.2" cy="53.6" r="1" fill="#fff"/>
- <path d="M43 66q7 6 14 0" stroke="#ffd0ea" stroke-width="3" fill="none" stroke-linecap="round"/>
- <circle cx="30" cy="63" r="3.4" fill="#ff8fc7" opacity=".55"/>
- <circle cx="70" cy="63" r="3.4" fill="#ff8fc7" opacity=".55"/>
- <path d="M50 6l2.6 5.6L58 14l-5.4 2.4L50 22l-2.6-5.6L42 14l5.4-2.4z" fill="#ffcc4d"/>
-</svg>`;
+ <defs>
+ <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+ <stop offset="0" stop-color="#ff9ed2"/><stop offset="1" stop-color="#8b6dff"/>
+ </linearGradient>
+ <linearGradient id="scrub" x1="0" y1="0" x2="0" y2="1">
+ <stop offset="0" stop-color="#45d1bf"/><stop offset="1" stop-color="#1a8f88"/>
+ </linearGradient>
+ <clipPath id="inner"><circle cx="50" cy="50" r="41"/></clipPath>
+ </defs>
+ <circle cx="50" cy="50" r="48" fill="url(#ring)"/>
+ <circle cx="50" cy="50" r="41" fill="#2b1d5e"/>
+ <g clip-path="url(#inner)">
+ <!-- shoulders / scrub top -->
+ <path d="M17 100 C17 76 32 65 50 65 C68 65 83 76 83 100 Z" fill="url(#scrub)"/>
+ <!-- v-neck -->
+ <path d="M43 65.5 L50 76 L57 65.5 C53.5 64.6 46.5 64.6 43 65.5 Z" fill="#17706b"/>
+ <!-- neck -->
+ <path d="M44 53 h12 v9 c0 3.5 -12 3.5 -12 0 Z" fill="#e2ac81"/>
+ <!-- hair back -->
+ <path d="M29 44 C29 26 36 19 50 19 C64 19 71 26 71 44 C71 54 69.5 60 67 63 C68.6 51 67 40 64.5 36.5 C58 41 42 41 35.5 36.5 C33 40 31.4 51 33 63 C30.5 60 29 54 29 44 Z" fill="#3a2418"/>
+ <!-- face -->
+ <ellipse cx="50" cy="40" rx="14.5" ry="16.5" fill="#f3c79f"/>
+ <!-- fringe -->
+ <path d="M35.5 36 C37.5 25.5 43.5 22 50 22 C56.5 22 62.5 25.5 64.5 36 C59 29.5 53.5 28.5 50 28.5 C45.5 28.5 40 30.5 35.5 36 Z" fill="#3a2418"/>
+ <!-- eyes -->
+ <ellipse cx="43.8" cy="41" rx="2.9" ry="3.2" fill="#fff"/>
+ <ellipse cx="56.2" cy="41" rx="2.9" ry="3.2" fill="#fff"/>
+ <circle cx="44.2" cy="41.6" r="1.8" fill="#2b1d33"/>
+ <circle cx="56.6" cy="41.6" r="1.8" fill="#2b1d33"/>
+ <circle cx="44.9" cy="40.7" r=".65" fill="#fff"/>
+ <circle cx="57.3" cy="40.7" r=".65" fill="#fff"/>
+ <!-- brows -->
+ <path d="M40.6 36 q3.2 -1.9 6.4 -.3" stroke="#3a2418" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+ <path d="M53 35.7 q3.2 -1.6 6.4 .3" stroke="#3a2418" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+ <!-- smile -->
+ <path d="M45.6 48.4 q4.4 4 8.8 0" stroke="#b4693f" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+ <!-- blush -->
+ <ellipse cx="38.8" cy="46" rx="3" ry="2" fill="#ff8fc7" opacity=".45"/>
+ <ellipse cx="61.2" cy="46" rx="3" ry="2" fill="#ff8fc7" opacity=".45"/>
+ <!-- stethoscope -->
+ <path d="M41 65 C35 74 36 82 41.5 84.5" stroke="#17324f" stroke-width="3" fill="none" stroke-linecap="round"/>
+ <path d="M59 65 C65 73 64.5 79 60 81" stroke="#17324f" stroke-width="3" fill="none" stroke-linecap="round"/>
+ <circle cx="44.5" cy="86.5" r="5" fill="#e3eaf5" stroke="#17324f" stroke-width="1.4"/>
+ <circle cx="44.5" cy="86.5" r="2.4" fill="#8a97ab"/>
+ <!-- ID badge -->
+ <rect x="62" y="79" width="11" height="14" rx="2.2" fill="#fdf7ff"/>
+ <circle cx="67.5" cy="83.5" r="2.1" fill="#8b6dff"/>
+ <rect x="64" y="87" width="7" height="1.5" rx=".75" fill="#c9c1e8"/>
+ <rect x="64" y="89.8" width="4.6" height="1.5" rx=".75" fill="#c9c1e8"/>
+ </g>
+ <!-- sparkle -->
+ <path d="M77 24 l1.9 4.1 4.1 1.9 -4.1 1.9 -1.9 4.1 -1.9 -4.1 -4.1 -1.9 4.1 -1.9 z" fill="#ffcc4d"/>
+ </svg>
+`;
 document.getElementById('novaArt').innerHTML = NOVA_SVG;
 document.getElementById('novaArt2').innerHTML = NOVA_SVG;
 
