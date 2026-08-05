@@ -310,6 +310,44 @@ select,input{font-family:inherit}
 .vray{animation:vpulse 1.8s ease-in-out infinite}
 .vr1,.vr2,.vr3{animation:vpulse 1.8s ease-in-out infinite}
 .vr2{animation-delay:.2s}.vr3{animation-delay:.4s}
+
+@keyframes vhblue{0%{transform:translate(150px,10px);opacity:0}8%{opacity:1}30%{transform:translate(126px,70px)}55%{transform:translate(122px,120px)}80%{transform:translate(200px,50px);opacity:1}100%{transform:translate(206px,44px);opacity:0}}
+@keyframes vhred{0%{transform:translate(186px,52px);opacity:0}10%{opacity:1}35%{transform:translate(182px,72px)}60%{transform:translate(178px,124px)}85%{transform:translate(176px,20px);opacity:1}100%{transform:translate(176px,6px);opacity:0}}
+.vhb{animation:vhblue 3.4s ease-in-out infinite}
+.vhb2{animation-delay:1.7s}
+.vhr{animation:vhred 3.4s ease-in-out infinite 1.1s}
+.vhr2{animation-delay:2.8s}
+.vbreathe2{transform-origin:160px 100px;animation:vinhale 3.6s ease-in-out infinite}
+@keyframes vdiaflat{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(6px) scaleY(.7)}}
+.vdia{transform-origin:160px 138px;animation:vdiaflat 3.6s ease-in-out infinite}
+.vsp{opacity:.25}
+.vsp1{animation:vshow 7s ease-in-out infinite}
+.vsp2{animation:vshow 7s ease-in-out infinite 1.6s}
+.vsp3{animation:vshow 7s ease-in-out infinite 3.2s}
+.vsp4{animation:vshow 7s ease-in-out infinite 4.8s}
+
+@keyframes vrise{0%,100%{height:14px;y:64}50%{height:44px;y:34}}
+.vmerc{animation:vrise 3.4s ease-in-out infinite}
+.vecg,.vecg2{stroke-dasharray:200;stroke-dashoffset:200;animation:vdraw 2.2s linear infinite}
+@keyframes vsqueeze{0%,100%{transform:scale(1)}50%{transform:scale(.78)}}
+.vbulb{transform-origin:62px 46px;animation:vsqueeze 1.8s ease-in-out infinite}
+@keyframes vlockit{0%,45%{transform:translateY(-8px);opacity:.5}60%,100%{transform:none;opacity:1}}
+.vlock{animation:vlockit 3.4s ease-in-out infinite}
+@keyframes vtip{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+.vscale{transform-origin:40px 22px;animation:vtip 3.6s ease-in-out infinite}
+.vbub{opacity:0}
+.vb1{animation:vshow 5s ease-in-out infinite}
+.vb2{animation:vshow 5s ease-in-out infinite 2.5s}
+@keyframes vring{0%{r:20;opacity:1}100%{r:40;opacity:0}}
+.vpulsering{animation:vring 1.8s ease-out infinite}
+@keyframes vpush{0%,100%{transform:translateX(0)}60%{transform:translateX(34px)}}
+.vplunger{animation:vpush 3.4s ease-in-out infinite}
+.vfill{stroke-dasharray:180;stroke-dashoffset:180;animation:vdraw 3.4s ease-in-out infinite}
+.vq{opacity:.3}
+.vqa{animation:vshow 6.4s ease-in-out infinite}
+.vqb{animation:vshow 6.4s ease-in-out infinite 1.5s}
+.vqc{animation:vshow 6.4s ease-in-out infinite 3s}
+.vqd{animation:vshow 6.4s ease-in-out infinite 4.5s}
 @media (prefers-reduced-motion: reduce){ .vwrap *{animation:none !important} }
 
 </style>
@@ -791,38 +829,77 @@ const VISUALS = [
  <text x="160" y="26" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">hypothyroidism &#183; hyperthyroidism</text>
 </svg>`},
 
-{id:'heart', label:'Blood through the heart', match:/heart|cardi[ao]|blood vessel|circulat|arter(y|ies)|vein|ventricle|atrium/gi, svg:`
-<svg viewBox="0 0 320 120">
- <g transform="translate(96,6)">
-  <path class="vbeat" d="M64 100C64 100 8 66 8 38 8 18 24 8 38 8c11 0 20 6 26 16 6-10 15-16 26-16 14 0 30 10 30 30 0 28-56 62-56 62z" fill="#ff6b81"/>
- </g>
- <circle class="vflow vf1" r="5" fill="#6de3ff"/><circle class="vflow vf2" r="5" fill="#6de3ff"/><circle class="vflow vf3" r="5" fill="#ff8fc7"/>
- <path id="vpath" d="M20 60 Q90 20 160 60 Q230 100 300 60" fill="none" stroke="#3a2d70" stroke-width="2" opacity=".5"/>
- <text x="160" y="114" text-anchor="middle" fill="#a99fd4" font-size="11">the pump that never gets a day off</text>
+{id:'heart', label:'Blood through the heart', match:/heart|cardi[ao]|blood vessel|circulat|arter(y|ies)|vein|ventricle|atrium/gi, svg:`<svg viewBox="0 0 320 150">
+ <defs><marker id="ah" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6z" fill="#cfc6ff"/></marker></defs>
+ <!-- great vessels -->
+ <path d="M150 8 C150 34 138 44 132 56" stroke="#7ea6ff" stroke-width="11" fill="none" stroke-linecap="round"/>
+ <path d="M112 140 C112 116 120 104 128 96" stroke="#7ea6ff" stroke-width="10" fill="none" stroke-linecap="round"/>
+ <path d="M176 8 C176 30 196 30 206 44" stroke="#ff6b81" stroke-width="11" fill="none" stroke-linecap="round"/>
+ <path d="M160 14 C160 34 176 40 186 50" stroke="#7ea6ff" stroke-width="8" fill="none" stroke-linecap="round"/>
+ <!-- myocardium -->
+ <path d="M132 44 C104 46 92 66 94 88 c2 26 22 44 44 50 10 3 18 2 24 0 24-8 42-28 44-52 2-24-12-42-38-44z" fill="#c9455c"/>
+ <!-- chambers: RA, RV (patient's right = our left), LA, LV -->
+ <path d="M134 50 C114 52 106 64 108 76 c1 8 8 14 18 15 l12-2 V50z" fill="#5b7fd4"/>
+ <path d="M126 93 C112 96 106 110 110 124 c4 14 16 22 26 24 l6-2 V92z" fill="#7ea6ff"/>
+ <path d="M170 50 C190 52 200 64 198 76 c-1 8-8 14-18 15 l-12-2 V50z" fill="#d1607a"/>
+ <path d="M178 93 C192 96 200 110 196 124 c-5 14-18 24-30 26 l-4-2 V92z" fill="#e0798f"/>
+ <!-- septum + valves -->
+ <path d="M152 48 V142" stroke="#9c3247" stroke-width="5"/>
+ <path d="M126 90 h26" stroke="#f2e6ea" stroke-width="3.5"/>
+ <path d="M166 90 h26" stroke="#f2e6ea" stroke-width="3.5"/>
+ <!-- flow -->
+ <circle class="vhb vhb1" r="4.5" fill="#6de3ff"/><circle class="vhb vhb2" r="4.5" fill="#6de3ff"/>
+ <circle class="vhr vhr1" r="4.5" fill="#ffd0d8"/><circle class="vhr vhr2" r="4.5" fill="#ffd0d8"/>
+ <g font-size="9.5" font-weight="800" fill="#fff">
+  <text x="120" y="70" text-anchor="middle">RA</text><text x="124" y="118" text-anchor="middle">RV</text>
+  <text x="184" y="70" text-anchor="middle">LA</text><text x="180" y="120" text-anchor="middle">LV</text></g>
+ <g font-size="9" fill="#a99fd4" font-weight="700">
+  <text x="6" y="20">superior vena cava</text><text x="6" y="140">inferior vena cava</text>
+  <text x="228" y="24">aorta</text><text x="226" y="44">pulmonary artery</text></g>
 </svg>`},
 
-{id:'lungs', label:'Breathing', match:/lung|respirator|breath|bronch|trachea|pulmon|alveol/gi, svg:`
-<svg viewBox="0 0 320 120">
- <g transform="translate(112,4)" class="vbreathe">
-  <rect x="44" y="4" width="8" height="26" rx="4" fill="#cfc6ff"/>
-  <path d="M44 30c0 0-26 4-30 26-4 22 0 40 10 44 12 5 20-4 20-16V30z" fill="#8b6dff"/>
-  <path d="M52 30c0 0 26 4 30 26 4 22 0 40-10 44-12 5-20-4-20-16V30z" fill="#8b6dff"/>
+{id:'lungs', label:'Breathing', match:/lung|respirator|breath|bronch|trachea|pulmon|alveol/gi, svg:`<svg viewBox="0 0 320 150">
+ <!-- larynx, trachea, carina, main bronchi -->
+ <rect x="152" y="4" width="16" height="14" rx="4" fill="#cfc6ff"/>
+ <rect x="155" y="18" width="10" height="34" rx="4" fill="#e6e0ff"/>
+ <g stroke="#e6e0ff" stroke-width="7" stroke-linecap="round" fill="none">
+   <path d="M158 52 C146 60 136 64 126 70"/><path d="M162 52 C176 60 188 64 198 70"/></g>
+ <g stroke="#cfc6ff" stroke-width="4" stroke-linecap="round" fill="none">
+   <path d="M126 70 C116 78 112 88 110 96"/><path d="M198 70 C208 78 212 88 214 96"/></g>
+ <g class="vbreathe2">
+  <!-- right lung: three lobes (patient's right, viewer's left) -->
+  <path d="M120 56 C96 60 82 86 82 110 c0 20 8 32 22 32 h16 V56z" fill="#9b7cf0"/>
+  <path d="M82 84 h56" stroke="#2b1d5e" stroke-width="2.5"/>
+  <path d="M86 112 h52" stroke="#2b1d5e" stroke-width="2.5"/>
+  <!-- left lung: two lobes + cardiac notch -->
+  <path d="M200 56 C224 60 238 86 238 110 c0 20-8 32-22 32 h-16 V96 c-10-6-10-16 0-22 V56z" fill="#9b7cf0"/>
+  <path d="M200 96 h38" stroke="#2b1d5e" stroke-width="2.5"/>
  </g>
- <text x="30" y="40" fill="#6de3ff" font-size="12" font-weight="800" class="vfade">O₂ in</text>
- <text x="250" y="86" fill="#ff8fc7" font-size="12" font-weight="800" class="vfade2">CO₂ out</text>
+ <!-- diaphragm -->
+ <path class="vdia" d="M74 142 C120 128 200 128 246 142" stroke="#3ddc97" stroke-width="6" fill="none" stroke-linecap="round"/>
+ <g font-size="9" fill="#a99fd4" font-weight="700">
+  <text x="6" y="72">RIGHT — 3 lobes</text><text x="252" y="72">LEFT — 2</text>
+  <text x="252" y="86">(heart notch)</text><text x="6" y="138">diaphragm</text></g>
+ <text x="176" y="34" font-size="9" fill="#a99fd4" font-weight="700">trachea</text>
 </svg>`},
 
-{id:'kidney', label:'The kidneys filtering', match:/kidney|renal|nephr|urinary|urine|bladder|ureter/gi, svg:`
-<svg viewBox="0 0 320 120">
- <g transform="translate(60,14)">
-  <path d="M40 6c18 0 30 16 30 34S58 74 40 74c-10 0-14-8-8-18 5-8 5-18 0-26-6-10-2-24 8-24z" fill="#ff8fc7"/>
-  <path d="M120 6c-18 0-30 16-30 34s12 34 30 34c10 0 14-8 8-18-5-8-5-18 0-26 6-10 2-24-8-24z" fill="#ff8fc7"/>
-  <path d="M70 60 L80 92" stroke="#8b6dff" stroke-width="4"/><path d="M90 60 L80 92" stroke="#8b6dff" stroke-width="4"/>
-  <ellipse cx="80" cy="98" rx="16" ry="11" fill="#ffcc4d"/>
-  <circle class="vdrop vd1" cx="70" cy="62" r="3.5" fill="#ffcc4d"/>
-  <circle class="vdrop vd2" cx="90" cy="62" r="3.5" fill="#ffcc4d"/>
+{id:'kidney', label:'The kidneys filtering', match:/kidney|renal|nephr|urinary|urine|bladder|ureter/gi, svg:`<svg viewBox="0 0 320 150">
+ <g transform="translate(52,10)">
+  <path d="M78 4 C112 4 132 30 132 62 c0 32-20 58-54 58 -16 0-24-10-16-24 8-14 10-32 2-46 C134 40 128 20 118 12 106 4 92 4 78 4z" fill="#c26f8a" opacity="0"/>
+  <path d="M74 2 C110 2 132 30 132 62 c0 32-22 60-58 60 -14 0-20-10-12-22 9-14 11-38 2-52 C56 34 58 2 74 2z" fill="#b95f7d"/>
+  <path d="M80 14 C108 14 122 36 122 62 c0 26-14 48-42 48 -10 0-14-8-8-17 9-14 11-40 1-53 C66 30 68 14 80 14z" fill="#d98aa4"/>
+  <g fill="#f0c3d2"><path d="M112 40 l14 8 -14 8z"/><path d="M118 58 l14 6 -14 6z"/><path d="M112 76 l14 8 -14 8z"/></g>
+  <path d="M62 46 C78 52 82 72 64 80 c-8 4-12 -2-10 -8 4-10 4-18 0-24 -2-4 2-6 8-2z" fill="#ffcc4d"/>
+  <path d="M60 78 C56 96 54 112 56 132" stroke="#ffcc4d" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <path d="M48 44 h-40" stroke="#ff6b81" stroke-width="7" stroke-linecap="round"/>
+  <path d="M46 60 h-38" stroke="#7ea6ff" stroke-width="7" stroke-linecap="round"/>
+  <circle class="vdrop vd1" cx="62" cy="64" r="3.5" fill="#ffcc4d"/>
+  <circle class="vdrop vd2" cx="58" cy="86" r="3.5" fill="#ffcc4d"/>
  </g>
- <text x="250" y="60" fill="#a99fd4" font-size="11" text-anchor="middle">blood in,<tspan x="250" dy="15">waste out</tspan></text>
+ <g font-size="9" fill="#a99fd4" font-weight="700">
+  <text x="4" y="48">renal artery</text><text x="4" y="72">renal vein</text>
+  <text x="236" y="46">cortex</text><text x="236" y="76">medulla</text>
+  <text x="236" y="106">(pyramids)</text><text x="96" y="146">ureter</text></g>
 </svg>`},
 
 {id:'neuron', label:'A nerve signal', match:/nerve|neuro|brain|spinal cord|cerebr|impulse|encephal/gi, svg:`
@@ -848,6 +925,123 @@ const VISUALS = [
  </g>
  <circle class="vbite" cx="0" cy="0" r="5" fill="#ffcc4d"/>
  <text x="52" y="64" text-anchor="middle" fill="#a99fd4" font-size="11">mouth<tspan x="52" dy="14">to</tspan><tspan x="52" dy="14">the end</tspan></text>
+</svg>`},
+
+{id:'spine', label:'The spinal column', match:/vertebra|spinal column|cervical|thoracic vertebra|lumbar|sacrum|coccyx|backbone|disc/gi, svg:`<svg viewBox="0 0 320 150">
+ <g transform="translate(140,4)">
+  <g fill="#cfc6ff">
+   <rect x="6" y="2"  width="20" height="6" rx="2"/><rect x="5" y="10" width="21" height="6" rx="2"/>
+   <rect x="4" y="18" width="22" height="6" rx="2"/><rect x="4" y="26" width="23" height="6" rx="2"/>
+   <rect x="4" y="34" width="23" height="6" rx="2"/><rect x="4" y="42" width="24" height="6" rx="2"/>
+   <rect x="4" y="50" width="24" height="6" rx="2"/></g>
+  <g fill="#9b7cf0">
+   <rect x="5" y="60" width="25" height="6" rx="2"/><rect x="5" y="68" width="26" height="6" rx="2"/>
+   <rect x="5" y="76" width="26" height="6" rx="2"/><rect x="4" y="84" width="27" height="6" rx="2"/>
+   <rect x="4" y="92" width="27" height="6" rx="2"/></g>
+  <g fill="#ff8fc7">
+   <rect x="3" y="104" width="29" height="7" rx="2"/><rect x="3" y="114" width="30" height="7" rx="2"/>
+   <rect x="2" y="124" width="31" height="7" rx="2"/></g>
+  <path d="M4 136 L32 136 L26 146 L10 146 z" fill="#3ddc97"/>
+  <path d="M13 146 h10 l-3 6 h-4 z" fill="#ffcc4d"/>
+ </g>
+ <g font-size="10" font-weight="800" text-anchor="end">
+  <text class="vsp vsp1" x="128" y="30"  fill="#cfc6ff">CERVICAL &#183; 7</text>
+  <text class="vsp vsp2" x="128" y="80"  fill="#9b7cf0">THORACIC &#183; 12</text>
+  <text class="vsp vsp3" x="128" y="118" fill="#ff8fc7">LUMBAR &#183; 5</text>
+  <text class="vsp vsp4" x="128" y="140" fill="#3ddc97">SACRUM / COCCYX</text></g>
+ <text x="196" y="20" font-size="9" fill="#a99fd4" font-weight="700">neck</text>
+ <text x="196" y="80" font-size="9" fill="#a99fd4" font-weight="700">chest</text>
+ <text x="196" y="118" font-size="9" fill="#a99fd4" font-weight="700">low back</text>
+</svg>`},
+{id:'quadrants', label:'Quadrants of the belly', match:/quadrant|RUQ|LUQ|RLQ|LLQ|umbilical|epigastric|hypochondriac/gi, svg:`
+<svg viewBox="0 0 320 150">
+ <g transform="translate(96,6)">
+  <rect x="0" y="0" width="128" height="130" rx="16" fill="#241a4d" stroke="#3a2d70"/>
+  <rect class="vq vqa" x="4"  y="4"  width="58" height="59" rx="12" fill="#8b6dff"/>
+  <rect class="vq vqb" x="66" y="4"  width="58" height="59" rx="12" fill="#ff8fc7"/>
+  <rect class="vq vqc" x="4"  y="67" width="58" height="59" rx="12" fill="#3ddc97"/>
+  <rect class="vq vqd" x="66" y="67" width="58" height="59" rx="12" fill="#ffcc4d"/>
+  <circle cx="64" cy="65" r="5" fill="#140d29"/>
+  <g font-size="11" font-weight="900" fill="#140d29" text-anchor="middle">
+   <text x="33" y="38">RUQ</text><text x="95" y="38">LUQ</text>
+   <text x="33" y="101">RLQ</text><text x="95" y="101">LLQ</text></g>
+ </g>
+ <text x="8" y="66" font-size="10" fill="#a99fd4" font-weight="700">the patient's<tspan x="8" dy="13">right is on</tspan><tspan x="8" dy="13">YOUR left</tspan></text>
+ <text x="238" y="72" font-size="10" fill="#a99fd4" font-weight="700">navel is<tspan x="238" dy="13">the centre</tspan></text>
+</svg>`},
+
+{id:'vitals', label:'Taking vital signs', match:/vital sign|temperature|pulse rate|blood pressure|respiration rate|oxygen satur|pulse ox/gi, svg:`
+<svg viewBox="0 0 320 150">
+ <g transform="translate(14,30)">
+  <rect x="0" y="8" width="12" height="70" rx="6" fill="#e6e0ff"/><circle cx="6" cy="84" r="11" fill="#ff6b81"/>
+  <rect class="vmerc" x="2" y="40" width="8" height="38" rx="4" fill="#ff6b81"/>
+  <text x="6" y="112" font-size="9" fill="#a99fd4" text-anchor="middle" font-weight="700">temp</text></g>
+ <g transform="translate(62,34)">
+  <polyline class="vecg" points="0,44 18,44 26,20 34,66 44,44 62,44 70,30 78,44 96,44" fill="none" stroke="#3ddc97" stroke-width="3"/>
+  <text x="48" y="108" font-size="9" fill="#a99fd4" text-anchor="middle" font-weight="700">pulse</text></g>
+ <g transform="translate(176,30)" class="vbreathe">
+  <path d="M18 26 c-12 2-18 14-16 30 2 14 8 22 16 22z" fill="#9b7cf0"/><path d="M26 26 c12 2 18 14 16 30 -2 14-8 22-16 22z" fill="#9b7cf0"/>
+  <rect x="19" y="10" width="6" height="18" rx="3" fill="#cfc6ff"/>
+  <text x="22" y="112" font-size="9" fill="#a99fd4" text-anchor="middle" font-weight="700">breaths</text></g>
+ <g transform="translate(240,36)">
+  <rect x="0" y="16" width="52" height="30" rx="8" fill="#3a2d70"/>
+  <circle class="vbulb" cx="62" cy="46" r="10" fill="#ff8fc7"/>
+  <text x="26" y="36" font-size="12" fill="#fff" font-weight="800" text-anchor="middle">120/80</text>
+  <text x="26" y="106" font-size="9" fill="#a99fd4" text-anchor="middle" font-weight="700">pressure</text></g>
+</svg>`},
+
+{id:'privacy', label:'Ethics, law and privacy', match:/HIPAA|privacy|confidential|ethic|legal|consent|malpractice|negligence|scope of practice|advance directive/gi, svg:`
+<svg viewBox="0 0 320 150">
+ <g transform="translate(28,26)">
+  <rect x="0" y="0" width="76" height="96" rx="8" fill="#fdf7ff"/>
+  <g fill="#c9c1e8"><rect x="10" y="14" width="56" height="6" rx="3"/><rect x="10" y="28" width="44" height="6" rx="3"/><rect x="10" y="42" width="52" height="6" rx="3"/><rect x="10" y="56" width="36" height="6" rx="3"/></g>
+  <text x="38" y="86" font-size="9" fill="#8b6dff" font-weight="800" text-anchor="middle">HER CHART</text></g>
+ <g transform="translate(126,40)" class="vlock">
+  <rect x="0" y="22" width="46" height="36" rx="7" fill="#ffcc4d"/>
+  <path d="M9 22v-8a14 14 0 0 1 28 0v8" stroke="#ffcc4d" stroke-width="6" fill="none"/>
+  <circle cx="23" cy="40" r="5" fill="#3a2500"/></g>
+ <g transform="translate(206,30)">
+  <path d="M40 4 v70" stroke="#cfc6ff" stroke-width="4"/><path d="M8 22 h64" stroke="#cfc6ff" stroke-width="4"/>
+  <g class="vscale"><path d="M8 22 l-8 16 h16 z" fill="#8b6dff"/><path d="M72 22 l-8 16 h16 z" fill="#ff8fc7"/></g>
+  <text x="40" y="96" font-size="9" fill="#a99fd4" text-anchor="middle" font-weight="700">should &#183; must</text></g>
+</svg>`},
+
+{id:'talking', label:'Talking with the patient', match:/communicat|explain|patient interaction|listen|therapeutic|history|handoff|scared|body language/gi, svg:`
+<svg viewBox="0 0 320 150">
+ <g transform="translate(30,40)"><circle cx="20" cy="16" r="15" fill="#f3c79f"/><path d="M2 40c0-10 8-16 18-16s18 6 18 16v26H2z" fill="#45d1bf"/></g>
+ <g transform="translate(228,40)"><circle cx="20" cy="16" r="15" fill="#e8b489"/><path d="M2 40c0-10 8-16 18-16s18 6 18 16v26H2z" fill="#8b6dff"/></g>
+ <g class="vbub vb1"><rect x="96" y="26" width="70" height="26" rx="12" fill="#45d1bf"/><path d="M100 52 l-8 10 v-10z" fill="#45d1bf"/></g>
+ <g class="vbub vb2"><rect x="150" y="70" width="70" height="26" rx="12" fill="#8b6dff"/><path d="M216 96 l8 10 v-10z" fill="#8b6dff"/></g>
+ <text x="160" y="132" font-size="10" fill="#a99fd4" text-anchor="middle" font-weight="700">most of the job is people, not pictures</text>
+</svg>`},
+
+{id:'emergency', label:'When something goes wrong', match:/emergenc|shock|seizure|faint|syncope|cardiac arrest|code|stroke|transfer|fall|body mechanic|wheelchair|stretcher/gi, svg:`
+<svg viewBox="0 0 320 150">
+ <g transform="translate(18,30)">
+  <circle class="vpulsering" cx="40" cy="42" r="30" fill="none" stroke="#ff6b81" stroke-width="4"/>
+  <path d="M40 24 v36 M22 42 h36" stroke="#ff6b81" stroke-width="9" stroke-linecap="round"/>
+  <text x="40" y="102" font-size="9" fill="#a99fd4" text-anchor="middle" font-weight="700">call for help</text></g>
+ <g transform="translate(112,34)">
+  <rect x="0" y="30" width="88" height="14" rx="6" fill="#cfc6ff"/>
+  <circle cx="16" cy="52" r="8" fill="#3a2d70"/><circle cx="72" cy="52" r="8" fill="#3a2d70"/>
+  <path d="M6 30 c14-20 62-20 76 0" fill="#8b6dff"/>
+  <text x="44" y="92" font-size="9" fill="#a99fd4" text-anchor="middle" font-weight="700">lower them safely</text></g>
+ <g transform="translate(226,30)">
+  <polyline class="vecg2" points="0,44 14,44 22,18 30,70 40,44 56,44 64,32 72,44 84,44" fill="none" stroke="#3ddc97" stroke-width="3"/>
+  <text x="42" y="102" font-size="9" fill="#a99fd4" text-anchor="middle" font-weight="700">stay with them</text></g>
+</svg>`},
+
+{id:'contrast', label:'Contrast going in', match:/contrast|barium|iodinated|ionic|inject|venipuncture|extravasat|reaction/gi, svg:`
+<svg viewBox="0 0 320 150">
+ <g transform="translate(16,44)">
+  <rect x="0" y="10" width="70" height="26" rx="5" fill="#e6e0ff"/>
+  <rect class="vplunger" x="2" y="13" width="30" height="20" rx="3" fill="#8b6dff"/>
+  <rect x="70" y="19" width="34" height="8" rx="4" fill="#cfc6ff"/>
+  <path d="M104 23 h20" stroke="#cfc6ff" stroke-width="3"/>
+  <text x="52" y="62" font-size="9" fill="#a99fd4" text-anchor="middle" font-weight="700">syringe</text></g>
+ <path d="M144 68 C186 46 226 46 300 60" stroke="#5b7fd4" stroke-width="17" fill="none" stroke-linecap="round"/>
+ <path class="vfill" d="M144 68 C186 46 226 46 300 60" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round" opacity=".85"/>
+ <text x="230" y="104" font-size="10" fill="#a99fd4" text-anchor="middle" font-weight="700">it shows up white on the image</text>
 </svg>`},
 
 {id:'position', label:'Where things sit', match:/prefix/gi, svg:`
@@ -1970,25 +2164,70 @@ function renderVoice(){
   };
 }
 
-let _vCur = null;
+
+/* Which diagram belongs to which lesson section. Written out by hand because
+   automatic matching gets fooled by metaphor — "the root: the heart of the
+   word" is not about the heart. null means keep whatever is already showing. */
+const VISUAL_MAP = {
+  ch1:['wordparts','wordparts','readback','position','wordparts','wordparts','wordparts','readback'],
+  ch2:['cell','cell','cell','cell','cavities','spine','planes','position','quadrants'],
+  ch3:['readback','wordparts','gram','surgery','wordparts','surgery','gram','readback'],
+  ch4:['position','position','position','position','hyperhypo','hyperhypo','wordparts','readback'],
+  ch5:['wordparts','wordparts','position','cavities','shielding','wordparts','readback','readback'],
+  appendix1:['wordparts','heart','infection','hyperhypo','digest','lungs','kidney','neuron','spine','position',null,null],
+  rad100u1:['privacy','privacy','privacy','talking','privacy','privacy','privacy','privacy'],
+  rad100u2:['talking','talking','talking','talking','talking','talking','talking','talking'],
+  rad100u3:['vitals','vitals','heart','lungs','vitals','vitals','vitals','vitals'],
+  rad100u4:['infection','infection','infection','infection','infection','infection','infection','infection'],
+  rad100u5:['emergency','emergency','emergency','emergency','emergency','emergency','emergency','emergency'],
+  rad100u6:['contrast','contrast','contrast','contrast','emergency','contrast','contrast','shielding']
+};
+
+let _vCur = null, _vAt = 0, _vQueued = null;
+const V_MIN_HOLD = 9000;          // never yank a diagram away in under 9 seconds
 function showVisual(text){
   const wrap = document.getElementById('lnVisual');
   if(!wrap) return;
   if(!store.get('nova.anim', true)){ wrap.classList.add('hide'); return; }
-  const t = String(text||'');
+  const since = Date.now() - _vAt;
+  if(_vCur && since < V_MIN_HOLD){
+    // something is already on screen and hasn't had its time — come back to it
+    clearTimeout(_vQueued);
+    _vQueued = setTimeout(()=>{ _vAt = 0; showVisual(text); }, V_MIN_HOLD - since);
+    return;
+  }
+  // The heading says what the section is ABOUT. The body is full of examples —
+  // a chapter on word structure name-drops the stomach and liver constantly —
+  // so body matches count for far less than heading matches.
+  if(text && typeof text === 'object' && text.unit != null){
+    const row = VISUAL_MAP[text.unit];
+    if(row){
+      const id = row[text.sec];
+      if(id === null){ return; }                       // deliberately leave the last one up
+      if(id){ const v = VISUALS.find(x=>x.id===id); if(v) return paintVisual(wrap, v); }
+    }
+  }
+  const head = typeof text === 'object' ? String(text.h || '') : String(text || '');
+  const body = typeof text === 'object' ? String(text.b || '') : '';
   let hit = null, bestScore = 0;
   for(const v of VISUALS){
-    v.match.lastIndex = 0;
-    const m = t.match(v.match);
-    const score = m ? m.length : 0;
+    v.match.lastIndex = 0; const mh = head.match(v.match);
+    v.match.lastIndex = 0; const mb = body.match(v.match);
+    const score = (mh ? mh.length * 12 : 0) + (mb ? Math.min(mb.length, 6) : 0);
     if(score > bestScore){ bestScore = score; hit = v; }
   }
-  if(!hit){ wrap.classList.add('hide'); _vCur = null; return; }
-  if(hit.id === _vCur){ wrap.classList.remove('hide'); return; }
-  _vCur = hit.id;
-  document.getElementById('vLab').textContent = hit.label;
+  if(bestScore < 3) hit = null;      // a single passing mention isn't a topic
+  // nothing matches this section — leave the last diagram up rather than
+  // flashing the panel away mid-lesson
+  if(!hit){ if(!_vCur) wrap.classList.add('hide'); return; }
+  paintVisual(wrap, hit);
+}
+function paintVisual(wrap, v){
+  if(v.id === _vCur){ wrap.classList.remove('hide'); return; }
+  _vCur = v.id; _vAt = Date.now();
+  document.getElementById('vLab').textContent = v.label;
   const stage = document.getElementById('vStage');
-  stage.innerHTML = hit.svg;
+  stage.innerHTML = v.svg;
   stage.classList.remove('vstage'); void stage.offsetWidth; stage.classList.add('vstage');
   wrap.classList.remove('hide');
 }
@@ -2004,6 +2243,8 @@ function startLearn(cid){
   // heading, then each paragraph, section after section.
   let u = -1;
   const sectionStarts = [];
+  const unitSection = [];        // which section each spoken unit belongs to
+  const sectionText  = [];       // the whole section's words, for picking a visual
   const unitWords = [];        // per unit: [{start,end}] as fractions of that unit's duration
   const esc = t => t.replace(/[&<>]/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch]));
   // Wrap each word so it can light up as it's spoken. Kokoro doesn't hand back
@@ -2023,10 +2264,12 @@ function startLearn(cid){
     unitWords[uid] = spans;
     return html;
   }
-  const html = d.lesson.map(sec=>{
+  const html = d.lesson.map((sec, si)=>{
     u++; sectionStarts.push({u, name: sec.heading});
+    unitSection[u] = si;
+    sectionText[si] = {h: sec.heading, b: sec.body, unit: cid, sec: si};
     let h = `<h3 data-u="${u}">${wordify(sec.heading, u)}</h3>`;
-    sec.body.split(/\n\n+/).forEach(par=>{ if(par.trim()){ u++; h += `<p data-u="${u}">${wordify(par.trim(), u)}</p>`; } });
+    sec.body.split(/\n\n+/).forEach(par=>{ if(par.trim()){ u++; unitSection[u] = si; h += `<p data-u="${u}">${wordify(par.trim(), u)}</p>`; } });
     return h;
   }).join('');
 
@@ -2103,7 +2346,7 @@ function startLearn(cid){
     if(fin && !P.celebrated){ P.celebrated = true; confetti(); SFX.win(); S.xp += 20; save(); }
     if(!fin) P.celebrated = false;
   }
-  let lastU = -1, lastW = -1, curNode = null;
+  let lastU = -1, lastW = -1, curNode = null, lastSection = -1;
   function highlight(t){
     if(!P.idx) return;
     let cur = -1;
@@ -2114,7 +2357,8 @@ function startLearn(cid){
       document.querySelectorAll('#lnTap .nowplaying').forEach(n=>n.classList.remove('nowplaying'));
       document.querySelectorAll('#lnTap [data-w].saying').forEach(n=>n.classList.remove('saying'));
       curNode = document.querySelector(`#lnTap [data-u="${cur}"]`);
-      showVisual(curNode ? curNode.textContent : '');
+      const sec = unitSection[cur];
+      if(sec !== lastSection){ lastSection = sec; showVisual(sectionText[sec] || ''); }
       if(curNode){
         curNode.classList.add('nowplaying');
         const r = curNode.getBoundingClientRect();
