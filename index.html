@@ -121,7 +121,7 @@ body{
 .feedback p{margin:0 0 12px;font-size:14px;color:#e6e0ff;line-height:1.45}
 
 /* ---------- flashcards ---------- */
-.fcwrap{flex:1;display:flex;flex-direction:column;justify-content:center;perspective:1200px;min-height:340px}
+.fcwrap{flex:1;display:flex;flex-direction:column;justify-content:center;perspective:1200px;min-height:340px;min-height:0}
 .fc{position:relative;width:100%;height:300px;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.3,.9,.3,1);cursor:pointer}
 .fc.flip{transform:rotateY(180deg)}
 .fc .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:24px;border:1px solid var(--line);
@@ -144,6 +144,15 @@ body{
   color:var(--ink);font-weight:800;font-size:13.5px;cursor:pointer}
 .rate button.no{border-color:#6d2b3a;background:#341826}
 .rate button.ok{border-color:#2a6b52;background:#153228}
+.donebox{display:none;flex:1;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:8px 2px 20px;overflow-y:auto}
+.donebox.on{display:flex}
+.donebox .dtick{width:74px;height:74px;border-radius:50%;background:linear-gradient(135deg,var(--good),#6de3ff);
+  color:#0d2c22;font-size:38px;font-weight:900;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.donebox h3{margin:0 0 6px;font-size:21px}
+.donebox p{margin:0;font-size:14px;line-height:1.5}
+.donebox .statrow{width:100%}
+.donebox .btn{width:100%}
+.badge-done{color:var(--good);font-weight:900;font-size:12px;letter-spacing:.5px}
 
 /* ---------- learn ---------- */
 .lesson h3{font-size:18px;margin:22px 0 8px;color:var(--accent2)}
@@ -379,10 +388,22 @@ select,input{font-family:inherit}
       <button class="speak" id="fcSpeak">🔊 Hear it</button>
       <button class="speak" id="fcSlow">🐢 Slowly</button>
     </div>
-    <div class="rate">
+    <div class="rate" id="fcRate">
       <button class="no" id="fcNo">Still learning</button>
       <button class="ok" id="fcYes">I know it ✓</button>
     </div>
+  </div>
+  <div id="fcDone" class="donebox">
+    <div class="dtick">✓</div>
+    <h3 id="dTitle">Chapter complete</h3>
+    <p id="dSub" class="muted"></p>
+    <div class="statrow" style="margin:14px 0 4px">
+      <div class="stat"><b id="dKnew">0</b><span>KNEW IT</span></div>
+      <div class="stat"><b id="dLearn">0</b><span>STILL LEARNING</span></div>
+    </div>
+    <button class="btn" id="dWeak">Go again — just the tricky ones</button>
+    <button class="btn ghost sm" id="dAll" style="margin-top:10px">Read the whole deck again</button>
+    <button class="btn ghost sm" id="dQuiz" style="margin-top:10px">Quiz me on this chapter 🎯</button>
   </div>
 </section>
 
@@ -741,7 +762,7 @@ const Rec = (()=>{
           stopActive();
           const src = c.createBufferSource();
           src.buffer = s.abuf; src.playbackRate.value = this.rate; src.connect(c.destination);
-          src.onended = ()=>{ if(this._src===src){ this._playing=false; this._pos=0; if(this.onstate) this.onstate(); } };
+          src.onended = ()=>{ if(this._src===src){ this._playing=false; this._pos=0; this.finished=true; if(this.onstate) this.onstate(); } };
           src.start(0, this._pos);
           this._src = src; this._t0 = c.currentTime; this._playing = true;
           if(this.onstate) this.onstate();
@@ -755,7 +776,11 @@ const Rec = (()=>{
         },
         toggle(){ this.playing ? this.pause() : this.play(); }
       };
-      if(s.engine==='el'){ s.el.onplay = ()=>self.onstate&&self.onstate(); s.el.onpause = ()=>self.onstate&&self.onstate(); }
+      if(s.engine==='el'){
+        s.el.onplay = ()=>self.onstate&&self.onstate();
+        s.el.onpause = ()=>self.onstate&&self.onstate();
+        s.el.onended = ()=>{ self.finished=true; self._pos=0; if(self.onstate) self.onstate(); };
+      }
       self.cid = cid;
       players[cid] = self;
       return self;
@@ -999,9 +1024,11 @@ function renderChapters(){
     const d=DATA[cid]; if(!d) return '';
     const pct=chapPct(cid);
     const best=S.best[cid+':'+ctxMode];
+    const passed = (S.best[cid+':boss']||0) >= 75;
+    const done = pct >= 90 || passed;
     return `<div class="tile" data-ch="${cid}">
-      <div class="ic">${ICONS[cid]||'📘'}</div>
-      <div class="tx"><b>${d.title}</b><span>${d.cards.length} cards${best?' · best '+best+'%':''}</span>
+      <div class="ic" style="${done?'background:linear-gradient(135deg,#2fae7d,#3ddc97);color:#0d2c22':''}">${done?'✓':(ICONS[cid]||'📘')}</div>
+      <div class="tx"><b>${d.title}</b><span>${done?'<span class="badge-done">COMPLETE</span> · ':''}${d.cards.length} cards${best?' · best '+best+'%':''}</span>
       <div class="bar" style="margin-top:7px;height:6px"><i style="width:${pct}%"></i></div></div>
       <div class="chev">${pct}%</div></div>`;
   }).join('');
@@ -1225,6 +1252,10 @@ function startCards(cid){
     F.list = v==='all' ? shuffle(F.all) : shuffle(F.all.filter(c=>(c.system||c.type)===v));
     F.i=0; showCard();
   });
+  document.getElementById('fcDone').classList.remove('on');
+  document.querySelector('#s-cards .fc').style.display='';
+  document.getElementById('fcSpeak').parentElement.style.display='';
+  document.getElementById('fcRate').style.display='';
   Rec.warm(cid); go('cards'); touchStreak(); showCard();
 }
 function showCard(){
@@ -1273,9 +1304,48 @@ document.getElementById('fcSlow').onclick=e=>{
 function nextCard(right){
   bump(F.cid, F.list[F.i], right); if(right) S.xp+=2; save();
   F.i++;
-  if(F.i>=F.list.length){ confetti(); SFX.win(); toast('Deck finished! 🎉'); F.i=0; F.list=shuffle(F.list); }
+  if(F.i>=F.list.length){ return finishDeck(); }
   showCard();
 }
+
+/* Reaching the end of a deck should feel like finishing something. */
+function finishDeck(){
+  const known = F.list.filter(c=>{ const m=S.mastery[key(F.cid,c)]; return m && m.box>=1; }).length;
+  const learning = F.list.length - known;
+  const pct = Math.round(100*known/F.list.length);
+  document.getElementById('fcDone').classList.add('on');
+  document.querySelector('#s-cards .fcwrap > .fc').style.display='none';
+  document.getElementById('fcSpeak').parentElement.style.display='none';
+  document.getElementById('fcRate').style.display='none';
+  document.getElementById('dKnew').textContent = known;
+  document.getElementById('dLearn').textContent = learning;
+  const t = DATA[F.cid] ? DATA[F.cid].title.replace(/^(Chapter \d+|Appendix 1): /,'') : 'Deck';
+  document.getElementById('dTitle').textContent =
+    learning === 0 ? `${t} — every card ✓` : `${t} — deck complete`;
+  document.getElementById('dSub').innerHTML =
+    learning === 0
+      ? "You went through every single card and knew them all. That's the whole chapter, Cheyenne."
+      : (pct >= 70
+          ? `You knew <b>${pct}%</b> of them. The ${learning} you're still learning are worth one more pass — that's where the points are.`
+          : `First time through is always the hardest. You've now <b>met</b> all ${F.list.length} of them, which is the part most people skip.`);
+  if(learning === 0){ confetti(); SFX.win(); }
+  else SFX.good();
+  S.xp += 15; save();
+  document.getElementById('dWeak').style.display = learning ? '' : 'none';
+}
+function resumeDeck(list){
+  document.getElementById('fcDone').classList.remove('on');
+  document.querySelector('#s-cards .fc').style.display='';
+  document.getElementById('fcSpeak').parentElement.style.display='';
+  document.getElementById('fcRate').style.display='';
+  F.list = shuffle(list); F.i = 0; showCard();
+}
+document.getElementById('dAll').onclick  = ()=> resumeDeck(F.all.slice());
+document.getElementById('dWeak').onclick = ()=>{
+  const weak = F.all.filter(c=>{ const m=S.mastery[key(F.cid,c)]; return !m || m.box < 1; });
+  resumeDeck(weak.length ? weak : F.all.slice());
+};
+document.getElementById('dQuiz').onclick = ()=> startQuest([F.cid], 12);
 document.getElementById('fcYes').onclick=()=>nextCard(true);
 document.getElementById('fcNo').onclick=()=>nextCard(false);
 // swipe
@@ -1497,12 +1567,28 @@ function startLearn(cid){
       <div class="scrub"><input type="range" id="lnSeek" min="0" max="1000" value="0" step="1"></div>
       <div class="jumpbar" id="lnJump"></div>
     </div>
+    <div id="lnDone" class="tile" style="display:none;background:linear-gradient(135deg,#153228,#1b2f4a);border-color:#2a6b52">
+      <div class="ic" style="background:linear-gradient(135deg,var(--good),#6de3ff);color:#0d2c22">✓</div>
+      <div class="tx"><b>Lesson finished</b><span>Nice — that's the whole chapter read through.</span></div>
+    </div>
+    <div id="lnDoneBtns" style="display:none;margin-bottom:14px">
+      <button class="btn" id="lnDoneQuiz">Quiz me on this chapter 🎯</button>
+      <button class="btn ghost sm" id="lnDoneAgain" style="margin-top:10px">↺ Listen to it again</button>
+    </div>
     <p class="muted" style="margin:0 0 14px">${d.blurb||''}</p>
     <div class="tapzone" id="lnTap">${html}</div>
     <div style="height:14px"></div>
     <button class="btn" id="lnPlayQuiz">I've got it — quiz me 🎯</button>`;
 
   document.getElementById('lnPlayQuiz').onclick=()=>startQuest([cid],12);
+  document.getElementById('lnDoneQuiz').onclick=()=>startQuest([cid],12);
+  document.getElementById('lnDoneAgain').onclick=()=>{
+    const t=transport(); if(!t) return;
+    t.finished=false; t.seek(0); t.play();
+    document.getElementById('lnDone').style.display='none';
+    document.getElementById('lnDoneBtns').style.display='none';
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
   document.getElementById('lnJump').innerHTML =
     sectionStarts.map(s0=>`<div class="chip" data-jump="${s0.u}">${s0.name}</div>`).join('');
 
@@ -1535,6 +1621,11 @@ function startLearn(cid){
     if(!seek.dataset.dragging && t.duration) seek.value = Math.round(1000*t.time/t.duration);
     if(t.playing) store.set('nova.lessonPos.'+cid, t.time);
     highlight(t.time);
+    const fin = !!t.finished;
+    document.getElementById('lnDone').style.display = fin ? '' : 'none';
+    document.getElementById('lnDoneBtns').style.display = fin ? '' : 'none';
+    if(fin && !P.celebrated){ P.celebrated = true; confetti(); SFX.win(); S.xp += 20; save(); }
+    if(!fin) P.celebrated = false;
   }
   let lastU = -1, lastW = -1, curNode = null;
   function highlight(t){
