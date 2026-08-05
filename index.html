@@ -352,9 +352,11 @@ select,input{font-family:inherit}
   <div class="sechead">Nova's real voice</div>
   <div class="tile" id="recTile">
     <div class="ic" style="background:linear-gradient(135deg,#ff8fc7,#8b6dff)">🎧</div>
-    <div class="tx"><b>Nova (recorded)</b><span id="recSub">Studio-recorded for every term — the good one</span></div>
+    <div class="tx"><b>Nova (recorded)</b><span id="recSub">Recorded for every term — the good one</span></div>
     <div class="chev" id="recState">✓</div>
   </div>
+  <p class="muted" style="margin:2px 0 10px">Tap one to hear it. Only the voice she picks gets downloaded, so this never eats her storage.</p>
+  <div id="novaVoiceList"></div>
 
   <div class="sechead">Or use a phone voice instead</div>
   <div id="voiceList"></div>
@@ -628,6 +630,8 @@ const Rec = (()=>{
   const sprites = {};
   let unlocked=false, useRecorded=store.get('nova.recorded',true), ctx=null, active=null, decodedOrder=[];
   const players = {};      // one live transport per chapter, kept across screens
+  let rvoice = store.get('nova.rvoice','');    // '' = sarah (the original filenames)
+  const suffix = ()=> rvoice ? '.'+rvoice : '';
 
   function audioCtx(){
     if(!ctx){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)({sampleRate:24000}); }catch(e){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e2){} } }
@@ -637,7 +641,7 @@ const Rec = (()=>{
   const CAN_FETCH = location.protocol==='http:' || location.protocol==='https:';
 
   function load(cid, mode){
-    const k = cid+'.'+mode;
+    const k = cid+'.'+mode+suffix();
     if(sprites[k]) return sprites[k];
     const s = sprites[k] = {index:null, el:null, abuf:null, raw:null, engine:null, failed:!CAN_FETCH, loading:true};
     if(!CAN_FETCH){ s.loading=false; return s; }
@@ -680,7 +684,7 @@ const Rec = (()=>{
       .catch(()=>{ s.failed=true; s.loading=false; });
     return s;
   }
-  const ready = (cid,mode)=>{ const s=sprites[cid+'.'+mode]; return !!(s && s.index && s.engine && !s.failed); };
+  const ready = (cid,mode)=>{ const s=sprites[cid+'.'+mode+suffix()]; return !!(s && s.index && s.engine && !s.failed); };
 
   function stopActive(){
     if(!active) return;
@@ -695,7 +699,7 @@ const Rec = (()=>{
     _dbg(){ return sprites; },
     ready, load,
     warm(cid, alsoLesson){ if(useRecorded){ load(cid,'term'); load(cid,'meaning'); if(alsoLesson) load(cid,'lesson'); } },
-    loading(cid, mode){ const s=sprites[cid+'.'+mode]; return !!(s && s.loading); },
+    loading(cid, mode){ const s=sprites[cid+'.'+mode+suffix()]; return !!(s && s.loading); },
     unlock(){ if(unlocked) return; unlocked=true; audioCtx(); },
     stop(){ stopActive(); },
     lessonPos(cid){ return store.get('nova.lessonPos.'+cid, 0); },
@@ -744,6 +748,16 @@ const Rec = (()=>{
     },
     pauseLessons(){ for(const cid in players){ try{ players[cid].pause(); }catch(e){} } },
     hasPlayer(cid){ return !!players[cid]; },
+    voice(v){
+      if(v == null) return rvoice;
+      if(v === rvoice) return rvoice;
+      // switching voice: drop everything cached so the new files load fresh
+      for(const c in players){ try{ players[c].pause(); }catch(e){} delete players[c]; }
+      for(const k in sprites) delete sprites[k];
+      decodedOrder.length = 0;
+      rvoice = v; store.set('nova.rvoice', v);
+      return rvoice;
+    },
 
     lesson(cid){
       if(players[cid]) return players[cid];          // reattach, don't restart
@@ -1575,6 +1589,45 @@ function importProgress(file){
 
 /* ---------- voice settings ---------- */
 const SAMPLE = ['Hi Cheyenne, it is Nova.', 'Gastroenterology. The study of the stomach and intestines.'];
+const NOVA_VOICES = [
+  {id:'',          name:'Sarah',    note:'Clear and neutral American — the original'},
+  {id:'bella',     name:'Bella',    note:'Warmer and more expressive American'},
+  {id:'sky',       name:'Sky',      note:'Lighter, younger-sounding American'},
+  {id:'emma',      name:'Emma',     note:'British — clear and measured'},
+  {id:'isabella',  name:'Isabella', note:'British — warmer and lower'}
+];
+function renderNovaVoices(){
+  const box = document.getElementById('novaVoiceList');
+  const curV = Rec.voice();
+  box.innerHTML = NOVA_VOICES.map(v=>{
+    const on = v.id === curV;
+    return `<div class="tile" data-nv="${v.id}" style="${on?'border-color:var(--accent2)':''}">
+      <div class="ic" style="${on?'background:linear-gradient(135deg,#ff8fc7,#8b6dff)':''}">${on?'✓':'🎧'}</div>
+      <div class="tx"><b>${v.name}</b><span data-nvnote="${v.id}">${v.note}</span></div>
+      <div class="chev">›</div></div>`;
+  }).join('');
+  box.querySelectorAll('[data-nv]').forEach(el=>el.onclick=()=>{
+    const id = el.dataset.nv;
+    const note = box.querySelector(`[data-nvnote="${id}"]`);
+    Rec.unlock(); Rec.on(true); Rec.voice(id); renderNovaVoices();
+    const n2 = document.querySelector(`[data-nvnote="${id}"]`);
+    if(n2) n2.textContent = 'loading a sample…';
+    Rec.warm('ch1');
+    let tries = 0;
+    const t = setInterval(()=>{
+      if(Rec.ready('ch1','term')){
+        clearInterval(t);
+        if(n2) n2.textContent = (NOVA_VOICES.find(v=>v.id===id)||{}).note || '';
+        Rec.play('ch1','term',151, ()=>Rec.play('ch1','meaning',151));
+      } else if(++tries > 60){
+        clearInterval(t);
+        if(n2) n2.textContent = 'not recorded yet — still being made';
+        Rec.voice(curV); renderNovaVoices();
+        toast("That voice isn't ready yet");
+      }
+    }, 250);
+  });
+}
 function renderVoice(){
   const list = Voice.voices();
   const cur = Voice.current();
@@ -1628,6 +1681,7 @@ function renderVoice(){
       : 'Off — using a phone voice from the list below';
   };
   paint();
+  renderNovaVoices();
   rt.onclick = ()=>{
     const on = !Rec.on(); Rec.on(on); paint(); renderVoice();
     if(on){ Rec.unlock(); Rec.warm('ch1'); setTimeout(()=>{ if(!Rec.play('ch1','term',0)) Voice.say(['Recorded audio is still downloading. One moment.']); }, 900); }
