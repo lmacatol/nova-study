@@ -315,8 +315,18 @@ select,input{font-family:inherit}
   <div class="sechead">Still working on these</div>
   <div id="pgWeak"></div>
 
+  <div class="sechead">Move progress to another device</div>
+  <p class="muted" style="margin:0 0 12px">Phone and laptop keep their own progress. To join them up, copy the code below on the device you've been studying on, text or email it to yourself, then paste it into the other one. It takes about ten seconds and you can do it as often as you like.</p>
+  <button class="btn" id="pgCode">📋 Copy my progress code</button>
+  <textarea id="pgCodeBox" readonly style="display:none;width:100%;height:88px;margin-top:10px;border-radius:14px;
+    border:1px solid var(--line);background:var(--card);color:var(--dim);padding:11px;font-size:11px;font-family:monospace"></textarea>
+  <div style="height:12px"></div>
+  <input id="pgPaste" placeholder="Paste a code here to bring progress in" style="width:100%;padding:14px;border-radius:14px;
+    border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:13.5px">
+  <button class="btn ghost sm" id="pgApply" style="margin-top:10px">Bring that progress in</button>
+
   <div class="sechead">Keep it safe</div>
-  <p class="muted" style="margin:0 0 12px">Phones sometimes clear website data on their own. Saving a backup file every week or so means her progress can always come back.</p>
+  <p class="muted" style="margin:0 0 12px">Phones sometimes clear website data on their own. Saving a backup file now and then means her progress can always come back.</p>
   <button class="btn ghost sm" id="pgExport" style="margin-bottom:10px">⬇︎ Save a backup file</button>
   <button class="btn ghost sm" id="pgImport">⬆︎ Restore from a backup</button>
   <input type="file" id="pgFile" accept="application/json,.json" style="display:none">
@@ -1476,6 +1486,59 @@ function renderProgress(){
   });
 }
 
+/* ---------- progress code ----------
+   Her whole history across every course squeezed into a short line of text she
+   can text to herself. One letter per card (z = not seen yet, a-f = how solid
+   it is), then runs of the same letter collapsed. No account, no server. */
+const BOX_CH = 'abcdef';
+function encodeProgress(){
+  let flat = '';
+  COURSE_ORDER.forEach(cid=>{
+    COURSES[cid].units.forEach(u=>{
+      const d = DATA[u]; if(!d) return;
+      d.cards.forEach(c=>{
+        const m = S.mastery[key(u,c)];
+        flat += (!m || !m.seen) ? 'z' : BOX_CH[Math.min(m.box||0,5)];
+      });
+    });
+  });
+  let runs = '', i = 0;
+  while(i < flat.length){
+    let j = i; while(j < flat.length && flat[j] === flat[i]) j++;
+    runs += flat[i] + (j - i); i = j;
+  }
+  const best = Object.entries(S.best||{}).map(([k,v])=>k+'~'+v).join('!');
+  return ['NOVA1', S.xp|0, S.streak|0, S.last||'', runs, best].join('|');
+}
+function decodeProgress(code){
+  const parts = String(code||'').trim().split('|');
+  if(parts[0] !== 'NOVA1' || parts.length < 5) return null;
+  let flat = '';
+  parts[4].replace(/([a-fz])(\d+)/g, (_,ch,n)=>{ flat += ch.repeat(+n); return ''; });
+  let idx = 0, applied = 0;
+  COURSE_ORDER.forEach(cid=>{
+    COURSES[cid].units.forEach(u=>{
+      const d = DATA[u]; if(!d) return;
+      d.cards.forEach(c=>{
+        const ch = flat[idx++]; if(!ch || ch === 'z') return;
+        const box = BOX_CH.indexOf(ch); if(box < 0) return;
+        const k = key(u,c), cur = S.mastery[k];
+        // keep whichever device knows the card better
+        if(!cur || (cur.box||0) < box){ S.mastery[k] = {box, seen: Math.max((cur&&cur.seen)||0, 1)}; applied++; }
+      });
+    });
+  });
+  S.xp = Math.max(S.xp||0, +parts[1]||0);
+  S.streak = Math.max(S.streak||0, +parts[2]||0);
+  if(parts[3] && !S.last) S.last = parts[3];
+  (parts[5]||'').split('!').filter(Boolean).forEach(pair=>{
+    const [k,v] = pair.split('~');
+    if(k && !isNaN(+v)) S.best[k] = Math.max(S.best[k]||0, +v);
+  });
+  save();
+  return applied;
+}
+
 /* ---------- backup / restore ---------- */
 function exportProgress(){
   const payload = {app:'nova', v:1, saved:new Date().toISOString(), state:S};
@@ -1831,6 +1894,28 @@ if(navigator.storage && navigator.storage.persist){
 ['pagehide','visibilitychange','blur'].forEach(ev=>{
   window.addEventListener(ev, ()=>{ try{ save(); }catch(e){} });
 });
+document.getElementById('pgCode').onclick = ()=>{
+  const code = encodeProgress();
+  const box = document.getElementById('pgCodeBox');
+  box.style.display='block'; box.value = code;
+  box.select(); box.setSelectionRange(0, code.length);
+  let ok = false;
+  try{ ok = document.execCommand('copy'); }catch(e){}
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(()=>toast('Code copied — now paste it on the other device')).catch(()=>{});
+    ok = true;
+  }
+  toast(ok ? 'Code copied — paste it on the other device' : 'Code ready — press and hold to copy it');
+};
+document.getElementById('pgApply').onclick = ()=>{
+  const v = document.getElementById('pgPaste').value.trim();
+  if(!v) return toast('Paste a code first');
+  const n = decodeProgress(v);
+  if(n === null) return toast("That doesn't look like a Nova code");
+  document.getElementById('pgPaste').value='';
+  renderProgress(); renderHome();
+  toast(n ? `Brought in ${n} card${n===1?'':'s'} ✓` : 'Nothing new to add — already up to date');
+};
 document.getElementById('pgExport').onclick = exportProgress;
 document.getElementById('pgImport').onclick = ()=> document.getElementById('pgFile').click();
 document.getElementById('pgFile').onchange = function(){ if(this.files && this.files[0]) importProgress(this.files[0]); this.value=''; };
