@@ -193,6 +193,21 @@ body{
 .nav button{flex:1;background:none;border:none;color:var(--dim);font-size:10.5px;font-weight:800;
   display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:5px 0;letter-spacing:.3px}
 .nav button.on{color:var(--accent2)}
+
+/* mini player — sits above the nav whenever a lesson is playing elsewhere */
+.mini{position:fixed;bottom:calc(62px + var(--safe-b));left:0;right:0;max-width:520px;margin:0 auto;
+  display:none;align-items:center;gap:10px;padding:9px 11px;z-index:31;
+  background:rgba(43,29,94,.97);backdrop-filter:blur(14px);
+  border:1px solid var(--line);border-radius:18px;width:calc(100% - 20px);
+  box-shadow:0 8px 26px rgba(0,0,0,.45)}
+.mini.on{display:flex}
+.mini button{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:13px;
+  height:40px;min-width:40px;font-size:15px;font-weight:800;cursor:pointer;padding:0 10px;flex:0 0 auto}
+.mini button.follow{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#1a1035;border:none;font-size:12.5px}
+.mini .mtx{flex:1;min-width:0}
+.mini .mtx b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini .mtx span{font-size:11px;color:var(--dim);font-weight:700;font-variant-numeric:tabular-nums}
+body.hidenav .mini{display:none !important}
 .nav button i{font-size:20px;font-style:normal;line-height:1}
 body.hidenav .nav{display:none}
 
@@ -403,6 +418,17 @@ select,input{font-family:inherit}
 
 <div class="feedback" id="fb"><h4 id="fbT"></h4><p id="fbP"></p><button class="btn" id="fbBtn">Continue</button></div>
 
+<div class="mini" id="miniPlayer">
+  <button id="miniToggle" title="Play or pause">⏸</button>
+  <div class="mtx">
+    <b id="miniTitle">Lesson</b>
+    <span id="miniTime">0:00 / 0:00</span>
+    <div class="bar" style="height:5px;margin-top:5px"><i id="miniBar" style="width:0%"></i></div>
+  </div>
+  <button id="miniGo" class="follow">Follow along</button>
+  <button id="miniX" title="Stop">✕</button>
+</div>
+
 <nav class="nav">
   <button data-go="home" class="on"><i>🏠</i>Home</button>
   <button data-go="chapters" data-mode="cards"><i>🃏</i>Cards</button>
@@ -565,6 +591,7 @@ const Rec = (()=>{
      cost of holding decoded audio in memory — so it's the fallback. */
   const sprites = {};
   let unlocked=false, useRecorded=store.get('nova.recorded',true), ctx=null, active=null, decodedOrder=[];
+  const players = {};      // one live transport per chapter, kept across screens
 
   function audioCtx(){
     if(!ctx){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)({sampleRate:24000}); }catch(e){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e2){} } }
@@ -645,6 +672,7 @@ const Rec = (()=>{
       if(!clip || !clip[1]) return false;
       const [start,dur] = clip;
       rate = rate || 1;
+      this.pauseLessons();     // don't talk over a lesson
       stopActive();
 
       if(s.engine==='wa'){
@@ -672,7 +700,17 @@ const Rec = (()=>{
     },
 
     /* ---- lesson transport: play / pause / seek / rate, on either engine ---- */
+    /* Any lesson that is currently making noise */
+    nowPlaying(){
+      for(const cid in players){ if(players[cid] && players[cid].playing) return {cid, tr:players[cid]}; }
+      for(const cid in players){ if(players[cid] && players[cid].time > 0.5) return {cid, tr:players[cid]}; }
+      return null;
+    },
+    pauseLessons(){ for(const cid in players){ try{ players[cid].pause(); }catch(e){} } },
+    hasPlayer(cid){ return !!players[cid]; },
+
     lesson(cid){
+      if(players[cid]) return players[cid];          // reattach, don't restart
       const s = load(cid,'lesson');
       if(!ready(cid,'lesson')) return null;
       const self = {
@@ -706,7 +744,6 @@ const Rec = (()=>{
           src.onended = ()=>{ if(this._src===src){ this._playing=false; this._pos=0; if(this.onstate) this.onstate(); } };
           src.start(0, this._pos);
           this._src = src; this._t0 = c.currentTime; this._playing = true;
-          active = {src};
           if(this.onstate) this.onstate();
         },
         pause(){
@@ -714,12 +751,13 @@ const Rec = (()=>{
           if(!this._playing) return;
           this._pos = this.time; this._playing = false;
           if(this._src){ try{ this._src.onended=null; this._src.stop(); }catch(e){} this._src=null; }
-          active = null;
           if(this.onstate) this.onstate();
         },
         toggle(){ this.playing ? this.pause() : this.play(); }
       };
       if(s.engine==='el'){ s.el.onplay = ()=>self.onstate&&self.onstate(); s.el.onpause = ()=>self.onstate&&self.onstate(); }
+      self.cid = cid;
+      players[cid] = self;
       return self;
     }
   };
@@ -734,7 +772,7 @@ function cardIndex(cid, card){
   return i;
 }
 
-function stopAllAudio(){ Rec.stop(); Voice.stop(); }
+function stopAllAudio(){ Rec.stop(); Voice.stop(); }   // clips + TTS only; lessons keep going
 
 /* Say a card: recorded voice first, device voice as backup.
    what: 'term' (default) | 'meaning' | 'both'
@@ -1478,8 +1516,15 @@ function startLearn(cid){
 
   function transport(){
     if(P.tr) return P.tr;
+    const fresh = !Rec.hasPlayer(cid);
     P.tr = Rec.lesson(cid);
-    if(P.tr){ P.tr.setRate(P.speed); P.tr.onstate = paint; P.tr._pos = Rec.lessonPos(cid) || 0; }
+    if(P.tr){
+      P.tr.onstate = paint;
+      P.speed = P.tr.rate || P.speed;
+      document.getElementById('lnSpeed').textContent = P.speed+'×';
+      // only jump to the saved spot on a cold open — never yank a live track
+      if(fresh && !P.tr.playing) P.tr._pos = Rec.lessonPos(cid) || 0;
+    }
     return P.tr;
   }
   function paint(){
@@ -1580,7 +1625,10 @@ function startLearn(cid){
   clearInterval(window._lnTick);
   window._lnTick = setInterval(()=>{ if(cur==='learn') paint(); else clearInterval(window._lnTick); }, 90);
 
-  go('learn'); touchStreak(); paint();
+  LEARN_CID = cid;
+  go('learn'); touchStreak();
+  if(Rec.hasPlayer(cid)) transport();      // already running — show the real state
+  paint(); miniTick();
 }
 
 /* ---------- daily quest ---------- */
@@ -1592,6 +1640,40 @@ document.getElementById('btnDaily').onclick=()=>{
   if(wk2) cids=['appendix1','ch1','ch2','ch3','ch4','ch5'];
   else if(day>=3 && day<=5) cids=['ch1','ch2','ch3','ch4','ch5'];
   startQuest(cids, 12);
+};
+
+/* ---------- mini player ----------
+   When she leaves a lesson the audio keeps going, so the controls have to
+   follow her. This bar shows what's playing, lets her pause it from anywhere,
+   and jumps her back to the exact spot with the words lighting up again. */
+let LEARN_CID = null;
+function miniTick(){
+  const bar = document.getElementById('miniPlayer');
+  const np = Rec.nowPlaying();
+  const hideBecauseHere = (cur === 'learn' && np && np.cid === LEARN_CID);
+  if(!np || hideBecauseHere || cur === 'quest'){ bar.classList.remove('on'); return; }
+  bar.classList.add('on');
+  const t = np.tr, d = DATA[np.cid];
+  document.getElementById('miniTitle').textContent =
+    (d ? d.title.replace(/^(Chapter \d+|Appendix 1): /,'') : 'Lesson') + (t.playing ? '' : ' · paused');
+  document.getElementById('miniTime').textContent = fmt(t.time)+' / '+fmt(t.duration);
+  document.getElementById('miniBar').style.width = (t.duration ? 100*t.time/t.duration : 0)+'%';
+  document.getElementById('miniToggle').textContent = t.playing ? '⏸' : '▶︎';
+}
+setInterval(miniTick, 400);
+document.getElementById('miniToggle').onclick = ()=>{
+  const np = Rec.nowPlaying(); if(!np) return;
+  Rec.unlock(); np.tr.toggle(); miniTick();
+};
+document.getElementById('miniGo').onclick = ()=>{
+  const np = Rec.nowPlaying(); if(!np) return;
+  startLearn(np.cid);                       // re-opens the lesson at the live position
+  if(!np.tr.playing) np.tr.play();
+};
+document.getElementById('miniX').onclick = ()=>{
+  const np = Rec.nowPlaying(); if(!np) return;
+  np.tr.pause(); np.tr.seek(0); store.set('nova.lessonPos.'+np.cid, 0);
+  document.getElementById('miniPlayer').classList.remove('on');
 };
 
 /* ---------- keeping her progress safe ---------- */
