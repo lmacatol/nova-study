@@ -199,6 +199,15 @@ body{
   color:#fff;font-weight:900;font-size:15px;border-radius:18px;padding:14px 18px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none}
 .tapflash.on{opacity:1}
 .tapzone{position:relative}
+.chapnav{display:flex;gap:10px;margin-top:16px}
+.chapnav button{flex:1 1 0;min-width:0;background:var(--card);border:1px solid var(--line);color:var(--ink);
+  border-radius:16px;padding:12px 13px;text-align:left;cursor:pointer;font:inherit;transition:transform .1s}
+.chapnav button:active{transform:scale(.97)}
+.chapnav button[disabled]{opacity:.32;cursor:default}
+.chapnav .lab{display:block;font-size:10px;letter-spacing:1px;font-weight:800;color:var(--dim);margin-bottom:4px}
+.chapnav .nm{display:block;font-size:13px;font-weight:800;line-height:1.3;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chapnav .nx{text-align:right}
 .jumpbar{display:flex;gap:8px;overflow-x:auto;padding:10px 0 2px}
 .jumpbar::-webkit-scrollbar{display:none}
 .jumpbar .chip{font-size:12px;padding:8px 12px}
@@ -569,7 +578,9 @@ select,input{font-family:inherit}
 
 <!-- ===================== LEARN ===================== -->
 <section class="screen" id="s-learn">
-  <div class="top"><button class="back" data-go="chapters">‹</button><h2 id="lnTitle">Lesson</h2></div>
+  <div class="top"><button class="back" data-go="chapters">‹</button><h2 id="lnTitle">Lesson</h2>
+    <button class="back" id="lnPrevTop" title="Previous chapter">◀</button>
+    <button class="back" id="lnNextTop" title="Next chapter">▶</button></div>
   <div class="lesson" id="lnBody"></div>
 </section>
 
@@ -1183,12 +1194,18 @@ const Rec = (()=>{
   }
   const ready = (cid,mode)=>{ const s=sprites[cid+'.'+mode+suffix()]; return !!(s && s.index && s.engine && !s.failed); };
 
+  // How much of the silent gap after a clip we're willing to play. The gap baked
+  // into the sprites is 0.28s, and the MP3 encoder shifts everything ~0.05s late,
+  // so 0.12 keeps the word's own tail without reaching the next one.
+  const TAIL = 0.12;
+
   function stopActive(){
     if(!active) return;
     const a = active; active = null;
     clearTimeout(a.timer);
+    if(a.raf) cancelAnimationFrame(a.raf);
     if(a.src){ try{ a.src.onended=null; a.src.stop(); }catch(e){} }
-    if(a.el){ try{ a.el.removeEventListener('timeupdate', a.onTime); a.el.pause(); }catch(e){} }
+    if(a.el){ try{ if(a.onTime) a.el.removeEventListener('timeupdate', a.onTime); a.el.pause(); }catch(e){} }
   }
 
   return {
@@ -1218,7 +1235,7 @@ const Rec = (()=>{
         src.buffer = s.abuf; src.playbackRate.value = rate; src.connect(c.destination);
         const a = active = {src};
         src.onended = ()=>{ if(active===a){ active=null; if(onDone) onDone(); } };
-        try{ src.start(0, start, dur + 0.04); }catch(e){ active=null; return false; }
+        try{ src.start(0, start, dur + TAIL); }catch(e){ active=null; return false; }
         return true;
       }
       s.el.playbackRate = rate;
@@ -1227,12 +1244,20 @@ const Rec = (()=>{
       const target = Math.max(0, start-0.02);
       try{ el.currentTime = target; }catch(e){ return false; }
       if(start > 0.6 && Math.abs(el.currentTime-target) > 0.8){ s.failed=true; return false; }
-      const endAt = start + dur + 0.05;
+      const endAt = start + dur + TAIL;
       const a = active = {el};
-      a.onTime = ()=>{ if(el.currentTime >= endAt){ stopActive(); if(onDone) onDone(); } };
-      el.addEventListener('timeupdate', a.onTime);
+      // 'timeupdate' only fires about four times a second, which overshoots the
+      // 0.28s gap between clips — the next word's first syllable used to leak in
+      // ("cerebral, ce"). Check the clock every frame instead.
+      a.tick = ()=>{
+        if(active !== a) return;
+        if(el.ended || el.currentTime >= endAt){ stopActive(); if(onDone) onDone(); return; }
+        a.raf = requestAnimationFrame(a.tick);
+      };
       const pr = el.play(); if(pr && pr.catch) pr.catch(()=>{});
-      a.timer = setTimeout(()=>{ stopActive(); if(onDone) onDone(); }, (dur/rate+1.3)*1000);
+      a.raf = requestAnimationFrame(a.tick);
+      // backstop for a backgrounded tab, where rAF stops firing
+      a.timer = setTimeout(()=>{ if(active===a){ stopActive(); if(onDone) onDone(); } }, (dur/rate)*1000 + 500);
       return true;
     },
 
@@ -2271,6 +2296,41 @@ function paintVisual(wrap, v){
 
 function fmt(t){ t=Math.max(0,Math.floor(t||0)); const m=Math.floor(t/60), x=t%60; return m+':'+String(x).padStart(2,'0'); }
 
+/* ---- move through the chapters like pages in a book ---- */
+function chapNeighbours(cid){
+  const i = ORDER.indexOf(cid);
+  return { prev: i > 0 ? ORDER[i-1] : null,
+           next: (i >= 0 && i < ORDER.length-1) ? ORDER[i+1] : null };
+}
+function chapTitle(id){ return (DATA[id] && DATA[id].title) || id; }
+function chapNavHtml(cid){
+  const {prev, next} = chapNeighbours(cid);
+  return `<div class="chapnav">
+    <button id="lnPrevBig"${prev?'':' disabled'}><span class="lab">‹ BEFORE THIS</span>
+      <span class="nm">${prev ? esc(chapTitle(prev)) : 'This is the first one'}</span></button>
+    <button id="lnNextBig" class="nx"${next?'':' disabled'}><span class="lab">UP NEXT ›</span>
+      <span class="nm">${next ? esc(chapTitle(next)) : "You're at the end"}</span></button>
+  </div>`;
+}
+function gotoChapter(cid){
+  if(!cid) return;
+  try{ Rec.pauseLessons(); Rec.stop(); }catch(e){}
+  startLearn(cid);
+  const scr = document.getElementById('s-learn');
+  if(scr) scr.scrollTop = 0;
+  window.scrollTo(0,0);
+}
+function wireChapNav(cid){
+  const {prev, next} = chapNeighbours(cid);
+  [['lnPrevBig',prev],['lnPrevTop',prev],['lnNextBig',next],['lnNextTop',next]].forEach(([id, target])=>{
+    const b = document.getElementById(id);
+    if(!b) return;
+    b.disabled = !target;
+    b.style.display = (id.endsWith('Top') && !target) ? 'none' : '';
+    b.onclick = target ? (()=>gotoChapter(target)) : null;
+  });
+}
+
 function startLearn(cid){
   const d=DATA[cid]; if(!d) return;
   document.getElementById('lnTitle').textContent=d.title;
@@ -2336,7 +2396,10 @@ function startLearn(cid){
     <p class="muted" style="margin:0 0 14px">${d.blurb||''}</p>
     <div class="tapzone" id="lnTap">${html}</div>
     <div style="height:14px"></div>
-    <button class="btn" id="lnPlayQuiz">I've got it — quiz me 🎯</button>`;
+    <button class="btn" id="lnPlayQuiz">I've got it — quiz me 🎯</button>
+    ${chapNavHtml(cid)}`;
+
+  wireChapNav(cid);
 
   document.getElementById('lnPlayQuiz').onclick=()=>startQuest([cid],12);
   document.getElementById('lnDoneQuiz').onclick=()=>startQuest([cid],12);
