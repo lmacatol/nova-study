@@ -89,7 +89,6 @@ body{
 .coursebar{border-color:var(--accent);background:linear-gradient(140deg,#2b1d5e,#241a4d)}
 .coursebar .chip{padding:8px 14px;font-size:12.5px}
 
-
 /* ---------- quest ---------- */
 .qtop{display:flex;align-items:center;gap:10px;margin-bottom:16px}
 .qtop .x{font-size:24px;color:var(--dim);cursor:pointer;width:34px;text-align:left}
@@ -201,15 +200,7 @@ body{
 .tapzone{position:relative}
 .whisper{margin-top:14px;font-size:12.5px;line-height:1.5;color:#9a8fd0;font-style:italic;
   letter-spacing:.2px;text-align:center;opacity:.85}
-.whycard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px 16px;
-  margin-bottom:11px;display:flex;gap:13px;align-items:flex-start}
-.whycard .em{font-size:26px;line-height:1.1;flex:0 0 auto}
-.whycard b{display:block;font-size:15px;margin-bottom:4px}
-.whycard span{display:block;font-size:13px;line-height:1.5;color:var(--dim)}
-.whyhero{background:linear-gradient(150deg,#2a1c52,#3a1f4d);border:1px solid #4a3580;
-  border-radius:20px;padding:18px 17px;margin-bottom:18px}
-.whyhero b{display:block;font-size:16px;margin-bottom:6px}
-.whyhero span{display:block;font-size:13.5px;line-height:1.55;color:#c9bdf0}
+
 .chapnav{display:flex;gap:10px;margin-top:16px}
 .chapnav button{flex:1 1 0;min-width:0;background:var(--card);border:1px solid var(--line);color:var(--ink);
   border-radius:16px;padding:12px 13px;text-align:left;cursor:pointer;font:inherit;transition:transform .1s}
@@ -275,7 +266,6 @@ select,input{font-family:inherit}
 .chip{flex:0 0 auto;padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);
   font-size:13px;font-weight:700;color:var(--dim);cursor:pointer;white-space:nowrap}
 .chip.on{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#1a1035;border-color:transparent}
-
 
 .vwrap{position:relative;background:linear-gradient(160deg,#241a4d,#1c1440);border:1px solid var(--line);
   border-radius:18px;padding:10px 12px 8px;margin:0 0 14px;overflow:hidden}
@@ -406,7 +396,6 @@ select,input{font-family:inherit}
     <button class="gear" data-go="voice" title="Voice & settings">⚙️</button>
   </div>
 
-
   <div class="tile coursebar" style="cursor:default;display:block;padding:12px 14px">
     <b id="courseName" style="font-size:14px;display:block;line-height:1.35"></b>
     <span id="courseBook" class="muted" style="font-size:11.5px;display:block;margin-top:2px"></span>
@@ -441,46 +430,10 @@ select,input{font-family:inherit}
     <div class="ic">📊</div><div class="tx"><b>What you know so far</b><span id="progNow">See what's solid and what still needs work</span></div><div class="chev">›</div>
   </div>
 
-  <div class="tile" data-go="why" style="margin-top:6px">
-    <div class="ic">💜</div><div class="tx"><b>My why</b><span>The reason this is worth it</span></div><div class="chev">›</div>
-  </div>
-
   <div class="sechead">Settings</div>
   <div class="tile" data-go="voice">
     <div class="ic">🎙️</div><div class="tx"><b>Nova's voice</b><span id="voiceNow">Pick how she sounds</span></div><div class="chev">›</div>
   </div>
-</section>
-
-<!-- ===================== MY WHY ===================== -->
-<section class="screen" id="s-why">
-  <div class="top"><button class="back" data-go="home">‹</button><h2>My why</h2></div>
-  <div class="whyhero">
-    <b id="whyHead">This is what it's all for.</b>
-    <span>Not someday. Every card you learn moves this a little closer.</span>
-  </div>
-
-  <div class="whycard"><div class="em">🌅</div><div>
-    <b>A retirement we can actually rest in</b>
-    <span>Saving on one income is uphill. Two changes the whole shape of it — and the sooner it starts, the more the years do the work for us.</span></div></div>
-
-  <div class="whycard"><div class="em">🛋️</div><div>
-    <b>Leo gets to slow down</b>
-    <span>He's been carrying it on his own. This is how that weight gets shared — so he can breathe, take a day off, stop doing the math every month.</span></div></div>
-
-  <div class="whycard"><div class="em">✈️</div><div>
-    <b>Real vacations</b>
-    <span>Not a long weekend squeezed between shifts. The kind where you actually unpack the suitcase and stay a while.</span></div></div>
-
-  <div class="whycard"><div class="em">🏡</div><div>
-    <b>A bigger house</b>
-    <span>Room to spread out. A place that fits the life you want to put inside it, instead of one you're always working around.</span></div></div>
-
-  <div class="whyhero" style="margin:18px 0 0;background:linear-gradient(150deg,#153228,#1b2f4a);border-color:#2a6b52">
-    <b id="whyClose">None of this is far away.</b>
-    <span id="whyCloseSub">It's a license, and a license is just a pile of words you learned one at a time. You're already doing it.</span>
-  </div>
-  <div style="height:10px"></div>
-  <button class="btn" data-go="chapters" data-mode="learn">Alright — let's get back to it 📖</button>
 </section>
 
 <!-- ===================== PROGRESS ===================== -->
@@ -1160,9 +1113,6 @@ const VISUALS = [
 </svg>`}
 ];
 
-
-
-
 /* ---------- Nova's real recorded voice ----------
    Each chapter has one MP3 "sprite" holding every clip end to end, plus a JSON
    index of [startSeconds, durationSeconds]. We seek into the sprite and stop on
@@ -1525,7 +1475,7 @@ const HELLO = [
  "Where do you want to start?",
  "Remember: you don't have to know it yet. You just have to <b>meet</b> it.",
  "Every doctor and tech in that hospital started exactly where you are.",
- "I've got the words. You've got the reason. Let's do this."
+ "I've got the words. You've got the brain. Let's do this."
 ];
 const NICE = ["Yes! 🎉","Nailed it.","That's it!","Exactly right.","Look at you go.","Perfect.","You're on fire 🔥","Beautiful."];
 const NICE_NAMED = ["Yes, {n}! 🎉","Nailed it, {n}.","That's it, {n}!","There it is, {n}.","Look at you go, {n}.","Perfect, {n}."];
@@ -1538,21 +1488,19 @@ function praise(){
 }
 
 /* ---------- the quiet ones ----------
-   Read as ordinary encouragement to anyone glancing over her shoulder.
-   She's the only one who knows what they're actually about. */
+   Small notes of encouragement about the work itself. Nothing about money,
+   nothing anyone owes anyone — she doesn't need a reason handed to her. */
 const WHISPER = [
- "Future you is already grateful.",
- "This is what building something looks like.",
- "Small deposits. Same as any account worth having.",
- "Somebody gets to slow down because of this.",
- "Room to breathe starts on a night like this.",
- "The suitcase is patient. It'll wait.",
- "You're not just studying. You're compounding.",
- "Every one of these is a brick in something bigger.",
- "This is the boring part of a very good story.",
- "One license. That's the whole hinge.",
- "Quiet work now, loud payoff later.",
- "You already know what this is for."
+ "That was real work. Take the win.",
+ "Nobody sees this part. It still counts.",
+ "Little by little is still forward.",
+ "You showed up. That's the hard bit.",
+ "Tired and did it anyway. That's the whole skill.",
+ "One more than yesterday.",
+ "This is what learning actually feels like — unglamorous, and working.",
+ "You're getting better at this. Quietly, but you are.",
+ "Steady beats brilliant. Every time.",
+ "That's a good stopping point. You earned it."
 ];
 // shown some of the time, never every time — a nudge stops working the
 // moment it becomes furniture
@@ -1572,7 +1520,6 @@ function go(id, mode){
   document.body.classList.toggle('hidenav', id==='quest');
   document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on', b.dataset.go===id && (!b.dataset.mode||b.dataset.mode===ctxMode)));
   if(id==='home') renderHome();
-  if(id==='why') renderWhy();
   if(id==='chapters') renderChapters();
   if(id==='voice') renderVoice();
   if(id==='progress') renderProgress();
@@ -1604,19 +1551,6 @@ function touchStreak(){
   S.streak = (S.last===y) ? S.streak+1 : 1;
   S.last = today; save();
   if(S.streak>1) toast(`🔥 ${S.streak} days in a row, ${her()}!`);
-}
-
-/* ---------- my why ---------- */
-function renderWhy(){
-  const all = allCards();
-  const solid = all.filter(p=>bucket(p.cid,p.c)==='solid').length;
-  document.getElementById('whyHead').textContent = solid > 0
-    ? `${solid} words down, ${her()}. This is what they're for.`
-    : `This is what it's all for, ${her()}.`;
-  document.getElementById('whyClose').textContent = 'None of this is far away.';
-  document.getElementById('whyCloseSub').innerHTML = solid > 40
-    ? `You've already got <b>${solid}</b> of these locked in. That's not a plan any more — that's progress.`
-    : "It's a license, and a license is just a pile of words you learned one at a time. You're already doing it.";
 }
 
 /* ---------- home ---------- */
@@ -2335,7 +2269,6 @@ function renderVoice(){
     else Voice.say(SAMPLE);
   };
 }
-
 
 /* Which diagram belongs to which lesson section. Written out by hand because
    automatic matching gets fooled by metaphor — "the root: the heart of the
