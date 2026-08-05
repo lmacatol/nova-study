@@ -199,6 +199,17 @@ body{
   color:#fff;font-weight:900;font-size:15px;border-radius:18px;padding:14px 18px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none}
 .tapflash.on{opacity:1}
 .tapzone{position:relative}
+.whisper{margin-top:14px;font-size:12.5px;line-height:1.5;color:#9a8fd0;font-style:italic;
+  letter-spacing:.2px;text-align:center;opacity:.85}
+.whycard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px 16px;
+  margin-bottom:11px;display:flex;gap:13px;align-items:flex-start}
+.whycard .em{font-size:26px;line-height:1.1;flex:0 0 auto}
+.whycard b{display:block;font-size:15px;margin-bottom:4px}
+.whycard span{display:block;font-size:13px;line-height:1.5;color:var(--dim)}
+.whyhero{background:linear-gradient(150deg,#2a1c52,#3a1f4d);border:1px solid #4a3580;
+  border-radius:20px;padding:18px 17px;margin-bottom:18px}
+.whyhero b{display:block;font-size:16px;margin-bottom:6px}
+.whyhero span{display:block;font-size:13.5px;line-height:1.55;color:#c9bdf0}
 .chapnav{display:flex;gap:10px;margin-top:16px}
 .chapnav button{flex:1 1 0;min-width:0;background:var(--card);border:1px solid var(--line);color:var(--ink);
   border-radius:16px;padding:12px 13px;text-align:left;cursor:pointer;font:inherit;transition:transform .1s}
@@ -430,10 +441,46 @@ select,input{font-family:inherit}
     <div class="ic">📊</div><div class="tx"><b>What you know so far</b><span id="progNow">See what's solid and what still needs work</span></div><div class="chev">›</div>
   </div>
 
+  <div class="tile" data-go="why" style="margin-top:6px">
+    <div class="ic">💜</div><div class="tx"><b>My why</b><span>The reason this is worth it</span></div><div class="chev">›</div>
+  </div>
+
   <div class="sechead">Settings</div>
   <div class="tile" data-go="voice">
     <div class="ic">🎙️</div><div class="tx"><b>Nova's voice</b><span id="voiceNow">Pick how she sounds</span></div><div class="chev">›</div>
   </div>
+</section>
+
+<!-- ===================== MY WHY ===================== -->
+<section class="screen" id="s-why">
+  <div class="top"><button class="back" data-go="home">‹</button><h2>My why</h2></div>
+  <div class="whyhero">
+    <b id="whyHead">This is what it's all for.</b>
+    <span>Not someday. Every card you learn moves this a little closer.</span>
+  </div>
+
+  <div class="whycard"><div class="em">🌅</div><div>
+    <b>A retirement we can actually rest in</b>
+    <span>Saving on one income is uphill. Two changes the whole shape of it — and the sooner it starts, the more the years do the work for us.</span></div></div>
+
+  <div class="whycard"><div class="em">🛋️</div><div>
+    <b>Leo gets to slow down</b>
+    <span>He's been carrying it on his own. This is how that weight gets shared — so he can breathe, take a day off, stop doing the math every month.</span></div></div>
+
+  <div class="whycard"><div class="em">✈️</div><div>
+    <b>Real vacations</b>
+    <span>Not a long weekend squeezed between shifts. The kind where you actually unpack the suitcase and stay a while.</span></div></div>
+
+  <div class="whycard"><div class="em">🏡</div><div>
+    <b>A bigger house</b>
+    <span>Room to spread out. A place that fits the life you want to put inside it, instead of one you're always working around.</span></div></div>
+
+  <div class="whyhero" style="margin:18px 0 0;background:linear-gradient(150deg,#153228,#1b2f4a);border-color:#2a6b52">
+    <b id="whyClose">None of this is far away.</b>
+    <span id="whyCloseSub">It's a license, and a license is just a pile of words you learned one at a time. You're already doing it.</span>
+  </div>
+  <div style="height:10px"></div>
+  <button class="btn" data-go="chapters" data-mode="learn">Alright — let's get back to it 📖</button>
 </section>
 
 <!-- ===================== PROGRESS ===================== -->
@@ -1452,19 +1499,67 @@ const NOVA_SVG = `<svg viewBox="0 0 100 100" width="100%" height="100%">
 document.getElementById('novaArt').innerHTML = NOVA_SVG;
 document.getElementById('novaArt2').innerHTML = NOVA_SVG;
 
+/* ---------- her name ----------
+   She goes by Cheyenne or Shy. Alternate them so it sounds like a person
+   talking and not a mail merge, and only use a name on some lines. */
+let _nameFlip = 0;
+function her(){ _nameFlip ^= 1; return _nameFlip ? 'Cheyenne' : 'Shy'; }
+
 /* ---------- Nova's lines ---------- */
+const GREET = {
+  night:   ["Up late, {n}?", "Late one tonight, {n}.", "Still going, {n}? Respect."],
+  morning: ["Good morning, {n}.", "Morning, {n}.", "Early start, {n} — I like it."],
+  midday:  ["Good afternoon, {n}.", "Afternoon, {n}.", "Hey {n}."],
+  evening: ["Good evening, {n}.", "Evening, {n}.", "Hey {n}."]
+};
+function greetNow(){
+  const h = new Date().getHours();
+  const slot = h < 5 ? 'night' : h < 12 ? 'morning' : h < 17 ? 'midday' : h < 22 ? 'evening' : 'night';
+  return rand(GREET[slot]).replace('{n}', her());
+}
 const HELLO = [
- "Hi Cheyenne! I'm <b>Nova</b>. Five minutes counts. Let's go.",
+ "Five minutes counts. Let's go.",
  "Look who showed up. That's the whole trick, you know — <b>showing up</b>.",
  "Ready when you are. We'll take it one word part at a time.",
  "You've got a brain built for this. Let's warm it up.",
- "Morning, afternoon, or 2am — I'm here. Where do you want to start?",
+ "Where do you want to start?",
  "Remember: you don't have to know it yet. You just have to <b>meet</b> it.",
- "Every doctor and tech in that hospital started exactly where you are."
+ "Every doctor and tech in that hospital started exactly where you are.",
+ "I've got the words. You've got the reason. Let's do this."
 ];
 const NICE = ["Yes! 🎉","Nailed it.","That's it!","Exactly right.","Look at you go.","Perfect.","You're on fire 🔥","Beautiful."];
+const NICE_NAMED = ["Yes, {n}! 🎉","Nailed it, {n}.","That's it, {n}!","There it is, {n}.","Look at you go, {n}.","Perfect, {n}."];
 const OOPS = ["Not quite — no big deal.","Close! Here's the trick.","That one's sneaky.","Almost. Look at this part.","Nope — but now you'll remember it."];
 const rand = a => a[Math.floor(Math.random()*a.length)];
+// her name on roughly a third of them — often enough to feel personal,
+// rare enough that it still lands
+function praise(){
+  return Math.random() < 0.34 ? rand(NICE_NAMED).replace('{n}', her()) : rand(NICE);
+}
+
+/* ---------- the quiet ones ----------
+   Read as ordinary encouragement to anyone glancing over her shoulder.
+   She's the only one who knows what they're actually about. */
+const WHISPER = [
+ "Future you is already grateful.",
+ "This is what building something looks like.",
+ "Small deposits. Same as any account worth having.",
+ "Somebody gets to slow down because of this.",
+ "Room to breathe starts on a night like this.",
+ "The suitcase is patient. It'll wait.",
+ "You're not just studying. You're compounding.",
+ "Every one of these is a brick in something bigger.",
+ "This is the boring part of a very good story.",
+ "One license. That's the whole hinge.",
+ "Quiet work now, loud payoff later.",
+ "You already know what this is for."
+];
+// shown some of the time, never every time — a nudge stops working the
+// moment it becomes furniture
+function whisper(p){
+  return Math.random() < (p || 0.4)
+    ? `<div class="whisper">${rand(WHISPER)}</div>` : '';
+}
 
 /* ---------- screens ---------- */
 let cur='home', ctxMode='quest';
@@ -1477,6 +1572,7 @@ function go(id, mode){
   document.body.classList.toggle('hidenav', id==='quest');
   document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on', b.dataset.go===id && (!b.dataset.mode||b.dataset.mode===ctxMode)));
   if(id==='home') renderHome();
+  if(id==='why') renderWhy();
   if(id==='chapters') renderChapters();
   if(id==='voice') renderVoice();
   if(id==='progress') renderProgress();
@@ -1507,7 +1603,20 @@ function touchStreak(){
   const y = new Date(Date.now()-864e5).toDateString();
   S.streak = (S.last===y) ? S.streak+1 : 1;
   S.last = today; save();
-  if(S.streak>1) toast(`🔥 ${S.streak} day streak!`);
+  if(S.streak>1) toast(`🔥 ${S.streak} days in a row, ${her()}!`);
+}
+
+/* ---------- my why ---------- */
+function renderWhy(){
+  const all = allCards();
+  const solid = all.filter(p=>bucket(p.cid,p.c)==='solid').length;
+  document.getElementById('whyHead').textContent = solid > 0
+    ? `${solid} words down, ${her()}. This is what they're for.`
+    : `This is what it's all for, ${her()}.`;
+  document.getElementById('whyClose').textContent = 'None of this is far away.';
+  document.getElementById('whyCloseSub').innerHTML = solid > 40
+    ? `You've already got <b>${solid}</b> of these locked in. That's not a plan any more — that's progress.`
+    : "It's a license, and a license is just a pile of words you learned one at a time. You're already doing it.";
 }
 
 /* ---------- home ---------- */
@@ -1516,7 +1625,7 @@ function renderHome(){
   document.getElementById('h-xptext').textContent = xpInLvl(S.xp)+' / 100 XP';
   document.getElementById('h-streak').textContent = '🔥 '+S.streak+' day streak';
   document.getElementById('h-xpbar').style.width = xpInLvl(S.xp)+'%';
-  document.getElementById('novaSays').innerHTML = rand(HELLO);
+  document.getElementById('novaSays').innerHTML = '<b>' + greetNow() + '</b> ' + rand(HELLO);
   syncCourse();
   const c = course();
   document.getElementById('courseName').textContent = c.code + ' · ' + c.name;
@@ -1770,7 +1879,7 @@ function answer(idx, btn){
   if(right){
     Q.right++; Q.combo++; SFX.good();
     fb.className='feedback good on';
-    document.getElementById('fbT').textContent = Q.combo>=4 ? `${rand(NICE)} ${Q.combo} in a row!` : rand(NICE);
+    document.getElementById('fbT').textContent = Q.combo>=4 ? `${praise()} ${Q.combo} in a row!` : praise();
     document.getElementById('fbP').textContent =
       (q.kind==='listen' ? 'That word was ' + q.term + '. ' : '') + (q.why||'');
     if(q.kind==='listen'){ document.getElementById('qTerm').textContent = q.term; document.getElementById('qSay').innerHTML = q.card.say ? sayHtml(q.card.say) : ''; }
@@ -1825,7 +1934,7 @@ function endQuest(outOfHearts){
   else if(pct>=75){ msg="You <b>passed</b> — 75% is the line and you cleared it. Let's push it higher on the next run."; confetti(); SFX.win(); }
   else if(pct>=50) msg="Solid middle. The stuff you missed is the stuff worth another five minutes. Want to run just those?";
   else msg="First pass through new material always looks like this. You just met these words — now let's <b>learn</b> them.";
-  document.getElementById('rMsg').innerHTML=msg;
+  document.getElementById('rMsg').innerHTML = msg + whisper(pct >= 75 ? 0.55 : 0.3);
   const miss=document.getElementById('rMissed');
   if(Q.missed.length){
     miss.innerHTML = '<div class="sechead">Worth another look</div>' + Q.missed.slice(0,10).map(q=>
@@ -1927,11 +2036,12 @@ function finishDeck(){
   document.getElementById('dTitle').textContent =
     learning === 0 ? `${t} — every card ✓` : `${t} — deck complete`;
   document.getElementById('dSub').innerHTML =
-    learning === 0
-      ? "You went through every single card and knew them all. That's the whole chapter, Cheyenne."
+    (learning === 0
+      ? `You went through every single card and knew them all. That's the whole chapter, ${her()}.`
       : (pct >= 70
           ? `You knew <b>${pct}%</b> of them. The ${learning} you're still learning are worth one more pass — that's where the points are.`
-          : `First time through is always the hardest. You've now <b>met</b> all ${F.list.length} of them, which is the part most people skip.`);
+          : `First time through is always the hardest. You've now <b>met</b> all ${F.list.length} of them, which is the part most people skip.`))
+    + whisper(learning === 0 ? 0.6 : 0.3);
   if(learning === 0){ confetti(); SFX.win(); }
   else SFX.good();
   S.xp += 15; save();
@@ -2385,7 +2495,7 @@ function startLearn(cid){
     </div>
     <div id="lnDone" class="tile" style="display:none;background:linear-gradient(135deg,#153228,#1b2f4a);border-color:#2a6b52">
       <div class="ic" style="background:linear-gradient(135deg,var(--good),#6de3ff);color:#0d2c22">✓</div>
-      <div class="tx"><b>Lesson finished</b><span>Nice — that's the whole chapter read through.</span></div>
+      <div class="tx"><b>Lesson finished</b><span id="lnDoneSub">Nice — that's the whole chapter read through.</span></div>
     </div>
     <div id="lnDoneBtns" style="display:none;margin-bottom:14px">
       <button class="btn" id="lnDoneQuiz">Quiz me on this chapter 🎯</button>
@@ -2445,7 +2555,11 @@ function startLearn(cid){
     const fin = !!t.finished;
     document.getElementById('lnDone').style.display = fin ? '' : 'none';
     document.getElementById('lnDoneBtns').style.display = fin ? '' : 'none';
-    if(fin && !P.celebrated){ P.celebrated = true; confetti(); SFX.win(); S.xp += 20; save(); }
+    if(fin && !P.celebrated){
+      P.celebrated = true; confetti(); SFX.win(); S.xp += 20; save();
+      const sub = document.getElementById('lnDoneSub');
+      if(sub) sub.innerHTML = `Nice — that's the whole chapter read through, ${her()}.` + whisper(0.5);
+    }
     if(!fin) P.celebrated = false;
   }
   let lastU = -1, lastW = -1, curNode = null, lastSection = -1;
