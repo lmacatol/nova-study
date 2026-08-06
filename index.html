@@ -1941,7 +1941,9 @@ function renderQ(){
   } else {
     document.getElementById('qPrompt').textContent=q.prompt;
     termEl.textContent=q.term; termEl.classList.toggle('small', String(q.term).length>26);
-    sayEl.innerHTML = q.card.say ? sayHtml(q.card.say) : '';
+    // On "which one means…" the text on screen is the CLUE and the card's
+    // respelling belongs to the answer — printing it hands her the answer.
+    sayEl.innerHTML = (q.kind !== 'reverse' && q.card && q.card.say) ? sayHtml(q.card.say) : '';
     spk.style.display=''; spk.textContent='🔊 Say it';
   }
   // Careful: on a "which one means…" question the card's FRONT is the answer,
@@ -1956,8 +1958,15 @@ function renderQ(){
     spk.onclick = ()=> sayCard(q.card,'term',q.cid);
   }
   const slow = document.getElementById('qSlow');
-  slow.style.display = q.card ? '' : 'none';
-  slow.onclick = ()=>{ if(q.card) sayCard(q.card,'term',q.cid,0.55); };
+  slow.style.display = (q.kind==='reverse' || q.card) ? '' : 'none';
+  // same trap as the speaker: on a reverse question, saying the card slowly
+  // would read the answer out loud. Slow down the clue instead.
+  slow.onclick = ()=>{
+    stopAllAudio();
+    if(q.kind==='reverse'){ Voice.say([String(q.term)], Math.max(0.5, Voice.rate()*0.55)); return; }
+    if(q.kind==='mcq'){ Voice.say([String(q.q)], Math.max(0.5, Voice.rate()*0.55)); return; }
+    if(q.card) sayCard(q.card,'term',q.cid,0.55);
+  };
   const box=document.getElementById('qOpts'); box.innerHTML='';
   q.choices.forEach((c,idx)=>{
     const b=document.createElement('button'); b.className='opt'; b.textContent=c;
