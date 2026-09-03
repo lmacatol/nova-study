@@ -346,6 +346,7 @@ body.hidenav .nav{display:none}
   <div class="top">
     <a class="iconbtn" href="index.html" title="Back">‹</a>
     <h1>Zen — Math</h1>
+    <button class="iconbtn" id="openSettings" title="Settings">⚙️</button>
   </div>
 <div class="teach-wrap">
   <div class="teach" id="teachArt"></div>
@@ -354,8 +355,6 @@ body.hidenav .nav{display:none}
   <div id="passBox"></div>
   <div class="chipbar" id="subjBar"></div>
   <div class="hi"><b id="hiT">Multiplication and division</b><span id="hiS"></span></div>
-  <div class="voicebar" id="voiceBar"></div>
-  <div class="voicebar" id="fxBar"></div>
   <div class="sechead" style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.9px;font-weight:800;margin:4px 0 9px">Your stickers</div>
   <div class="stickers" id="stickerBox"></div>
   <div id="unitList"></div>
@@ -490,6 +489,25 @@ body.hidenav .nav{display:none}
   <div id="wordList"></div>
   <button class="btn" id="wdGo" style="margin-top:8px">Start reading</button>
 </section>
+
+<!-- ===================== SETTINGS ===================== -->
+<section class="screen" id="s-settings">
+  <div class="top"><button class="iconbtn" id="setBack">‹</button><h2>Settings</h2></div>
+  <div class="sechead" style="font-size:11px;color:var(--dim);text-transform:uppercase;
+    letter-spacing:.9px;font-weight:800;margin:2px 0 9px">Who reads it out</div>
+  <div class="voicebar" id="voiceBar"></div>
+  <p class="foot" id="voiceNote" style="text-align:left;margin:-6px 0 18px"></p>
+
+  <div class="sechead" style="font-size:11px;color:var(--dim);text-transform:uppercase;
+    letter-spacing:.9px;font-weight:800;margin:2px 0 9px">Sound and buzz</div>
+  <div class="voicebar" id="fxBar"></div>
+  <p class="foot" id="fxNote" style="text-align:left;margin:-6px 0 18px"></p>
+
+  <div class="sechead" style="font-size:11px;color:var(--dim);text-transform:uppercase;
+    letter-spacing:.9px;font-weight:800;margin:2px 0 9px">Reading speed</div>
+  <div class="speedbar" id="speedBar3"></div>
+  <p class="foot" style="text-align:left;margin:-4px 0 0">Used when a story is read aloud.</p>
+</section>
 <nav class="nav">
   <button data-nav="home" class="on"><i>🏠</i>Home</button>
   <button data-nav="cards"><i>🃏</i>Cards</button>
@@ -562,6 +580,7 @@ const Voice = (()=>{
     try{
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(sayable(text));
+      const dv = deviceVoice(); if(dv) u.voice = dv;
       u.rate = db.get('rate', 0.85);
       u.onend = ()=>{ if(after) after(); };
       u.onerror = ()=>{ if(after) after(); };
@@ -856,6 +875,16 @@ const HUES = ['#4fc3f7','#5ddba0','#ffc94d','#ff9a76','#b39ddb','#4fc3f7','#5ddb
    progress are keyed by index — renumbering would orphan both. It is shown
    first because the 2s are built on it. */
 const ORDER = [8,0,1,2,3,4,5,6,7];
+function openSettings(){
+  renderVoiceBar(); renderFxBar(); renderReadSpeed();
+  document.getElementById('voiceNote').textContent = (RECORDED === false)
+    ? "The recorded voices aren't installed on the server, so it's using this device's own voice."
+    : 'Sarah, Bella and Sky are recorded voices. Pick whoever he likes.';
+  document.getElementById('fxNote').textContent = SFX.canBuzz()
+    ? 'Buzz only works if the phone is off Silent and Do Not Disturb. Tap Test to check.'
+    : 'This device has no vibration — iPhones and iPads never do in a browser.';
+  go('settings');
+}
 function renderHome(){
   SESS = null;
   greet();
@@ -868,13 +897,31 @@ function renderHome(){
   document.getElementById('hiS').textContent = started
     ? `${started} of 8 started · ${total} right so far. Pick up anywhere.`
     : 'Pick a box to start. Each round is 10 questions — short on purpose.';
-  document.getElementById('voiceBar').innerHTML = VOICES.map(([s,n])=>
-    `<button data-v="${s}" class="${Voice.suffix()===s?'on':''}">${n}</button>`).join('');
-  document.getElementById('fxBar').innerHTML =
+  renderUnits();
+}
+function renderVoiceBar(){
+  const vb = document.getElementById('voiceBar');
+  if(!vb) return;
+  if(RECORDED === false){
+    const dv = deviceVoice();
+    vb.innerHTML = `<button class="soon" style="opacity:.7;flex:1" title="The recorded voices are not installed on the server">
+      🎙️ Device voice${dv ? ' · ' + dv.name.replace(/\(.*\)/,'').trim().slice(0,22) : ''}</button>`;
+  } else {
+    vb.innerHTML = VOICES.map(([s,n])=>
+      `<button data-v="${s}" class="${Voice.suffix()===s?'on':''}">${n}</button>`).join('');
+  }
+}
+function renderFxBar(){
+  const fb = document.getElementById('fxBar');
+  if(!fb) return;
+  fb.innerHTML =
     `<button data-fx="sfx" class="${SFX.sfxOn()?'on':''}">${SFX.sfxOn()?'🔊 Sounds on':'🔇 Sounds off'}</button>` +
     (SFX.canBuzz()
-      ? `<button data-fx="buzz" class="${SFX.buzzOn()?'on':''}">${SFX.buzzOn()?'📳 Buzz on':'📳 Buzz off'}</button>`
+      ? `<button data-fx="buzz" class="${SFX.buzzOn()?'on':''}">${SFX.buzzOn()?'📳 Buzz on':'📳 Buzz off'}</button>` +
+        `<button data-fx="test" style="flex:0 0 auto;padding-left:14px;padding-right:14px">Test</button>`
       : `<button class="soon" style="opacity:.5" title="This device has no vibration">📳 No buzz here</button>`);
+}
+function renderUnits(){
   document.getElementById('unitList').innerHTML = ORDER.map((i,pos)=>{ const u=U[i]; return `<button class="unit" data-u="${i}">
        <span class="unum" style="background:${HUES[pos]}">${pos+1}</span>
        <span class="utx"><b>${u.t}</b><span>${u.s}</span></span>
@@ -887,12 +934,21 @@ function starStr(n){ const s=starsFor(n); return '★'.repeat(s)+'☆'.repeat(3-
 document.addEventListener('click', e=>{
   const fx = e.target.closest('[data-fx]');
   if(fx){
-    if(fx.dataset.fx === 'sfx'){ SFX.toggleSfx(); SFX.play('good'); }
-    else { SFX.toggleBuzz(); SFX.play('tap'); }
-    renderHome(); return;
+    if(fx.dataset.fx === 'sfx'){ SFX.toggleSfx(); SFX.play('good'); renderFxBar(); return; }
+    if(fx.dataset.fx === 'test'){
+      const ok = SFX.testBuzz();
+      // The browser saying yes is not the same as the phone actually buzzing —
+      // silent mode and Do Not Disturb both kill it without any error.
+      document.getElementById('fxNote').textContent = ok
+        ? 'That was a long double-buzz. Felt nothing? The phone is on Silent or Do Not Disturb — both switch off web vibration with no warning.'
+        : 'This browser refused the buzz. iPhones and iPads never support it.';
+      return;
+    }
+    SFX.toggleBuzz(); SFX.play('tap');
+    renderFxBar(); return;
   }
   const v = e.target.closest('[data-v]');
-  if(v){ Voice.unlock(); Voice.setVoice(v.dataset.v); renderHome();
+  if(v){ Voice.unlock(); Voice.setVoice(v.dataset.v); renderVoiceBar();
          Voice.say(0, U[0].a.title, U[0].t); return; }
   const t = e.target.closest('[data-u]');
   if(t) openLesson(+t.dataset.u);
@@ -1215,6 +1271,49 @@ function sayable(t){
   return t.replace(/\s+/g, ' ').trim();
 }
 
+
+/* ============================================================
+   WHICH VOICE IS ACTUALLY SPEAKING
+
+   If the recorded sprites are not on the server, everything falls back to
+   the device's own voice — which on an Android tablet is usually British.
+   Two problems with that: the picker was promising "Sarah" and delivering
+   something else, and nobody chose a British narrator for a US third
+   grader. So: say plainly when the recordings are missing, and pick the
+   best American voice the device has instead of whatever it defaults to.
+   ============================================================ */
+let RECORDED = null;                 // null = unknown, true/false once probed
+function probeRecordings(){
+  return fetch('zen0.json', {method:'GET', cache:'no-store'})
+    .then(r=>{ RECORDED = r.ok; return RECORDED; })
+    .catch(()=>{ RECORDED = false; return false; });
+}
+const BAD_ACCENT = /\b(en[-_]GB|en[-_]AU|en[-_]IN|en[-_]ZA|en[-_]IE)\b/i;
+function bestDeviceVoice(){
+  let list = [];
+  try{ list = speechSynthesis.getVoices() || []; }catch(e){ return null; }
+  if(!list.length) return null;
+  const score = v=>{
+    const n = (v.name||'') + ' ' + (v.voiceURI||'') + ' ' + (v.lang||'');
+    let s = 0;
+    if(!/^en/i.test(v.lang||'')) return -1000;
+    if(/en[-_]US/i.test(v.lang||'')) s += 100;      // American first, for a US kid
+    if(BAD_ACCENT.test(n)) s -= 80;
+    if(/natural|neural|premium|enhanced/i.test(n)) s += 40;
+    if(/^google/i.test(n)) s += 25;
+    if(/female|samantha|aria|jenny|ava|allison|joanna|salli|karen|zoe/i.test(n)) s += 12;
+    return s;
+  };
+  const ranked = list.map(v=>({v, s:score(v)})).sort((a,b)=>b.s-a.s);
+  return ranked.length && ranked[0].s > -1000 ? ranked[0].v : null;
+}
+let _dv = null;
+function deviceVoice(){
+  if(_dv === null) _dv = bestDeviceVoice() || false;
+  return _dv || null;
+}
+try{ speechSynthesis.onvoiceschanged = ()=>{ _dv = null; }; }catch(e){}
+
 /* ============================================================
    SOUND + BUZZ
 
@@ -1275,15 +1374,27 @@ const SFX = (()=>{
   /* navigator.vibrate is Android only. iPhones and iPads do not support it,
      and a laptop trackpad is not reachable from a web page at all — so this
      is a real buzz on his tablet if it's Android, and a no-op otherwise. */
-  const BUZZ = { tap:8, key:6, good:[14], bad:[26], drop:9, hop:12, flip:8, page:6,
-                 pair:[12,40,12], streak:[10,30,10,30,10], win:[18,45,18],
-                 star:[12,30,12], pass:[24,60,24,60,40] };
+  // Durations matter more than they look. A Pixel's haptic motor needs roughly
+  // 15ms of spin-up before anything is felt at all — the original 6-8ms values
+  // fired correctly and produced nothing you could notice.
+  const BUZZ = { tap:20, key:16, good:[30], bad:[55], drop:24, hop:30, flip:20, page:15,
+                 pair:[25,55,25], streak:[20,45,20,45,20], win:[40,70,40],
+                 star:[25,50,25], pass:[60,90,60,90,90] };
+  let lastBuzzOK = null;
   function fire(name){
     if(on() && PATTERNS[name]) { try{ PATTERNS[name](); }catch(e){} }
-    if(buzzOn() && navigator.vibrate && BUZZ[name]){ try{ navigator.vibrate(BUZZ[name]); }catch(e){} }
+    if(buzzOn() && navigator.vibrate && BUZZ[name]){
+      try{ lastBuzzOK = navigator.vibrate(BUZZ[name]); }catch(e){ lastBuzzOK = false; }
+    }
+  }
+  function testBuzz(){
+    if(!navigator.vibrate) return false;
+    try{ return navigator.vibrate([120, 90, 120, 90, 220]); }catch(e){ return false; }
   }
   return {
     play: fire,
+    testBuzz,
+    lastBuzzOK: ()=> lastBuzzOK,
     canBuzz: ()=> !!navigator.vibrate,
     sfxOn: on, buzzOn,
     toggleSfx(){ db.set('sfx', !on()); return on(); },
@@ -1366,6 +1477,8 @@ document.addEventListener('click', e=>{
   if(id === 'speed'){ NAVMODE = 'speed'; openPicker('speed'); return; }
   startGame(id);
 });
+document.getElementById('openSettings').onclick = openSettings;
+document.getElementById('setBack').onclick = ()=>{ renderHome(); go('home'); };
 document.getElementById('gmBack').onclick = ()=>{ setNav('home'); renderHome(); go('home'); };
 document.getElementById('gBack').onclick  = ()=>{ Voice.stop(); leaveOrPause(()=>go('games')); };
 
@@ -1399,6 +1512,7 @@ function gameSay(text){
   try{
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(sayable(text)); u.rate = 0.9;
+    { const dv = deviceVoice(); if(dv) u.voice = dv; }
     u.onend = ()=> b.classList.remove('playing');
     speechSynthesis.speak(u);
   }catch(e){ b.classList.remove('playing'); }
@@ -2142,6 +2256,7 @@ function speakWord(w){
   try{
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(sayable(w));
+    const dv = deviceVoice(); if(dv) u.voice = dv;
     u.rate = Math.max(0.5, rate() - 0.15);   // a single word slower still
     speechSynthesis.speak(u);
   }catch(e){}
@@ -2176,30 +2291,64 @@ function paintPage(){
   document.querySelectorAll('#pgText .w').forEach(el=>
     el.onclick = ev=>{ ev.stopPropagation(); speakWord(el.dataset.w); });
   document.querySelectorAll('#pgText .sent').forEach(el=>
-    el.onclick = ()=> readPage(+el.dataset.s));
+    el.onclick = ()=>{ stopReading(); readPage(+el.dataset.s); });
   document.getElementById('pgPrev').style.visibility = RD.page ? '' : 'hidden';
+  RD.at = 0;
   readPage(0);
 }
 /* read the page aloud, one sentence at a time, lighting each as it goes */
+/* One reader at a time. Every start takes a ticket; a loop whose ticket is
+   no longer current exits on its next step. Pausing just burns the ticket,
+   so there is no way for a stale callback to keep the narration alive. */
+const READ = { gen: 0, playing: false };
 function readPage(from){
   const st = RD.st, sents = st.pages[RD.page];
-  const btn = document.getElementById('pgSpk');
-  btn.classList.add('playing');
-  let i = from || 0;
-  RD.stop = false;
+  if(from != null) RD.at = from;
+  if(RD.at == null || RD.at >= sents.length) RD.at = 0;
+  const mine = ++READ.gen;
+  READ.playing = true;
+  paintReadBtn();
   (function step(){
+    if(mine !== READ.gen) return;                    // superseded: pause, or a new start
     document.querySelectorAll('#pgText .sent').forEach(x=>x.classList.remove('lit'));
-    if(RD.stop || i >= sents.length){ btn.classList.remove('playing'); return; }
-    const el = document.querySelector(`#pgText [data-s="${i}"]`);
+    if(RD.at >= sents.length){
+      READ.playing = false; RD.at = 0; paintReadBtn(); return;
+    }
+    const el = document.querySelector(`#pgText [data-s="${RD.at}"]`);
     if(el) el.classList.add('lit');
-    const text = sents[i]; i++;
-    speakSentence(text, ()=> setTimeout(step, 130));
+    const text = sents[RD.at];
+    // a beat between sentences, longer on the slow setting — a weak reader
+    // needs a moment to land on the full stop before the next one starts
+    const beat = Math.round(420 - rate() * 240);
+    speakSentence(text, ()=>{
+      if(mine !== READ.gen) return;
+      RD.at++;
+      setTimeout(step, beat);
+    });
   })();
 }
+function pauseRead(){
+  READ.gen++;                                        // invalidates the running loop
+  READ.playing = false;
+  try{ speechSynthesis.cancel(); }catch(e){}
+  paintReadBtn();
+  const cur = document.querySelector(`#pgText [data-s="${RD ? RD.at : 0}"]`);
+  document.querySelectorAll('#pgText .sent').forEach(x=>x.classList.remove('lit'));
+  if(cur) cur.classList.add('lit');                  // leave the line he stopped on marked
+}
+function paintReadBtn(){
+  const b = document.getElementById('pgSpk');
+  if(!b) return;
+  b.textContent = READ.playing ? '⏸' : '▶';
+  b.classList.toggle('playing', READ.playing);
+}
+function toggleRead(){ READ.playing ? pauseRead() : readPage(null); }
+
 function speakSentence(text, after){
   try{
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(sayable(text));
+    const dv = deviceVoice(); if(dv) u.voice = dv;
     u.rate = rate();
     u.onend = ()=>{ if(after) after(); };
     u.onerror = ()=>{ if(after) after(); };
@@ -2207,12 +2356,13 @@ function speakSentence(text, after){
   }catch(e){ if(after) after(); }
 }
 function stopReading(){
-  RD && (RD.stop = true);
+  READ.gen++; READ.playing = false;
   try{ speechSynthesis.cancel(); }catch(e){}
+  paintReadBtn();
   document.querySelectorAll('.spk.playing').forEach(b=>b.classList.remove('playing'));
   document.querySelectorAll('#pgText .sent').forEach(x=>x.classList.remove('lit'));
 }
-document.getElementById('pgSpk').onclick  = ()=>{ stopReading(); readPage(0); };
+document.getElementById('pgSpk').onclick  = ()=> toggleRead();
 document.getElementById('pgBack').onclick = ()=>{ stopReading(); renderStories(); go('stories'); };
 document.getElementById('pgPrev').onclick = ()=>{
   stopReading(); if(RD.page>0){ RD.page--; paintPage(); } };
@@ -2286,7 +2436,7 @@ function showBreak(resume){
   document.body.appendChild(d);
   document.getElementById('unpause').onclick = ()=>{ d.remove(); if(resume) resume(); };
 }
-document.getElementById('pgBreak').onclick = ()=> showBreak(()=> readPage(0));
+document.getElementById('pgBreak').onclick = ()=> showBreak(()=> readPage(null));
 
 
 /* Reading speed. Defaulted to the slowest — he is not a strong reader, and
@@ -2298,7 +2448,7 @@ function renderReadSpeed(){
   const cur = rate();
   const html = SPEEDS.map(([k,n,v])=>
     `<button data-sp="${v}" class="${Math.abs(cur-v)<0.01?'on':''}">${n}</button>`).join('');
-  ['speedBar','speedBar2'].forEach(id=>{
+  ['speedBar','speedBar2','speedBar3'].forEach(id=>{
     const el = document.getElementById(id); if(el) el.innerHTML = html;
   });
 }
@@ -2478,6 +2628,7 @@ function endRound(){
 document.getElementById('dAgain').onclick = ()=> SPEED_LAST ? startSpeed(CUR) : startRound(CUR);
 document.getElementById('dHome').onclick  = ()=>{ Voice.stop(); renderHome(); go('home'); };
 
+probeRecordings().then(()=>renderHome());
 renderHome();
 </script>
 </body>
