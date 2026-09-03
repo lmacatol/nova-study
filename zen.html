@@ -24,6 +24,43 @@ body{background:radial-gradient(900px 600px at 15% -10%,#1d3a63 0%,transparent 6
 .screen{display:none;flex:1;flex-direction:column;padding:14px 16px calc(24px + var(--safe-b));animation:fade .25s ease}
 .screen.on{display:flex}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---------- bottom menu, same shape as Cheyenne's ---------- */
+.nav{position:fixed;bottom:0;left:0;right:0;max-width:520px;margin:0 auto;display:flex;
+  background:rgba(15,27,46,.94);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+  padding:8px 6px calc(8px + var(--safe-b));z-index:40}
+.nav button{flex:1;background:none;border:none;color:var(--dim);font-family:inherit;font-size:10.5px;
+  font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 0}
+.nav button i{font-style:normal;font-size:21px;line-height:1}
+.nav button.on{color:var(--sky)}
+body.hidenav .nav{display:none}
+.screen{padding-bottom:calc(96px + var(--safe-b))}
+.chipbar{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px}
+.chipbar button{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:9px 15px;
+  color:var(--ink);font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer;white-space:nowrap;flex:0 0 auto}
+.chipbar button.on{background:var(--sky);color:#0d2033;border-color:var(--sky)}
+.chipbar button.soon{opacity:.55}
+/* ---------- flashcards ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:24px;min-height:250px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px 20px;
+  cursor:pointer;text-align:center;position:relative;animation:pop .28s cubic-bezier(.2,1.4,.4,1)}
+.card .face{font-size:46px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+.card .face.word{font-size:23px;line-height:1.4}
+.card .ans{font-size:60px;font-weight:800;color:var(--grass);font-variant-numeric:tabular-nums}
+.card .sub{font-size:15px;line-height:1.5;color:var(--dim);margin-top:14px;max-width:300px}
+.card .flip{position:absolute;bottom:12px;font-size:11.5px;color:var(--dim);letter-spacing:.5px;font-weight:700}
+.cardnav{display:flex;gap:10px;margin-top:14px}
+.cardnav button{flex:1}
+/* ---------- speed game ---------- */
+.clock{display:flex;gap:10px;margin-bottom:14px}
+.clockbox{flex:1;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;text-align:center}
+.clockbox b{display:block;font-size:23px;font-weight:800;font-variant-numeric:tabular-nums}
+.clockbox span{font-size:10px;color:var(--dim);letter-spacing:.6px;text-transform:uppercase;font-weight:800}
+.streakpop{position:fixed;left:50%;top:34%;transform:translateX(-50%);font-size:44px;font-weight:800;
+  color:var(--sun);pointer-events:none;z-index:50;animation:whoosh .7s ease forwards}
+@keyframes whoosh{0%{opacity:0;transform:translateX(-50%) scale(.5)}
+  25%{opacity:1;transform:translateX(-50%) scale(1.1)}
+  100%{opacity:0;transform:translateX(-50%) scale(1.3) translateY(-40px)}}
 .top{display:flex;align-items:center;gap:10px;padding:6px 0 14px}
 .top h1{font-size:20px;margin:0;flex:1;font-weight:800}
 .top h2{font-size:16px;margin:0;flex:1;font-weight:800}
@@ -37,7 +74,17 @@ body{background:radial-gradient(900px 600px at 15% -10%,#1d3a63 0%,transparent 6
 .btn:active{transform:translateY(4px);box-shadow:0 2px 0 #1f6d8c}
 .btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:0 4px 0 #101d31}
 .btn.sm{padding:13px;font-size:15px;border-radius:15px}
-.hi{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:15px 16px;margin-bottom:16px}
+.teach-wrap{display:flex;gap:13px;align-items:flex-start;margin:2px 0 16px}
+.teach{width:76px;height:76px;flex:0 0 auto;animation:bob 3.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+#zArm{animation:point 2.8s ease-in-out infinite}
+@keyframes point{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-11deg)}}
+#zEyes{transform-box:fill-box;transform-origin:center;animation:blink 5.2s infinite}
+@keyframes blink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.12)}}
+.bubble{background:var(--card);border:1px solid var(--line);border-radius:18px;border-bottom-left-radius:6px;
+  padding:12px 14px;font-size:14.5px;line-height:1.45;flex:1;min-height:50px;display:flex;align-items:center}
+.bubble b{color:var(--sky)}
+.hi{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:15px 16px;margin-bottom:14px}
 .hi b{display:block;font-size:17px;margin-bottom:4px}
 .hi span{font-size:13.5px;color:var(--dim);line-height:1.5}
 .unit{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:var(--card);
@@ -50,12 +97,18 @@ body{background:radial-gradient(900px 600px at 15% -10%,#1d3a63 0%,transparent 6
 .utx b{display:block;font-size:15.5px;line-height:1.3}
 .utx span{display:block;font-size:12px;color:var(--dim);margin-top:2px;line-height:1.35}
 .stars{font-size:13px;letter-spacing:1px;flex:0 0 auto;color:var(--sun)}
+.voicebar{display:flex;gap:8px;margin-bottom:16px}
+.voicebar button{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 6px;
+  color:var(--ink);font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer}
+.voicebar button.on{background:var(--sky);color:#0d2033;border-color:var(--sky)}
 .lesson .rule{background:var(--card2);border:1px solid var(--line);border-radius:18px;padding:16px;
   font-size:17px;line-height:1.55;font-weight:700;margin-bottom:14px}
 .lesson .ex{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;
   font-size:16px;line-height:1.7;white-space:pre-line;margin-bottom:14px;font-variant-numeric:tabular-nums}
 .lesson .hook{border-left:4px solid var(--sun);padding:4px 0 4px 13px;font-size:15.5px;line-height:1.5;
-  color:var(--sun);font-weight:700;margin-bottom:20px}
+  color:var(--sun);font-weight:700;margin-bottom:18px}
+.readrow{display:flex;gap:10px;margin-bottom:16px}
+.readrow button{flex:1}
 .chant{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:16px}
 .chant .lab{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;font-weight:800;margin-bottom:10px}
 .chantrow{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
@@ -64,41 +117,66 @@ body{background:radial-gradient(900px 600px at 15% -10%,#1d3a63 0%,transparent 6
 .chantrow span.lit{background:var(--sun);color:#0d2033;border-color:var(--sun);transform:scale(1.14)}
 .qwrap{flex:1;display:flex;flex-direction:column}
 .qcount{font-size:12.5px;color:var(--dim);font-weight:700;letter-spacing:.4px;margin-bottom:8px}
-.qbar{height:8px;background:var(--card);border-radius:99px;overflow:hidden;margin-bottom:20px}
+.qbar{height:8px;background:var(--card);border-radius:99px;overflow:hidden;margin-bottom:16px}
 .qbar i{display:block;height:100%;background:linear-gradient(90deg,var(--sky),var(--grass));transition:width .3s}
-.qtext{font-size:26px;line-height:1.35;font-weight:800;white-space:pre-line;margin:6px 0 22px;
+.qhead{display:flex;align-items:flex-start;gap:11px;margin:4px 0 14px}
+.qtext{font-size:24px;line-height:1.35;font-weight:800;white-space:pre-line;flex:1;
   font-variant-numeric:tabular-nums}
-.qtext.big{font-size:46px;text-align:center;margin:24px 0 30px}
+.qtext.big{font-size:44px;text-align:center}
+.spk{width:46px;height:46px;border-radius:15px;border:1px solid var(--line);background:var(--card);
+  color:var(--ink);font-size:21px;cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center}
+.spk.playing{background:var(--sky);color:#0d2033;border-color:var(--sky);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.pic{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 10px 8px;
+  margin-bottom:16px;position:relative}
+.pic svg{width:100%;height:auto;display:block;overflow:visible}
+.pic .replay{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:11px;
+  border:1px solid var(--line);background:var(--card2);color:var(--dim);font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
 .opts{display:grid;gap:10px}
 .opt{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:17px;font-size:17.5px;
-  font-weight:700;text-align:left;color:inherit;font-family:inherit;cursor:pointer;transition:transform .08s}
+  font-weight:700;text-align:left;color:inherit;font-family:inherit;cursor:pointer;transition:transform .08s;
+  display:flex;align-items:center;gap:11px}
 .opt:active{transform:scale(.98)}
+.opt .num{width:26px;height:26px;border-radius:9px;background:var(--card2);color:var(--dim);font-size:13px;
+  display:flex;align-items:center;justify-content:center;flex:0 0 auto}
 .opt.right{background:var(--grass);color:#0d2033;border-color:var(--grass)}
+.opt.right .num{background:rgba(0,0,0,.15);color:#0d2033}
 .opt.wrong{background:var(--card2);border-color:var(--warm);color:var(--warm)}
-.entry{background:var(--card);border:2px solid var(--line);border-radius:18px;height:74px;display:flex;
-  align-items:center;justify-content:center;font-size:38px;font-weight:800;margin-bottom:14px;
+.opt.reading{border-color:var(--sky)}
+.entry{background:var(--card);border:2px solid var(--line);border-radius:18px;height:72px;display:flex;
+  align-items:center;justify-content:center;font-size:36px;font-weight:800;margin-bottom:12px;
   font-variant-numeric:tabular-nums;letter-spacing:2px}
 .entry.right{border-color:var(--grass);color:var(--grass)}
 .entry.wrong{border-color:var(--warm);color:var(--warm)}
 .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
-.pad button{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 0;
-  font-size:25px;font-weight:800;color:var(--ink);font-family:inherit;cursor:pointer;
+.pad button{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px 0;
+  font-size:24px;font-weight:800;color:var(--ink);font-family:inherit;cursor:pointer;
   font-variant-numeric:tabular-nums;transition:transform .06s}
 .pad button:active{transform:scale(.94);background:var(--card2)}
 .pad button.go{background:linear-gradient(135deg,var(--sky),var(--grass));color:#0d2033;font-size:19px}
 .why{background:var(--card2);border:1px solid var(--line);border-radius:18px;padding:15px;margin-top:14px;
-  font-size:16px;line-height:1.55;font-variant-numeric:tabular-nums}
+  font-size:16px;line-height:1.55;font-variant-numeric:tabular-nums;
+  animation:pop .3s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
 .why b{color:var(--grass)}
 .why.miss b{color:var(--warm)}
 .done{align-items:center;text-align:center;justify-content:center}
-.score{font-size:62px;font-weight:800;line-height:1;margin:10px 0 4px;font-variant-numeric:tabular-nums}
+.score{font-size:60px;font-weight:800;line-height:1;margin:10px 0 4px;font-variant-numeric:tabular-nums}
 .done p{font-size:16.5px;line-height:1.55;color:var(--dim);max-width:330px;margin:0 0 6px}
 .bigstars{font-size:34px;letter-spacing:5px;color:var(--sun);margin:14px 0 20px}
+.bigstars span{display:inline-block;animation:star .5s cubic-bezier(.2,1.5,.4,1) backwards}
+@keyframes star{from{opacity:0;transform:scale(0) rotate(-90deg)}to{opacity:1;transform:none}}
 .missed{width:100%;text-align:left;margin-top:22px}
 .missed .lab{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;font-weight:800;margin-bottom:9px}
 .missed div.m{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 13px;
   margin-bottom:8px;font-size:14.5px;line-height:1.5;font-variant-numeric:tabular-nums}
-.foot{margin-top:22px;font-size:12px;color:var(--dim);line-height:1.5;text-align:center}
+.foot{margin-top:20px;font-size:12px;color:var(--dim);line-height:1.5;text-align:center}
+.dot{transform-box:fill-box;transform-origin:center;animation:drop .32s cubic-bezier(.2,1.5,.4,1) backwards}
+@keyframes drop{from{opacity:0;transform:scale(.2) translateY(-10px)}to{opacity:1;transform:none}}
+.hop{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw .42s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.fadein{animation:fade .3s ease backwards}
 </style>
 </head>
 <body>
@@ -106,16 +184,23 @@ body{background:radial-gradient(900px 600px at 15% -10%,#1d3a63 0%,transparent 6
 
 <section class="screen on" id="s-home">
   <div class="top">
-    <a class="iconbtn" href="index.html" title="Back to Nova">‹</a>
+    <a class="iconbtn" href="index.html" title="Back">‹</a>
     <h1>Zen — Math</h1>
   </div>
+<div class="teach-wrap">
+  <div class="teach" id="teachArt"></div>
+  <div class="bubble" id="teachSays"></div>
+</div>
+  <div class="chipbar" id="subjBar"></div>
   <div class="hi"><b id="hiT">Multiplication and division</b><span id="hiS"></span></div>
+  <div class="voicebar" id="voiceBar"></div>
   <div id="unitList"></div>
   <p class="foot">Grade 3 · enVision Topics 1 and 2</p>
 </section>
 
 <section class="screen lesson" id="s-lesson">
-  <div class="top"><button class="iconbtn" id="lBack">‹</button><h2 id="lTitle"></h2></div>
+  <div class="top"><button class="iconbtn" id="lBack">‹</button><h2 id="lTitle"></h2>
+    <button class="iconbtn spk" id="lSpk" title="Read this to me">🔊</button></div>
   <div class="rule" id="lRule"></div>
   <div class="ex" id="lEx"></div>
   <div class="hook" id="lHook"></div>
@@ -128,13 +213,18 @@ body{background:radial-gradient(900px 600px at 15% -10%,#1d3a63 0%,transparent 6
   <div class="qwrap">
     <div class="qcount" id="qCount"></div>
     <div class="qbar"><i id="qBar" style="width:0%"></i></div>
-    <div class="qtext" id="qText"></div>
+    <div class="qhead">
+      <div class="qtext" id="qText"></div>
+      <button class="spk" id="qSpk" title="Say it again">🔊</button>
+    </div>
+    <div id="qPic"></div>
     <div id="qAnswer"></div>
     <div id="qWhy"></div>
   </div>
 </section>
 
 <section class="screen done" id="s-done">
+  <div class="teach" id="teachArt2" style="width:86px;height:86px;margin-bottom:6px"></div>
   <div class="score" id="dScore"></div>
   <div class="bigstars" id="dStars"></div>
   <p id="dMsg"></p>
@@ -143,9 +233,48 @@ body{background:radial-gradient(900px 600px at 15% -10%,#1d3a63 0%,transparent 6
   <button class="btn ghost sm" id="dHome" style="margin-top:10px">Pick something else</button>
 </section>
 
+
+<!-- ===================== FLASHCARDS ===================== -->
+<section class="screen" id="s-cards">
+  <div class="top"><button class="iconbtn" id="cBack">‹</button><h2 id="cTitle">Flashcards</h2>
+    <button class="spk" id="cSpk" title="Say it again">🔊</button></div>
+  <div class="qcount" id="cCount"></div>
+  <div class="qbar"><i id="cBar" style="width:0%"></i></div>
+  <div id="cCard"></div>
+  <div class="cardnav">
+    <button class="btn ghost sm" id="cPrev">‹ Back</button>
+    <button class="btn sm" id="cNext">Next ›</button>
+  </div>
+</section>
+
+<!-- ===================== SPEED GAME ===================== -->
+<section class="screen" id="s-speed">
+  <div class="top"><button class="iconbtn" id="spBack">✕</button><h2 id="spTitle">Beat the clock</h2></div>
+  <div class="clock">
+    <div class="clockbox"><b id="spTime">0.0</b><span>Seconds</span></div>
+    <div class="clockbox"><b id="spDone">0/10</b><span>Done</span></div>
+    <div class="clockbox"><b id="spBest">—</b><span>Your best</span></div>
+  </div>
+  <div class="qhead"><div class="qtext big" id="spText"></div></div>
+  <div id="spAnswer"></div>
+</section>
+
+<!-- ===================== PICK A UNIT ===================== -->
+<section class="screen" id="s-pick">
+  <div class="top"><button class="iconbtn" id="pkBack">‹</button><h2 id="pkTitle"></h2></div>
+  <p class="foot" id="pkSub" style="margin:0 0 14px;text-align:left"></p>
+  <div id="pkList"></div>
+</section>
+
+<nav class="nav">
+  <button data-nav="home" class="on"><i>🏠</i>Home</button>
+  <button data-nav="cards"><i>🃏</i>Cards</button>
+  <button data-nav="play"><i>🎯</i>Play</button>
+  <button data-nav="speed"><i>⚡</i>Speed</button>
+</nav>
 </div>
 <script>
-const U = [{"t":"Take it away","s":"Division by subtracting the same number over and over","rule":"Keep taking the same amount away until nothing is left. The number of times you took it away is the answer.","ex":"Jason has 12 plums, 3 to a bowl.\n12 − 3 = 9, 9 − 3 = 6, 6 − 3 = 3, 3 − 3 = 0.\nHe subtracted 4 times, so he needs 4 bowls. 12 ÷ 3 = 4.","hook":"Stop at zero, then count your jumps.","q":[[0,"Start at 15. Take away 5 each time.\nHow many jumps until you reach 0?",3,"15 → 10 → 5 → 0. 3 jumps, so 15 ÷ 5 = 3."],[0,"Start at 12. Take away 4 each time.\nHow many jumps until you reach 0?",3,"12 → 8 → 4 → 0. 3 jumps, so 12 ÷ 4 = 3."],[0,"Start at 18. Take away 6 each time.\nHow many jumps until you reach 0?",3,"18 → 12 → 6 → 0. 3 jumps, so 18 ÷ 6 = 3."],[0,"Start at 24. Take away 6 each time.\nHow many jumps until you reach 0?",4,"24 → 18 → 12 → 6 → 0. 4 jumps, so 24 ÷ 6 = 4."],[0,"Start at 20. Take away 4 each time.\nHow many jumps until you reach 0?",5,"20 → 16 → 12 → 8 → 4 → 0. 5 jumps, so 20 ÷ 4 = 5."],[0,"Start at 16. Take away 2 each time.\nHow many jumps until you reach 0?",8,"Taking 2 away from 16 lands on 0 after 8 jumps. So 16 ÷ 2 = 8."],[0,"Start at 27. Take away 9 each time.\nHow many jumps until you reach 0?",3,"27 → 18 → 9 → 0. 3 jumps, so 27 ÷ 9 = 3."],[0,"Start at 30. Take away 5 each time.\nHow many jumps until you reach 0?",6,"Taking 5 away from 30 lands on 0 after 6 jumps. So 30 ÷ 5 = 6."],[0,"Start at 32. Take away 8 each time.\nHow many jumps until you reach 0?",4,"32 → 24 → 16 → 8 → 0. 4 jumps, so 32 ÷ 8 = 4."],[0,"Start at 21. Take away 7 each time.\nHow many jumps until you reach 0?",3,"21 → 14 → 7 → 0. 3 jumps, so 21 ÷ 7 = 3."],[0,"Start at 24. Take away 3 each time.\nHow many jumps until you reach 0?",8,"Taking 3 away from 24 lands on 0 after 8 jumps. So 24 ÷ 3 = 8."],[0,"Start at 40. Take away 10 each time.\nHow many jumps until you reach 0?",4,"40 → 30 → 20 → 10 → 0. 4 jumps, so 40 ÷ 10 = 4."],[0,"Jason has 12 plums. 3 go in each bowl.\nHow many bowls?",4,"Keep taking 3 away from 12 until it is gone — that is 4 times. 12 ÷ 3 = 4."],[0,"Mia has 20 apples. 4 go in each basket.\nHow many baskets?",5,"Keep taking 4 away from 20 until it is gone — that is 5 times. 20 ÷ 4 = 5."],[0,"Dad has 14 socks. 2 go in each pair.\nHow many pairs?",7,"Keep taking 2 away from 14 until it is gone — that is 7 times. 14 ÷ 2 = 7."],[0,"Ivy has 25 pencils. 5 go in each box.\nHow many boxs?",5,"Keep taking 5 away from 25 until it is gone — that is 5 times. 25 ÷ 5 = 5."],[0,"Sam has 18 marbles. 6 go in each cup.\nHow many cups?",3,"Keep taking 6 away from 18 until it is gone — that is 3 times. 18 ÷ 6 = 3."],[0,"Nico has 24 stickers. 8 go in each sheet.\nHow many sheets?",3,"Keep taking 8 away from 24 until it is gone — that is 3 times. 24 ÷ 8 = 3."],[1,"You take 4 away from 12 and land on 0.\nHow many jumps was that?",1,"12 → 8 → 4 → 0. Three jumps. Do not count 12 itself as a jump.",["2","3","4","12"]],[1,"When do you stop subtracting?",2,"Stop at 0, then count your jumps. Stopping early gives the wrong answer.",["When you reach 1","When you get tired","When you reach 0","When you reach the number you started with"]]]},{"t":"Equal groups and arrays","s":"Sharing things out, and reading rows and columns","rule":"Deal it out like cards until it is gone — every pile ends up the same size. Or line it up in a rectangle: rows × how many in each row = the total.","ex":"Jonas shares 20 cards among 4 people. Each person gets 5. 20 ÷ 4 = 5.\nThe same 20 as an array: 4 rows with 5 in each row.","hook":"\"How many groups?\" and \"how many in each group?\" are two different questions. Read which one they asked.","q":[[0,"20 cards shared between 4 people.\nHow many does each person get?",5,"Deal them out into 4 piles: 5 in each pile. 20 ÷ 4 = 5."],[0,"An array with 3 rows and 6 in each row.\nHow many in all?",18,"3 rows × 6 in each row = 18."],[0,"An array with 4 rows and 5 in each row.\nHow many in all?",20,"4 rows × 5 in each row = 20."],[0,"12 painters split into groups of 2.\nHow many groups?",6,"12 ÷ 2 = 6 groups. You are asking how many groups, not how big each one is."],[0,"6 groups of painters. Each group paints 3 rooms.\nHow many rooms?",18,"6 groups × 3 rooms each = 18 rooms."],[0,"12 painters split into groups of 2.\nEach group paints 3 rooms.\nHow many rooms in all?",18,"Two steps. First 12 ÷ 2 = 6 groups. Then 6 × 3 = 18 rooms. Do not stop after the first step."],[0,"18 counters shared into 3 equal groups.\nHow many in each group?",6,"18 ÷ 3 = 6 in each group."],[0,"8 groups with 5 counters in each.\nHow many counters?",40,"8 × 5 = 40."],[0,"6 groups with 9 stars in each.\nHow many stars?",54,"6 × 9 = 54."],[0,"42 raisins, 6 raisins per salad.\nHow many salads?",7,"42 ÷ 6 = 7 salads."],[0,"You save $4 a week for 8 weeks.\nHow much money?",32,"8 weeks × $4 = $32."],[0,"$32 split evenly between 2 charities.\nHow much does each one get?",16,"32 ÷ 2 = 16. Each charity gets $16."],[0,"24 chairs in 4 equal rows.\nHow many chairs in each row?",6,"24 ÷ 4 = 6 chairs per row."],[0,"15 books shared onto 5 shelves.\nEach shelf holds how many?",3,"15 ÷ 5 = 3 books on each shelf."],[1,"20 counters in 5 equal groups.\nWhich question does \"5\" answer?",0,"5 is the number of groups. How many are IN each group is the other question — that answer is 4.",["How many groups there are","How many are in each group","The total","Nothing"]],[1,"What makes a shape an array?",1,"An array is equal rows and equal columns — it makes a rectangle.",["Any pile of objects","Equal rows and equal columns","A circle of objects","Objects in one long line"]],[1,"2 rows of 7 has the same total as:",2,"2 × 7 = 14 and 7 × 2 = 14. Turning an array on its side does not change the total.",["3 rows of 7","2 rows of 8","7 rows of 2","7 rows of 7"]]]},{"t":"The 2s and the 5s","s":"Skip counting, doubling, and counting nickels","rule":"Multiples of 2 end in 0, 2, 4, 6 or 8 — those are the even numbers. Multiples of 5 end in 0 or 5. Nothing else, ever.","ex":"2 × 8 is just 8 + 8. If you know your doubles you already know your 2s.\nCounting nickels IS the 5s table: 5, 10, 15, 20, 25.","hook":"Say them out loud. The 2s and 5s stick in your mouth before they stick in your head.","chant":[["2s",[2,4,6,8,10,12,14,16,18,20]],["5s",[5,10,15,20,25,30,35,40,45,50]]],"q":[[0,"2 × 1",2,"2 × 1 is just 1 + 1 = 2. Doubling."],[0,"2 × 2",4,"2 × 2 is just 2 + 2 = 4. Doubling."],[0,"2 × 3",6,"2 × 3 is just 3 + 3 = 6. Doubling."],[0,"2 × 4",8,"2 × 4 is just 4 + 4 = 8. Doubling."],[0,"2 × 5",10,"2 × 5 is just 5 + 5 = 10. Doubling."],[0,"2 × 6",12,"2 × 6 is just 6 + 6 = 12. Doubling."],[0,"2 × 7",14,"2 × 7 is just 7 + 7 = 14. Doubling."],[0,"2 × 8",16,"2 × 8 is just 8 + 8 = 16. Doubling."],[0,"2 × 9",18,"2 × 9 is just 9 + 9 = 18. Doubling."],[0,"2 × 10",20,"2 × 10 is just 10 + 10 = 20. Doubling."],[0,"5 × 1",5,"Skip count 1 fives: 5."],[0,"5 × 2",10,"Skip count 2 fives: 5, 10."],[0,"5 × 3",15,"Skip count 3 fives: 5, 10, 15."],[0,"5 × 4",20,"Skip count 4 fives: 5, 10, 15, 20."],[0,"5 × 5",25,"Skip count 5 fives: 5, 10, 15, 20, 25."],[0,"5 × 6",30,"Skip count 6 fives: 5, 10, 15, 20, 25, 30."],[0,"5 × 7",35,"Skip count 7 fives: 5, 10, 15, 20, 25, 30, 35."],[0,"5 × 8",40,"Skip count 8 fives: 5, 10, 15, 20, 25, 30, 35, 40."],[0,"5 × 9",45,"Skip count 9 fives: 5, 10, 15, 20, 25, 30, 35, 40, 45."],[0,"5 × 10",50,"Skip count 10 fives: 5, 10, 15, 20, 25, 30, 35, 40, 45, 50."],[1,"Which of these is a multiple of 5?",2,"Multiples of 5 end in 0 or 5. Nothing else, ever. 35 ends in 5.",["32","34","35","38"]],[1,"Which of these is a multiple of 2?",1,"Multiples of 2 end in 0, 2, 4, 6 or 8 — the even numbers. 26 ends in 6.",["25","26","27","31"]],[1,"Multiples of 5 always end in:",3,"Always 0 or 5. If it ends in anything else it is not a multiple of 5.",["5 only","0 only","2 or 7","0 or 5"]],[0,"How many cents in 5 nickels?",25,"Nickels are the 5s table: 5, 10, 15, 20, 25."],[0,"How many cents in 8 nickels?",40,"5, 10, 15, 20, 25, 30, 35, 40."],[0,"8 pairs of shoes is how many shoes?",16,"A pair is 2. 8 × 2 = 16, which is just 8 + 8."],[0,"7 pairs of gloves is how many gloves?",14,"7 × 2 = 7 + 7 = 14."]]},{"t":"The 9s","s":"The pattern that makes the 9s the easiest table","rule":"9 is one less than 10. So 6 × 9 is 6 × 10 minus 6: 60 − 6 = 54. Add the tens, subtract the ones.","ex":"Look down the table: 09, 18, 27, 36, 45, 54, 63, 72, 81, 90.\nThe tens digit climbs by 1. The ones digit drops by 1.\nAnd both digits always add up to 9.","hook":"If the two digits add up to 9, it is in the 9s table.","chant":[["9s",[9,18,27,36,45,54,63,72,81,90]]],"q":[[0,"9 × 1",9,"9 is one less than 10. 1 × 10 = 10, then take away 1: 10 − 1 = 9."],[0,"9 × 2",18,"9 is one less than 10. 2 × 10 = 20, then take away 2: 20 − 2 = 18."],[0,"9 × 3",27,"9 is one less than 10. 3 × 10 = 30, then take away 3: 30 − 3 = 27."],[0,"9 × 4",36,"9 is one less than 10. 4 × 10 = 40, then take away 4: 40 − 4 = 36."],[0,"9 × 5",45,"9 is one less than 10. 5 × 10 = 50, then take away 5: 50 − 5 = 45."],[0,"9 × 6",54,"9 is one less than 10. 6 × 10 = 60, then take away 6: 60 − 6 = 54."],[0,"9 × 7",63,"9 is one less than 10. 7 × 10 = 70, then take away 7: 70 − 7 = 63."],[0,"9 × 8",72,"9 is one less than 10. 8 × 10 = 80, then take away 8: 80 − 8 = 72."],[0,"9 × 9",81,"9 is one less than 10. 9 × 10 = 90, then take away 9: 90 − 9 = 81."],[0,"9 × 10",90,"9 × 10 = 90 — the last row. And like every other one, 9 + 0 = 9."],[0,"Add the two digits of 63.",9,"6 + 3 = 9. The digits of every multiple of 9 add up to 9."],[0,"Add the two digits of 45.",9,"4 + 5 = 9. Same trick every time."],[1,"Which of these is a multiple of 9?",0,"7 + 2 = 9. The others do not add to 9.",["72","74","76","78"]],[1,"Going down the 9s table, the ones digit:",1,"09, 18, 27, 36, 45 — the ones digit drops by 1 each row.",["goes up by 1","goes down by 1","stays the same","doubles"]],[1,"Going down the 9s table, the tens digit:",0,"09, 18, 27, 36, 45 — the tens digit climbs by 1 each row.",["goes up by 1","goes down by 1","stays the same","doubles"]],[1,"The fastest way to do 6 × 9 is:",2,"6 × 10 = 60, then subtract 6 to get 54. Add 6 tens, subtract 6 ones.",["Count by 9 six times","Guess","6 × 10 then take away 6","6 + 9"]],[1,"The digits of any multiple of 9 add up to:",1,"2+7=9, 3+6=9, 8+1=9. Always 9.",["3","9","10","18"]]]},{"t":"0, 1 and 10","s":"Three rules that never change","rule":"Times 1 gives you the same number back. Times 0 gives you nothing. Times 10 just adds a zero on the end.","ex":"6 × 1 = 6 — one group of six.\n6 × 0 = 0 — no groups at all, so nothing.\n6 × 10 = 60 — stick a zero on it.","hook":"The 0 one catches people. Zero groups means zero things, even if the number is big.","q":[[0,"3 × 1",3,"Anything times 1 is itself. You have one group of 3."],[0,"3 × 0",0,"Zero groups of 3 is nothing at all. Anything times 0 is 0."],[0,"3 × 10",30,"Times 10 just adds a zero: 3 → 30."],[0,"6 × 1",6,"Anything times 1 is itself. You have one group of 6."],[0,"6 × 0",0,"Zero groups of 6 is nothing at all. Anything times 0 is 0."],[0,"6 × 10",60,"Times 10 just adds a zero: 6 → 60."],[0,"7 × 1",7,"Anything times 1 is itself. You have one group of 7."],[0,"7 × 0",0,"Zero groups of 7 is nothing at all. Anything times 0 is 0."],[0,"7 × 10",70,"Times 10 just adds a zero: 7 → 70."],[0,"4 × 1",4,"Anything times 1 is itself. You have one group of 4."],[0,"4 × 0",0,"Zero groups of 4 is nothing at all. Anything times 0 is 0."],[0,"4 × 10",40,"Times 10 just adds a zero: 4 → 40."],[0,"9 × 1",9,"Anything times 1 is itself. You have one group of 9."],[0,"9 × 0",0,"Zero groups of 9 is nothing at all. Anything times 0 is 0."],[0,"9 × 10",90,"Times 10 just adds a zero: 9 → 90."],[0,"8 × 1",8,"Anything times 1 is itself. You have one group of 8."],[0,"8 × 0",0,"Zero groups of 8 is nothing at all. Anything times 0 is 0."],[0,"8 × 10",80,"Times 10 just adds a zero: 8 → 80."],[1,"8 × 0 is:",0,"Zero groups means nothing. It is 0, not 8.",["0","8","80","1"]],[1,"Which one equals 7?",1,"7 × 1 = 7. 7 × 0 is 0 and 7 × 10 is 70.",["7 × 0","7 × 1","7 × 10","0 × 10"]],[0,"0 × 100",0,"Zero groups of anything is still zero."]]},{"t":"The 3s, 4s and 6s","s":"Built out of tables you already know","rule":"You do not learn these from scratch. The 3s are the 2s plus one more group. The 4s are double the 2s. The 6s are double the 3s.","ex":"3 × 7: start with 2 × 7 = 14, add one more 7 → 21.\n4 × 7: 2 × 7 = 14, double it → 28.\n6 × 7: 3 × 7 = 21, double it → 42.","hook":"Break the hard one into an easy one, then fix it up.","chant":[["3s",[3,6,9,12,15,18,21,24,27,30]],["4s",[4,8,12,16,20,24,28,32,36,40]]],"q":[[0,"3 × 1",3,"The 3s are the 2s plus one more group. 2 × 1 = 2, then + 1 = 3."],[0,"3 × 2",6,"The 3s are the 2s plus one more group. 2 × 2 = 4, then + 2 = 6."],[0,"3 × 3",9,"The 3s are the 2s plus one more group. 2 × 3 = 6, then + 3 = 9."],[0,"3 × 4",12,"The 3s are the 2s plus one more group. 2 × 4 = 8, then + 4 = 12."],[0,"3 × 5",15,"The 3s are the 2s plus one more group. 2 × 5 = 10, then + 5 = 15."],[0,"3 × 6",18,"The 3s are the 2s plus one more group. 2 × 6 = 12, then + 6 = 18."],[0,"3 × 7",21,"The 3s are the 2s plus one more group. 2 × 7 = 14, then + 7 = 21."],[0,"3 × 8",24,"The 3s are the 2s plus one more group. 2 × 8 = 16, then + 8 = 24."],[0,"3 × 9",27,"The 3s are the 2s plus one more group. 2 × 9 = 18, then + 9 = 27."],[0,"3 × 10",30,"The 3s are the 2s plus one more group. 2 × 10 = 20, then + 10 = 30."],[0,"4 × 1",4,"The 4s are double the 2s. 2 × 1 = 2, double it = 4."],[0,"4 × 2",8,"The 4s are double the 2s. 2 × 2 = 4, double it = 8."],[0,"4 × 3",12,"The 4s are double the 2s. 2 × 3 = 6, double it = 12."],[0,"4 × 4",16,"The 4s are double the 2s. 2 × 4 = 8, double it = 16."],[0,"4 × 5",20,"The 4s are double the 2s. 2 × 5 = 10, double it = 20."],[0,"4 × 6",24,"The 4s are double the 2s. 2 × 6 = 12, double it = 24."],[0,"4 × 7",28,"The 4s are double the 2s. 2 × 7 = 14, double it = 28."],[0,"4 × 8",32,"The 4s are double the 2s. 2 × 8 = 16, double it = 32."],[0,"4 × 9",36,"The 4s are double the 2s. 2 × 9 = 18, double it = 36."],[0,"4 × 10",40,"The 4s are double the 2s. 2 × 10 = 20, double it = 40."],[0,"6 × 1",6,"The 6s are double the 3s. 3 × 1 = 3, double it = 6."],[0,"6 × 2",12,"The 6s are double the 3s. 3 × 2 = 6, double it = 12."],[0,"6 × 3",18,"The 6s are double the 3s. 3 × 3 = 9, double it = 18."],[0,"6 × 4",24,"The 6s are double the 3s. 3 × 4 = 12, double it = 24."],[0,"6 × 5",30,"The 6s are double the 3s. 3 × 5 = 15, double it = 30."],[0,"6 × 6",36,"The 6s are double the 3s. 3 × 6 = 18, double it = 36."],[0,"6 × 7",42,"The 6s are double the 3s. 3 × 7 = 21, double it = 42."],[0,"6 × 8",48,"The 6s are double the 3s. 3 × 8 = 24, double it = 48."],[0,"6 × 9",54,"The 6s are double the 3s. 3 × 9 = 27, double it = 54."],[0,"6 × 10",60,"The 6s are double the 3s. 3 × 10 = 30, double it = 60."],[1,"To work out 3 × 7 by breaking it apart:",0,"2 × 7 = 14, then add one more 7 to get 21.",["2 × 7 then add 7","2 × 7 then add 2","7 + 3","double 7 twice"]],[1,"4 × 8 is the same as:",2,"The 4s are double the 2s. 2 × 8 = 16, doubled is 32.",["8 + 4","2 × 8","double 2 × 8","8 × 8"]]]},{"t":"The 7s and 8s","s":"The leftovers — and there are fewer than you think","rule":"The order of the factors does not change the answer. 3 × 8 and 8 × 3 are both 24. That means half of these you already know.","ex":"You learned 5 × 7 back in the 5s. So 7 × 5 is done.\nYou learned 4 × 8 in the 4s. So 8 × 4 is done.\nWhat is actually new: 7 × 7, 7 × 8, and 8 × 8. Three facts.","hook":"Turn it around and check whether you already know it.","q":[[0,"7 × 1",7,"You already know this one backwards: 1 × 7 = 7. Same answer."],[0,"7 × 2",14,"You already know this one backwards: 2 × 7 = 14. Same answer."],[0,"7 × 3",21,"You already know this one backwards: 3 × 7 = 21. Same answer."],[0,"7 × 4",28,"You already know this one backwards: 4 × 7 = 28. Same answer."],[0,"7 × 5",35,"You already know this one backwards: 5 × 7 = 35. Same answer."],[0,"7 × 6",42,"You already know this one backwards: 6 × 7 = 42. Same answer."],[0,"7 × 7",49,"7 × 7 = 49."],[0,"7 × 8",56,"7 × 8 = 56."],[0,"7 × 9",63,"7 × 9 = 63."],[0,"7 × 10",70,"7 × 10 = 70."],[0,"8 × 1",8,"Turn it around: 1 × 8 = 8. Same answer either way."],[0,"8 × 2",16,"Turn it around: 2 × 8 = 16. Same answer either way."],[0,"8 × 3",24,"Turn it around: 3 × 8 = 24. Same answer either way."],[0,"8 × 4",32,"Turn it around: 4 × 8 = 32. Same answer either way."],[0,"8 × 5",40,"Turn it around: 5 × 8 = 40. Same answer either way."],[0,"8 × 6",48,"Turn it around: 6 × 8 = 48. Same answer either way."],[0,"8 × 7",56,"Turn it around: 7 × 8 = 56. Same answer either way."],[0,"8 × 8",64,"8 × 8 = 64."],[0,"8 × 9",72,"8 × 9 = 72."],[0,"8 × 10",80,"8 × 10 = 80."],[0,"7 × 7",49,"This is a real one to memorise. 7 × 7 = 49."],[0,"7 × 8",56,"The other real one. 7 × 8 = 56. Say it: \"five six is seven eight.\""],[0,"8 × 8",64,"8 × 8 = 64. Worth just knowing."],[1,"If 3 × 8 = 24, then 8 × 3 is:",1,"The turn-around rule. Order does not change the product.",["3","24","11","48"]],[1,"Why are the 7s easier than they look?",2,"Most of them show up in tables you already learned. Only a few are new.",["They are not","7 is a small number","You already know most of them backwards","They all end in 7"]]]},{"t":"All of it, mixed","s":"Multiply or divide — you have to decide which","rule":"Nobody tells you which one to use here. Putting equal groups together is multiplying. Splitting a total into equal parts is dividing.","ex":"\"7 boxes of 6 crayons\" — you are building up, so multiply: 42.\n\"42 crayons for 6 friends\" — you are splitting up, so divide: 7.\nSame three numbers. Different question.","hook":"Ask yourself: am I building it up, or breaking it apart?","q":[[0,"5 × 7",35,"5 × 7 = 35."],[0,"5 × 8",40,"5 × 8 = 40."],[0,"3 × 8",24,"3 × 8 = 24."],[0,"6 × 6",36,"6 × 6 = 36."],[0,"2 × 9",18,"2 × 9 = 18."],[0,"2 × 8",16,"2 × 8 = 16."],[0,"3 × 3",9,"3 × 3 = 9."],[0,"4 × 7",28,"4 × 7 = 28."],[0,"2 × 2",4,"2 × 2 = 4."],[0,"8 × 8",64,"8 × 8 = 64."],[0,"8 × 9",72,"8 × 9 = 72."],[0,"6 × 7",42,"6 × 7 = 42."],[0,"5 × 5",25,"5 × 5 = 25."],[0,"3 × 6",18,"3 × 6 = 18."],[0,"3 × 5",15,"3 × 5 = 15."],[0,"5 × 6",30,"5 × 6 = 30."],[0,"7 × 8",56,"7 × 8 = 56."],[0,"2 × 3",6,"2 × 3 = 6."],[0,"4 × 6",24,"4 × 6 = 24."],[0,"2 × 4",8,"2 × 4 = 8."],[0,"24 ÷ 4",6,"4 × 6 = 24, so 24 ÷ 4 = 6."],[0,"35 ÷ 5",7,"5 × 7 = 35, so 35 ÷ 5 = 7."],[0,"48 ÷ 6",8,"6 × 8 = 48, so 48 ÷ 6 = 8."],[0,"21 ÷ 3",7,"3 × 7 = 21, so 21 ÷ 3 = 7."],[0,"56 ÷ 8",7,"8 × 7 = 56, so 56 ÷ 8 = 7."],[0,"27 ÷ 9",3,"9 × 3 = 27, so 27 ÷ 9 = 3."],[0,"40 ÷ 10",4,"10 × 4 = 40, so 40 ÷ 10 = 4."],[0,"36 ÷ 6",6,"6 × 6 = 36, so 36 ÷ 6 = 6."],[1,"A box holds 6 crayons. You buy 7 boxes.\nWhat do you do?",0,"You are putting equal groups together, so multiply. 7 × 6 = 42 crayons.",["Multiply","Divide","Add 6 and 7","Subtract"]],[1,"You have 42 crayons to share between 6 friends.\nWhat do you do?",1,"You are splitting a total into equal parts, so divide. 42 ÷ 6 = 7 each.",["Multiply","Divide","Add","Subtract"]],[0,"A box holds 6 crayons. You buy 7 boxes.\nHow many crayons?",42,"Equal groups → multiply. 7 × 6 = 42."],[0,"42 crayons shared between 6 friends.\nHow many each?",7,"Splitting a total → divide. 42 ÷ 6 = 7."],[0,"5 rows of chairs, 8 chairs in each row.\nHow many chairs?",40,"Rows × chairs per row = 5 × 8 = 40."],[0,"40 chairs in 5 equal rows.\nHow many in each row?",8,"40 ÷ 5 = 8 in each row."],[0,"You read 9 pages a day for 4 days.\nHow many pages?",36,"9 × 4 = 36 pages."],[0,"36 stickers, 4 on each page.\nHow many pages?",9,"36 ÷ 4 = 9 pages."],[0,"3 packs of 8 markers.\nHow many markers?",24,"3 × 8 = 24."],[0,"You have 30 grapes and eat 5 at a time.\nHow many times can you do that?",6,"30 ÷ 5 = 6 times."]]}];
+const U = [{"t":"Take it away","s":"Division by subtracting the same number over and over","rule":"Keep taking the same amount away until nothing is left. The number of times you took it away is the answer.","ex":"Jason has 12 plums, 3 to a bowl.\n12 − 3 = 9, 9 − 3 = 6, 6 − 3 = 3, 3 − 3 = 0.\nHe subtracted 4 times, so he needs 4 bowls. 12 ÷ 3 = 4.","hook":"Stop at zero, then count your jumps.","q":[[0,"Start at 15. Take away 5 each time.\nHow many jumps until you reach 0?",3,"15 → 10 → 5 → 0. 3 jumps, so 15 ÷ 5 = 3.",null,["line",15,5],{"q":6,"w":7}],[0,"Start at 12. Take away 4 each time.\nHow many jumps until you reach 0?",3,"12 → 8 → 4 → 0. 3 jumps, so 12 ÷ 4 = 3.",null,["line",12,4],{"q":8,"w":9}],[0,"Start at 18. Take away 6 each time.\nHow many jumps until you reach 0?",3,"18 → 12 → 6 → 0. 3 jumps, so 18 ÷ 6 = 3.",null,["line",18,6],{"q":10,"w":11}],[0,"Start at 24. Take away 6 each time.\nHow many jumps until you reach 0?",4,"24 → 18 → 12 → 6 → 0. 4 jumps, so 24 ÷ 6 = 4.",null,["line",24,6],{"q":12,"w":13}],[0,"Start at 20. Take away 4 each time.\nHow many jumps until you reach 0?",5,"20 → 16 → 12 → 8 → 4 → 0. 5 jumps, so 20 ÷ 4 = 5.",null,["line",20,4],{"q":14,"w":15}],[0,"Start at 16. Take away 2 each time.\nHow many jumps until you reach 0?",8,"Taking 2 away from 16 lands on 0 after 8 jumps. So 16 ÷ 2 = 8.",null,["line",16,2],{"q":16,"w":17}],[0,"Start at 27. Take away 9 each time.\nHow many jumps until you reach 0?",3,"27 → 18 → 9 → 0. 3 jumps, so 27 ÷ 9 = 3.",null,["line",27,9],{"q":18,"w":19}],[0,"Start at 30. Take away 5 each time.\nHow many jumps until you reach 0?",6,"Taking 5 away from 30 lands on 0 after 6 jumps. So 30 ÷ 5 = 6.",null,["line",30,5],{"q":20,"w":21}],[0,"Start at 32. Take away 8 each time.\nHow many jumps until you reach 0?",4,"32 → 24 → 16 → 8 → 0. 4 jumps, so 32 ÷ 8 = 4.",null,["line",32,8],{"q":22,"w":23}],[0,"Start at 21. Take away 7 each time.\nHow many jumps until you reach 0?",3,"21 → 14 → 7 → 0. 3 jumps, so 21 ÷ 7 = 3.",null,["line",21,7],{"q":24,"w":25}],[0,"Start at 24. Take away 3 each time.\nHow many jumps until you reach 0?",8,"Taking 3 away from 24 lands on 0 after 8 jumps. So 24 ÷ 3 = 8.",null,["line",24,3],{"q":26,"w":27}],[0,"Start at 40. Take away 10 each time.\nHow many jumps until you reach 0?",4,"40 → 30 → 20 → 10 → 0. 4 jumps, so 40 ÷ 10 = 4.",null,["line",40,10],{"q":28,"w":29}],[0,"Jason has 12 plums. 3 go in each bowl.\nHow many bowls?",4,"Keep taking 3 away from 12 until it is gone — that is 4 times. 12 ÷ 3 = 4.",null,["line",12,3],{"q":30,"w":31}],[0,"Mia has 20 apples. 4 go in each basket.\nHow many baskets?",5,"Keep taking 4 away from 20 until it is gone — that is 5 times. 20 ÷ 4 = 5.",null,["line",20,4],{"q":32,"w":33}],[0,"Dad has 14 socks. 2 go in each pair.\nHow many pairs?",7,"Keep taking 2 away from 14 until it is gone — that is 7 times. 14 ÷ 2 = 7.",null,["line",14,2],{"q":34,"w":35}],[0,"Ivy has 25 pencils. 5 go in each box.\nHow many boxs?",5,"Keep taking 5 away from 25 until it is gone — that is 5 times. 25 ÷ 5 = 5.",null,["line",25,5],{"q":36,"w":37}],[0,"Sam has 18 marbles. 6 go in each cup.\nHow many cups?",3,"Keep taking 6 away from 18 until it is gone — that is 3 times. 18 ÷ 6 = 3.",null,["line",18,6],{"q":38,"w":39}],[0,"Nico has 24 stickers. 8 go in each sheet.\nHow many sheets?",3,"Keep taking 8 away from 24 until it is gone — that is 3 times. 24 ÷ 8 = 3.",null,["line",24,8],{"q":40,"w":41}],[1,"You take 4 away from 12 and land on 0.\nHow many jumps was that?",1,"12 → 8 → 4 → 0. Three jumps. Do not count 12 itself as a jump.",["2","3","4","12"],null,{"q":42,"w":43,"o":[44,45,46,47]}],[1,"When do you stop subtracting?",2,"Stop at 0, then count your jumps. Stopping early gives the wrong answer.",["When you reach 1","When you get tired","When you reach 0","When you reach the number you started with"],null,{"q":48,"w":49,"o":[50,51,52,53]}]],"a":{"title":0,"rule":1,"ex":[2,3,4],"hook":5}},{"t":"Equal groups and arrays","s":"Sharing things out, and reading rows and columns","rule":"Deal it out like cards until it is gone — every pile ends up the same size. Or line it up in a rectangle: rows × how many in each row = the total.","ex":"Jonas shares 20 cards among 4 people. Each person gets 5. 20 ÷ 4 = 5.\nThe same 20 as an array: 4 rows with 5 in each row.","hook":"\"How many groups?\" and \"how many in each group?\" are two different questions. Read which one they asked.","q":[[0,"20 cards shared between 4 people.\nHow many does each person get?",5,"Deal them out into 4 piles: 5 in each pile. 20 ÷ 4 = 5.",null,["groups",4,5],{"q":5,"w":6}],[0,"An array with 3 rows and 6 in each row.\nHow many in all?",18,"3 rows × 6 in each row = 18.",null,["array",3,6],{"q":7,"w":8}],[0,"An array with 4 rows and 5 in each row.\nHow many in all?",20,"4 rows × 5 in each row = 20.",null,["array",4,5],{"q":9,"w":10}],[0,"12 painters split into groups of 2.\nHow many groups?",6,"12 ÷ 2 = 6 groups. You are asking how many groups, not how big each one is.",null,["groups",6,2],{"q":11,"w":12}],[0,"6 groups of painters. Each group paints 3 rooms.\nHow many rooms?",18,"6 groups × 3 rooms each = 18 rooms.",null,["groups",6,3],{"q":13,"w":14}],[0,"12 painters split into groups of 2.\nEach group paints 3 rooms.\nHow many rooms in all?",18,"Two steps. First 12 ÷ 2 = 6 groups. Then 6 × 3 = 18 rooms. Do not stop after the first step.",null,["groups",6,2],{"q":15,"w":16}],[0,"18 counters shared into 3 equal groups.\nHow many in each group?",6,"18 ÷ 3 = 6 in each group.",null,["groups",3,6],{"q":17,"w":18}],[0,"8 groups with 5 counters in each.\nHow many counters?",40,"8 × 5 = 40.",null,["groups",8,5],{"q":19,"w":20}],[0,"6 groups with 9 stars in each.\nHow many stars?",54,"6 × 9 = 54.",null,["groups",6,9],{"q":21,"w":22}],[0,"42 raisins, 6 raisins per salad.\nHow many salads?",7,"42 ÷ 6 = 7 salads.",null,["groups",7,6],{"q":23,"w":24}],[0,"You save $4 a week for 8 weeks.\nHow much money?",32,"8 weeks × $4 = $32.",null,["groups",8,4],{"q":25,"w":26}],[0,"$32 split evenly between 2 charities.\nHow much does each one get?",16,"32 ÷ 2 = 16. Each charity gets $16.",null,["groups",2,16],{"q":27,"w":28}],[0,"24 chairs in 4 equal rows.\nHow many chairs in each row?",6,"24 ÷ 4 = 6 chairs per row.",null,["array",4,6],{"q":29,"w":30}],[0,"15 books shared onto 5 shelves.\nEach shelf holds how many?",3,"15 ÷ 5 = 3 books on each shelf.",null,["groups",5,3],{"q":31,"w":32}],[1,"20 counters in 5 equal groups.\nWhich question does \"5\" answer?",0,"5 is the number of groups. How many are IN each group is the other question — that answer is 4.",["How many groups there are","How many are in each group","The total","Nothing"],null,{"q":33,"w":34,"o":[35,36,37,38]}],[1,"What makes a shape an array?",1,"An array is equal rows and equal columns — it makes a rectangle.",["Any pile of objects","Equal rows and equal columns","A circle of objects","Objects in one long line"],null,{"q":39,"w":40,"o":[41,42,43,44]}],[1,"2 rows of 7 has the same total as:",2,"2 × 7 = 14 and 7 × 2 = 14. Turning an array on its side does not change the total.",["3 rows of 7","2 rows of 8","7 rows of 2","7 rows of 7"],null,{"q":45,"w":46,"o":[47,48,49,50]}]],"a":{"title":0,"rule":1,"ex":[2,3],"hook":4}},{"t":"The 2s and the 5s","s":"Skip counting, doubling, and counting nickels","rule":"Multiples of 2 end in 0, 2, 4, 6 or 8 — those are the even numbers. Multiples of 5 end in 0 or 5. Nothing else, ever.","ex":"2 × 8 is just 8 + 8. If you know your doubles you already know your 2s.\nCounting nickels IS the 5s table: 5, 10, 15, 20, 25.","hook":"Say them out loud. The 2s and 5s stick in your mouth before they stick in your head.","chant":[["2s",[2,4,6,8,10,12,14,16,18,20]],["5s",[5,10,15,20,25,30,35,40,45,50]]],"q":[[0,"2 × 1",2,"2 × 1 is just 1 + 1 = 2. Doubling.",null,["array",2,1],{"q":5,"w":6}],[0,"2 × 2",4,"2 × 2 is just 2 + 2 = 4. Doubling.",null,["array",2,2],{"q":7,"w":8}],[0,"2 × 3",6,"2 × 3 is just 3 + 3 = 6. Doubling.",null,["array",2,3],{"q":9,"w":10}],[0,"2 × 4",8,"2 × 4 is just 4 + 4 = 8. Doubling.",null,["array",2,4],{"q":11,"w":12}],[0,"2 × 5",10,"2 × 5 is just 5 + 5 = 10. Doubling.",null,["array",2,5],{"q":13,"w":14}],[0,"2 × 6",12,"2 × 6 is just 6 + 6 = 12. Doubling.",null,["array",2,6],{"q":15,"w":16}],[0,"2 × 7",14,"2 × 7 is just 7 + 7 = 14. Doubling.",null,["array",2,7],{"q":17,"w":18}],[0,"2 × 8",16,"2 × 8 is just 8 + 8 = 16. Doubling.",null,["array",2,8],{"q":19,"w":20}],[0,"2 × 9",18,"2 × 9 is just 9 + 9 = 18. Doubling.",null,["array",2,9],{"q":21,"w":22}],[0,"2 × 10",20,"2 × 10 is just 10 + 10 = 20. Doubling.",null,["array",2,10],{"q":23,"w":24}],[0,"5 × 1",5,"Skip count 1 fives: 5.",null,["array",5,1],{"q":25,"w":26}],[0,"5 × 2",10,"Skip count 2 fives: 5, 10.",null,["array",5,2],{"q":27,"w":28}],[0,"5 × 3",15,"Skip count 3 fives: 5, 10, 15.",null,["array",5,3],{"q":29,"w":30}],[0,"5 × 4",20,"Skip count 4 fives: 5, 10, 15, 20.",null,["array",5,4],{"q":31,"w":32}],[0,"5 × 5",25,"Skip count 5 fives: 5, 10, 15, 20, 25.",null,["array",5,5],{"q":33,"w":34}],[0,"5 × 6",30,"Skip count 6 fives: 5, 10, 15, 20, 25, 30.",null,["array",5,6],{"q":35,"w":36}],[0,"5 × 7",35,"Skip count 7 fives: 5, 10, 15, 20, 25, 30, 35.",null,["array",5,7],{"q":37,"w":38}],[0,"5 × 8",40,"Skip count 8 fives: 5, 10, 15, 20, 25, 30, 35, 40.",null,["array",5,8],{"q":39,"w":40}],[0,"5 × 9",45,"Skip count 9 fives: 5, 10, 15, 20, 25, 30, 35, 40, 45.",null,["array",5,9],{"q":41,"w":42}],[0,"5 × 10",50,"Skip count 10 fives: 5, 10, 15, 20, 25, 30, 35, 40, 45, 50.",null,["array",5,10],{"q":43,"w":44}],[1,"Which of these is a multiple of 5?",2,"Multiples of 5 end in 0 or 5. Nothing else, ever. 35 ends in 5.",["32","34","35","38"],null,{"q":45,"w":46,"o":[47,48,49,50]}],[1,"Which of these is a multiple of 2?",1,"Multiples of 2 end in 0, 2, 4, 6 or 8 — the even numbers. 26 ends in 6.",["25","26","27","31"],null,{"q":51,"w":52,"o":[53,54,55,56]}],[1,"Multiples of 5 always end in:",3,"Always 0 or 5. If it ends in anything else it is not a multiple of 5.",["5 only","0 only","2 or 7","0 or 5"],null,{"q":57,"w":58,"o":[59,60,61,62]}],[0,"How many cents in 5 nickels?",25,"Nickels are the 5s table: 5, 10, 15, 20, 25.",null,["groups",5,5],{"q":63,"w":64}],[0,"How many cents in 8 nickels?",40,"5, 10, 15, 20, 25, 30, 35, 40.",null,["groups",8,5],{"q":65,"w":66}],[0,"8 pairs of shoes is how many shoes?",16,"A pair is 2. 8 × 2 = 16, which is just 8 + 8.",null,["groups",8,2],{"q":67,"w":68}],[0,"7 pairs of gloves is how many gloves?",14,"7 × 2 = 7 + 7 = 14.",null,["groups",7,2],{"q":69,"w":70}]],"a":{"title":0,"rule":1,"ex":[2,3],"hook":4}},{"t":"The 9s","s":"The pattern that makes the 9s the easiest table","rule":"9 is one less than 10. So 6 × 9 is 6 × 10 minus 6: 60 − 6 = 54. Add the tens, subtract the ones.","ex":"Look down the table: 09, 18, 27, 36, 45, 54, 63, 72, 81, 90.\nThe tens digit climbs by 1. The ones digit drops by 1.\nAnd both digits always add up to 9.","hook":"If the two digits add up to 9, it is in the 9s table.","chant":[["9s",[9,18,27,36,45,54,63,72,81,90]]],"q":[[0,"9 × 1",9,"9 is one less than 10. 1 × 10 = 10, then take away 1: 10 − 1 = 9.",null,["array",9,1],{"q":6,"w":7}],[0,"9 × 2",18,"9 is one less than 10. 2 × 10 = 20, then take away 2: 20 − 2 = 18.",null,["array",9,2],{"q":8,"w":9}],[0,"9 × 3",27,"9 is one less than 10. 3 × 10 = 30, then take away 3: 30 − 3 = 27.",null,["array",9,3],{"q":10,"w":11}],[0,"9 × 4",36,"9 is one less than 10. 4 × 10 = 40, then take away 4: 40 − 4 = 36.",null,["array",9,4],{"q":12,"w":13}],[0,"9 × 5",45,"9 is one less than 10. 5 × 10 = 50, then take away 5: 50 − 5 = 45.",null,["array",9,5],{"q":14,"w":15}],[0,"9 × 6",54,"9 is one less than 10. 6 × 10 = 60, then take away 6: 60 − 6 = 54.",null,["array",9,6],{"q":16,"w":17}],[0,"9 × 7",63,"9 is one less than 10. 7 × 10 = 70, then take away 7: 70 − 7 = 63.",null,["array",9,7],{"q":18,"w":19}],[0,"9 × 8",72,"9 is one less than 10. 8 × 10 = 80, then take away 8: 80 − 8 = 72.",null,["array",9,8],{"q":20,"w":21}],[0,"9 × 9",81,"9 is one less than 10. 9 × 10 = 90, then take away 9: 90 − 9 = 81.",null,["array",9,9],{"q":22,"w":23}],[0,"9 × 10",90,"9 × 10 = 90 — the last row. And like every other one, 9 + 0 = 9.",null,["array",9,10],{"q":24,"w":25}],[0,"Add the two digits of 63.",9,"6 + 3 = 9. The digits of every multiple of 9 add up to 9.",null,null,{"q":26,"w":27}],[0,"Add the two digits of 45.",9,"4 + 5 = 9. Same trick every time.",null,null,{"q":28,"w":29}],[1,"Which of these is a multiple of 9?",0,"7 + 2 = 9. The others do not add to 9.",["72","74","76","78"],null,{"q":30,"w":31,"o":[32,33,34,35]}],[1,"Going down the 9s table, the ones digit:",1,"09, 18, 27, 36, 45 — the ones digit drops by 1 each row.",["goes up by 1","goes down by 1","stays the same","doubles"],null,{"q":36,"w":37,"o":[38,39,40,41]}],[1,"Going down the 9s table, the tens digit:",0,"09, 18, 27, 36, 45 — the tens digit climbs by 1 each row.",["goes up by 1","goes down by 1","stays the same","doubles"],null,{"q":42,"w":43,"o":[44,45,46,47]}],[1,"The fastest way to do 6 × 9 is:",2,"6 × 10 = 60, then subtract 6 to get 54. Add 6 tens, subtract 6 ones.",["Count by 9 six times","Guess","6 × 10 then take away 6","6 + 9"],null,{"q":48,"w":49,"o":[50,51,52,53]}],[1,"The digits of any multiple of 9 add up to:",1,"2+7=9, 3+6=9, 8+1=9. Always 9.",["3","9","10","18"],null,{"q":54,"w":55,"o":[56,57,58,59]}]],"a":{"title":0,"rule":1,"ex":[2,3,4],"hook":5}},{"t":"0, 1 and 10","s":"Three rules that never change","rule":"Times 1 gives you the same number back. Times 0 gives you nothing. Times 10 just adds a zero on the end.","ex":"6 × 1 = 6 — one group of six.\n6 × 0 = 0 — no groups at all, so nothing.\n6 × 10 = 60 — stick a zero on it.","hook":"The 0 one catches people. Zero groups means zero things, even if the number is big.","q":[[0,"3 × 1",3,"Anything times 1 is itself. You have one group of 3.",null,["array",3,1],{"q":6,"w":7}],[0,"3 × 0",0,"Zero groups of 3 is nothing at all. Anything times 0 is 0.",null,["array",3,0],{"q":8,"w":9}],[0,"3 × 10",30,"Times 10 just adds a zero: 3 → 30.",null,["array",3,10],{"q":10,"w":11}],[0,"6 × 1",6,"Anything times 1 is itself. You have one group of 6.",null,["array",6,1],{"q":12,"w":13}],[0,"6 × 0",0,"Zero groups of 6 is nothing at all. Anything times 0 is 0.",null,["array",6,0],{"q":14,"w":15}],[0,"6 × 10",60,"Times 10 just adds a zero: 6 → 60.",null,["array",6,10],{"q":16,"w":17}],[0,"7 × 1",7,"Anything times 1 is itself. You have one group of 7.",null,["array",7,1],{"q":18,"w":19}],[0,"7 × 0",0,"Zero groups of 7 is nothing at all. Anything times 0 is 0.",null,["array",7,0],{"q":20,"w":21}],[0,"7 × 10",70,"Times 10 just adds a zero: 7 → 70.",null,["array",7,10],{"q":22,"w":23}],[0,"4 × 1",4,"Anything times 1 is itself. You have one group of 4.",null,["array",4,1],{"q":24,"w":25}],[0,"4 × 0",0,"Zero groups of 4 is nothing at all. Anything times 0 is 0.",null,["array",4,0],{"q":26,"w":27}],[0,"4 × 10",40,"Times 10 just adds a zero: 4 → 40.",null,["array",4,10],{"q":28,"w":29}],[0,"9 × 1",9,"Anything times 1 is itself. You have one group of 9.",null,["array",9,1],{"q":30,"w":31}],[0,"9 × 0",0,"Zero groups of 9 is nothing at all. Anything times 0 is 0.",null,["array",9,0],{"q":32,"w":33}],[0,"9 × 10",90,"Times 10 just adds a zero: 9 → 90.",null,["array",9,10],{"q":34,"w":35}],[0,"8 × 1",8,"Anything times 1 is itself. You have one group of 8.",null,["array",8,1],{"q":36,"w":37}],[0,"8 × 0",0,"Zero groups of 8 is nothing at all. Anything times 0 is 0.",null,["array",8,0],{"q":38,"w":39}],[0,"8 × 10",80,"Times 10 just adds a zero: 8 → 80.",null,["array",8,10],{"q":40,"w":41}],[1,"8 × 0 is:",0,"Zero groups means nothing. It is 0, not 8.",["0","8","80","1"],null,{"q":42,"w":43,"o":[44,45,46,47]}],[1,"Which one equals 7?",1,"7 × 1 = 7. 7 × 0 is 0 and 7 × 10 is 70.",["7 × 0","7 × 1","7 × 10","0 × 10"],null,{"q":48,"w":49,"o":[50,51,52,53]}],[0,"0 × 100",0,"Zero groups of anything is still zero.",null,["array",0,100],{"q":54,"w":55}]],"a":{"title":0,"rule":1,"ex":[2,3,4],"hook":5}},{"t":"The 3s, 4s and 6s","s":"Built out of tables you already know","rule":"You do not learn these from scratch. The 3s are the 2s plus one more group. The 4s are double the 2s. The 6s are double the 3s.","ex":"3 × 7: start with 2 × 7 = 14, add one more 7 → 21.\n4 × 7: 2 × 7 = 14, double it → 28.\n6 × 7: 3 × 7 = 21, double it → 42.","hook":"Break the hard one into an easy one, then fix it up.","chant":[["3s",[3,6,9,12,15,18,21,24,27,30]],["4s",[4,8,12,16,20,24,28,32,36,40]]],"q":[[0,"3 × 1",3,"The 3s are the 2s plus one more group. 2 × 1 = 2, then + 1 = 3.",null,["array",3,1],{"q":6,"w":7}],[0,"3 × 2",6,"The 3s are the 2s plus one more group. 2 × 2 = 4, then + 2 = 6.",null,["array",3,2],{"q":8,"w":9}],[0,"3 × 3",9,"The 3s are the 2s plus one more group. 2 × 3 = 6, then + 3 = 9.",null,["array",3,3],{"q":10,"w":11}],[0,"3 × 4",12,"The 3s are the 2s plus one more group. 2 × 4 = 8, then + 4 = 12.",null,["array",3,4],{"q":12,"w":13}],[0,"3 × 5",15,"The 3s are the 2s plus one more group. 2 × 5 = 10, then + 5 = 15.",null,["array",3,5],{"q":14,"w":15}],[0,"3 × 6",18,"The 3s are the 2s plus one more group. 2 × 6 = 12, then + 6 = 18.",null,["array",3,6],{"q":16,"w":17}],[0,"3 × 7",21,"The 3s are the 2s plus one more group. 2 × 7 = 14, then + 7 = 21.",null,["array",3,7],{"q":18,"w":19}],[0,"3 × 8",24,"The 3s are the 2s plus one more group. 2 × 8 = 16, then + 8 = 24.",null,["array",3,8],{"q":20,"w":21}],[0,"3 × 9",27,"The 3s are the 2s plus one more group. 2 × 9 = 18, then + 9 = 27.",null,["array",3,9],{"q":22,"w":23}],[0,"3 × 10",30,"The 3s are the 2s plus one more group. 2 × 10 = 20, then + 10 = 30.",null,["array",3,10],{"q":24,"w":25}],[0,"4 × 1",4,"The 4s are double the 2s. 2 × 1 = 2, double it = 4.",null,["array",4,1],{"q":26,"w":27}],[0,"4 × 2",8,"The 4s are double the 2s. 2 × 2 = 4, double it = 8.",null,["array",4,2],{"q":28,"w":29}],[0,"4 × 3",12,"The 4s are double the 2s. 2 × 3 = 6, double it = 12.",null,["array",4,3],{"q":30,"w":31}],[0,"4 × 4",16,"The 4s are double the 2s. 2 × 4 = 8, double it = 16.",null,["array",4,4],{"q":32,"w":33}],[0,"4 × 5",20,"The 4s are double the 2s. 2 × 5 = 10, double it = 20.",null,["array",4,5],{"q":34,"w":35}],[0,"4 × 6",24,"The 4s are double the 2s. 2 × 6 = 12, double it = 24.",null,["array",4,6],{"q":36,"w":37}],[0,"4 × 7",28,"The 4s are double the 2s. 2 × 7 = 14, double it = 28.",null,["array",4,7],{"q":38,"w":39}],[0,"4 × 8",32,"The 4s are double the 2s. 2 × 8 = 16, double it = 32.",null,["array",4,8],{"q":40,"w":41}],[0,"4 × 9",36,"The 4s are double the 2s. 2 × 9 = 18, double it = 36.",null,["array",4,9],{"q":42,"w":43}],[0,"4 × 10",40,"The 4s are double the 2s. 2 × 10 = 20, double it = 40.",null,["array",4,10],{"q":44,"w":45}],[0,"6 × 1",6,"The 6s are double the 3s. 3 × 1 = 3, double it = 6.",null,["array",6,1],{"q":46,"w":47}],[0,"6 × 2",12,"The 6s are double the 3s. 3 × 2 = 6, double it = 12.",null,["array",6,2],{"q":48,"w":49}],[0,"6 × 3",18,"The 6s are double the 3s. 3 × 3 = 9, double it = 18.",null,["array",6,3],{"q":50,"w":51}],[0,"6 × 4",24,"The 6s are double the 3s. 3 × 4 = 12, double it = 24.",null,["array",6,4],{"q":52,"w":53}],[0,"6 × 5",30,"The 6s are double the 3s. 3 × 5 = 15, double it = 30.",null,["array",6,5],{"q":54,"w":55}],[0,"6 × 6",36,"The 6s are double the 3s. 3 × 6 = 18, double it = 36.",null,["array",6,6],{"q":56,"w":57}],[0,"6 × 7",42,"The 6s are double the 3s. 3 × 7 = 21, double it = 42.",null,["array",6,7],{"q":58,"w":59}],[0,"6 × 8",48,"The 6s are double the 3s. 3 × 8 = 24, double it = 48.",null,["array",6,8],{"q":60,"w":61}],[0,"6 × 9",54,"The 6s are double the 3s. 3 × 9 = 27, double it = 54.",null,["array",6,9],{"q":62,"w":63}],[0,"6 × 10",60,"The 6s are double the 3s. 3 × 10 = 30, double it = 60.",null,["array",6,10],{"q":64,"w":65}],[1,"To work out 3 × 7 by breaking it apart:",0,"2 × 7 = 14, then add one more 7 to get 21.",["2 × 7 then add 7","2 × 7 then add 2","7 + 3","double 7 twice"],null,{"q":66,"w":67,"o":[68,69,70,71]}],[1,"4 × 8 is the same as:",2,"The 4s are double the 2s. 2 × 8 = 16, doubled is 32.",["8 + 4","2 × 8","double 2 × 8","8 × 8"],null,{"q":72,"w":73,"o":[74,75,76,77]}]],"a":{"title":0,"rule":1,"ex":[2,3,4],"hook":5}},{"t":"The 7s and 8s","s":"The leftovers — and there are fewer than you think","rule":"The order of the factors does not change the answer. 3 × 8 and 8 × 3 are both 24. That means half of these you already know.","ex":"You learned 5 × 7 back in the 5s. So 7 × 5 is done.\nYou learned 4 × 8 in the 4s. So 8 × 4 is done.\nWhat is actually new: 7 × 7, 7 × 8, and 8 × 8. Three facts.","hook":"Turn it around and check whether you already know it.","q":[[0,"7 × 1",7,"You already know this one backwards: 1 × 7 = 7. Same answer.",null,["array",7,1],{"q":6,"w":7}],[0,"7 × 2",14,"You already know this one backwards: 2 × 7 = 14. Same answer.",null,["array",7,2],{"q":8,"w":9}],[0,"7 × 3",21,"You already know this one backwards: 3 × 7 = 21. Same answer.",null,["array",7,3],{"q":10,"w":11}],[0,"7 × 4",28,"You already know this one backwards: 4 × 7 = 28. Same answer.",null,["array",7,4],{"q":12,"w":13}],[0,"7 × 5",35,"You already know this one backwards: 5 × 7 = 35. Same answer.",null,["array",7,5],{"q":14,"w":15}],[0,"7 × 6",42,"You already know this one backwards: 6 × 7 = 42. Same answer.",null,["array",7,6],{"q":16,"w":17}],[0,"7 × 7",49,"7 × 7 = 49.",null,["array",7,7],{"q":18,"w":19}],[0,"7 × 8",56,"7 × 8 = 56.",null,["array",7,8],{"q":20,"w":21}],[0,"7 × 9",63,"7 × 9 = 63.",null,["array",7,9],{"q":22,"w":23}],[0,"7 × 10",70,"7 × 10 = 70.",null,["array",7,10],{"q":24,"w":25}],[0,"8 × 1",8,"Turn it around: 1 × 8 = 8. Same answer either way.",null,["array",8,1],{"q":26,"w":27}],[0,"8 × 2",16,"Turn it around: 2 × 8 = 16. Same answer either way.",null,["array",8,2],{"q":28,"w":29}],[0,"8 × 3",24,"Turn it around: 3 × 8 = 24. Same answer either way.",null,["array",8,3],{"q":30,"w":31}],[0,"8 × 4",32,"Turn it around: 4 × 8 = 32. Same answer either way.",null,["array",8,4],{"q":32,"w":33}],[0,"8 × 5",40,"Turn it around: 5 × 8 = 40. Same answer either way.",null,["array",8,5],{"q":34,"w":35}],[0,"8 × 6",48,"Turn it around: 6 × 8 = 48. Same answer either way.",null,["array",8,6],{"q":36,"w":37}],[0,"8 × 7",56,"Turn it around: 7 × 8 = 56. Same answer either way.",null,["array",8,7],{"q":38,"w":39}],[0,"8 × 8",64,"8 × 8 = 64.",null,["array",8,8],{"q":40,"w":41}],[0,"8 × 9",72,"8 × 9 = 72.",null,["array",8,9],{"q":42,"w":43}],[0,"8 × 10",80,"8 × 10 = 80.",null,["array",8,10],{"q":44,"w":45}],[0,"7 × 7",49,"This is a real one to memorise. 7 × 7 = 49.",null,["array",7,7],{"q":46,"w":47}],[0,"7 × 8",56,"The other real one. 7 × 8 = 56. Say it: \"five six is seven eight.\"",null,["array",7,8],{"q":48,"w":49}],[0,"8 × 8",64,"8 × 8 = 64. Worth just knowing.",null,["array",8,8],{"q":50,"w":51}],[1,"If 3 × 8 = 24, then 8 × 3 is:",1,"The turn-around rule. Order does not change the product.",["3","24","11","48"],null,{"q":52,"w":53,"o":[54,55,56,57]}],[1,"Why are the 7s easier than they look?",2,"Most of them show up in tables you already learned. Only a few are new.",["They are not","7 is a small number","You already know most of them backwards","They all end in 7"],null,{"q":58,"w":59,"o":[60,61,62,63]}]],"a":{"title":0,"rule":1,"ex":[2,3,4],"hook":5}},{"t":"All of it, mixed","s":"Multiply or divide — you have to decide which","rule":"Nobody tells you which one to use here. Putting equal groups together is multiplying. Splitting a total into equal parts is dividing.","ex":"\"7 boxes of 6 crayons\" — you are building up, so multiply: 42.\n\"42 crayons for 6 friends\" — you are splitting up, so divide: 7.\nSame three numbers. Different question.","hook":"Ask yourself: am I building it up, or breaking it apart?","q":[[0,"5 × 7",35,"5 × 7 = 35.",null,["array",5,7],{"q":6,"w":7}],[0,"5 × 8",40,"5 × 8 = 40.",null,["array",5,8],{"q":8,"w":9}],[0,"3 × 8",24,"3 × 8 = 24.",null,["array",3,8],{"q":10,"w":11}],[0,"6 × 6",36,"6 × 6 = 36.",null,["array",6,6],{"q":12,"w":13}],[0,"2 × 9",18,"2 × 9 = 18.",null,["array",2,9],{"q":14,"w":15}],[0,"2 × 8",16,"2 × 8 = 16.",null,["array",2,8],{"q":16,"w":17}],[0,"3 × 3",9,"3 × 3 = 9.",null,["array",3,3],{"q":18,"w":19}],[0,"4 × 7",28,"4 × 7 = 28.",null,["array",4,7],{"q":20,"w":21}],[0,"2 × 2",4,"2 × 2 = 4.",null,["array",2,2],{"q":22,"w":23}],[0,"8 × 8",64,"8 × 8 = 64.",null,["array",8,8],{"q":24,"w":25}],[0,"8 × 9",72,"8 × 9 = 72.",null,["array",8,9],{"q":26,"w":27}],[0,"6 × 7",42,"6 × 7 = 42.",null,["array",6,7],{"q":28,"w":29}],[0,"5 × 5",25,"5 × 5 = 25.",null,["array",5,5],{"q":30,"w":31}],[0,"3 × 6",18,"3 × 6 = 18.",null,["array",3,6],{"q":32,"w":33}],[0,"3 × 5",15,"3 × 5 = 15.",null,["array",3,5],{"q":34,"w":35}],[0,"5 × 6",30,"5 × 6 = 30.",null,["array",5,6],{"q":36,"w":37}],[0,"7 × 8",56,"7 × 8 = 56.",null,["array",7,8],{"q":38,"w":39}],[0,"2 × 3",6,"2 × 3 = 6.",null,["array",2,3],{"q":40,"w":41}],[0,"4 × 6",24,"4 × 6 = 24.",null,["array",4,6],{"q":42,"w":43}],[0,"2 × 4",8,"2 × 4 = 8.",null,["array",2,4],{"q":44,"w":45}],[0,"24 ÷ 4",6,"4 × 6 = 24, so 24 ÷ 4 = 6.",null,["groups",4,6],{"q":46,"w":47}],[0,"35 ÷ 5",7,"5 × 7 = 35, so 35 ÷ 5 = 7.",null,["groups",5,7],{"q":48,"w":49}],[0,"48 ÷ 6",8,"6 × 8 = 48, so 48 ÷ 6 = 8.",null,["groups",6,8],{"q":50,"w":51}],[0,"21 ÷ 3",7,"3 × 7 = 21, so 21 ÷ 3 = 7.",null,["groups",3,7],{"q":52,"w":53}],[0,"56 ÷ 8",7,"8 × 7 = 56, so 56 ÷ 8 = 7.",null,["groups",8,7],{"q":54,"w":55}],[0,"27 ÷ 9",3,"9 × 3 = 27, so 27 ÷ 9 = 3.",null,["groups",9,3],{"q":56,"w":57}],[0,"40 ÷ 10",4,"10 × 4 = 40, so 40 ÷ 10 = 4.",null,["groups",10,4],{"q":58,"w":59}],[0,"36 ÷ 6",6,"6 × 6 = 36, so 36 ÷ 6 = 6.",null,["groups",6,6],{"q":60,"w":61}],[1,"A box holds 6 crayons. You buy 7 boxes.\nWhat do you do?",0,"You are putting equal groups together, so multiply. 7 × 6 = 42 crayons.",["Multiply","Divide","Add 6 and 7","Subtract"],["groups",7,6],{"q":62,"w":63,"o":[64,65,66,67]}],[1,"You have 42 crayons to share between 6 friends.\nWhat do you do?",1,"You are splitting a total into equal parts, so divide. 42 ÷ 6 = 7 each.",["Multiply","Divide","Add","Subtract"],null,{"q":68,"w":69,"o":[70,71,72,73]}],[0,"A box holds 6 crayons. You buy 7 boxes.\nHow many crayons?",42,"Equal groups → multiply. 7 × 6 = 42.",null,["groups",7,6],{"q":74,"w":75}],[0,"42 crayons shared between 6 friends.\nHow many each?",7,"Splitting a total → divide. 42 ÷ 6 = 7.",null,["groups",6,7],{"q":76,"w":77}],[0,"5 rows of chairs, 8 chairs in each row.\nHow many chairs?",40,"Rows × chairs per row = 5 × 8 = 40.",null,["array",5,8],{"q":78,"w":79}],[0,"40 chairs in 5 equal rows.\nHow many in each row?",8,"40 ÷ 5 = 8 in each row.",null,["array",5,8],{"q":80,"w":81}],[0,"You read 9 pages a day for 4 days.\nHow many pages?",36,"9 × 4 = 36 pages.",null,["groups",4,9],{"q":82,"w":83}],[0,"36 stickers, 4 on each page.\nHow many pages?",9,"36 ÷ 4 = 9 pages.",null,["groups",9,4],{"q":84,"w":85}],[0,"3 packs of 8 markers.\nHow many markers?",24,"3 × 8 = 24.",null,["groups",3,8],{"q":86,"w":87}],[0,"You have 30 grapes and eat 5 at a time.\nHow many times can you do that?",6,"30 ÷ 5 = 6 times.",null,["line",30,5],{"q":88,"w":89}]],"a":{"title":0,"rule":1,"ex":[2,3,4],"hook":5}}];
 
 /* Every key is prefixed. Nova lives on the same origin and shares this
    localStorage — an unprefixed "progress" here would wipe Cheyenne's. */
@@ -154,25 +283,294 @@ const db = {
   get(k,d){ try{ const v=localStorage.getItem(K+k); return v==null?d:JSON.parse(v);}catch(e){return d} },
   set(k,v){ try{ localStorage.setItem(K+k, JSON.stringify(v)); }catch(e){} }
 };
-let best = db.get('best', {});          // unit index -> best score out of 10
+let best = db.get('best', {});
 
-function starsFor(n){ return n>=10?3 : n>=8?2 : n>=6?1 : 0; }
-function starStr(n){ const s=starsFor(n); return '★'.repeat(s) + '☆'.repeat(3-s); }
+/* ============================================================
+   VOICE — the same baked Kokoro sprites Nova uses.
+   One MP3 per unit holds every line in order; the .json says where
+   each one starts. If the files aren't there we fall back to the
+   device's own speech so the app is never silent.
+   ============================================================ */
+const VOICES = [['','Sarah'],['.bella','Bella'],['.sky','Sky']];
+const Voice = (()=>{
+  let suffix = db.get('voice','');
+  const sprites = {};                 // "0.bella" -> {idx, buf|url}
+  let ctx = null, active = null, unlocked = false;
+  const TAIL = 0.12;                  // the sprite gap is 0.28s; MP3 starts a touch late
 
+  function stop(){
+    if(!active) return;
+    const a = active; active = null;
+    if(a.raf) cancelAnimationFrame(a.raf);
+    if(a.timer) clearTimeout(a.timer);
+    try{ a.src ? a.src.stop() : a.el.pause(); }catch(e){}
+    if(a.after) a.after();
+    document.querySelectorAll('.spk.playing').forEach(b=>b.classList.remove('playing'));
+  }
+  function unlock(){
+    if(unlocked) return; unlocked = true;
+    try{ ctx = ctx || new (window.AudioContext||window.webkitAudioContext)(); ctx.resume(); }catch(e){}
+  }
+  function load(u){
+    const key = u + suffix;
+    if(sprites[key]) return sprites[key];
+    const stem = 'zen' + u + suffix;
+    // a voice with no track of its own borrows Sarah's rather than going quiet
+    const stems = suffix ? [stem, 'zen'+u] : [stem];
+    const p = stems.reduce((chain, s)=> chain.catch(()=>
+        fetch(s + '.json').then(r=>{ if(!r.ok) throw 0; return r.json(); }).then(idx=>({idx, s}))
+      ), Promise.reject(0))
+      .then(({idx, s})=> fetch(s + '.mp3').then(r=>{ if(!r.ok) throw 0; return r.arrayBuffer(); })
+        .then(buf=>({ idx, url: URL.createObjectURL(new Blob([buf],{type:'audio/mpeg'})), raw: buf })));
+    sprites[key] = p;
+    return p;
+  }
+  function playClip(sp, i, after){
+    const span = sp.idx[i];
+    if(!span || !span[1]){ if(after) after(); return; }
+    const [start, dur] = span;
+    const el = new Audio(sp.url);
+    el.currentTime = start;
+    const endAt = start + dur + TAIL;
+    const a = active = { el, after };
+    // timeupdate only fires every ~250ms, which overshoots the gap and bleeds
+    // into the next clip — rAF stops it on time.
+    a.tick = ()=>{
+      if(active !== a) return;
+      if(el.ended || el.currentTime >= endAt){ stop(); return; }
+      a.raf = requestAnimationFrame(a.tick);
+    };
+    const pr = el.play();
+    if(pr && pr.catch) pr.catch(()=>{ if(active===a){ active=null; say2(i, sp, after); } });
+    a.raf = requestAnimationFrame(a.tick);
+    a.timer = setTimeout(()=>{ if(active===a) stop(); }, dur*1000 + 900);
+  }
+  function say2(i, sp, after){ if(after) after(); }
+  function speakFallback(text, after){
+    try{
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.9; u.onend = ()=>{ if(after) after(); };
+      speechSynthesis.speak(u);
+    }catch(e){ if(after) after(); }
+  }
+  return {
+    unlock, stop,
+    suffix(){ return suffix; },
+    setVoice(s){ suffix = s; db.set('voice', s); for(const k in sprites) delete sprites[k]; },
+    warm(u){ load(u).catch(()=>{}); },
+    /* speak one line of unit u, by its index in that unit's sprite */
+    say(u, i, text, after){
+      stop(); unlock();
+      load(u).then(sp=>{
+        if(!sp.idx[i]) throw 0;
+        playClip(sp, i, after);
+      }).catch(()=> speakFallback(text, after));
+    },
+    /* speak several lines back to back */
+    sayAll(u, items, done){
+      let n = 0;
+      const next = ()=>{
+        if(n >= items.length){ if(done) done(); return; }
+        const it = items[n++];
+        setTimeout(()=> Voice.say(u, it[0], it[1], next), n===1 ? 0 : 260);
+      };
+      next();
+    }
+  };
+})();
+document.body.addEventListener('pointerdown', function once(){ Voice.unlock(); }, {once:true});
+
+/* ============================================================
+   PICTURES — drawn from the numbers in the question, and animated.
+   ============================================================ */
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs){
+  const n = document.createElementNS(NS, tag);
+  for(const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+}
+function drawPic(spec, host){
+  host.innerHTML = '';
+  if(!spec) return false;
+  const [kind, a, b] = spec;
+  const svg = el('svg', {viewBox:'0 0 320 140', role:'img'});
+  if(kind === 'line')   linePic(svg, a, b);
+  if(kind === 'array')  arrayPic(svg, a, b);
+  if(kind === 'groups') groupsPic(svg, a, b);
+  host.appendChild(svg);
+  return true;
+}
+/* number line: start at the total, hop back one step at a time to zero */
+function linePic(svg, total, step){
+  const jumps = Math.floor(total/step);
+  const L = 22, R = 298, y = 96;
+  const x = v => L + (R-L) * (v/total);
+  svg.appendChild(el('line', {x1:L, y1:y, x2:R, y2:y, stroke:'#2b4364', 'stroke-width':3, 'stroke-linecap':'round'}));
+  for(let v=0; v<=total; v+=step){
+    svg.appendChild(el('line', {x1:x(v), y1:y-6, x2:x(v), y2:y+6, stroke:'#5a7699', 'stroke-width':2}));
+    const t = el('text', {x:x(v), y:y+24, fill:'#9db4d0', 'font-size':12, 'text-anchor':'middle',
+      'font-family':'system-ui, sans-serif', 'font-weight':'700'});
+    t.textContent = v; svg.appendChild(t);
+  }
+  for(let j=0; j<jumps; j++){
+    const from = total - j*step, to = from - step;
+    const x1 = x(from), x2 = x(to), mid = (x1+x2)/2, h = Math.min(46, 16 + (x1-x2)*0.5);
+    const d = `M ${x1} ${y-8} Q ${mid} ${y-8-h} ${x2} ${y-8}`;
+    const p = el('path', {d, fill:'none', stroke:'#4fc3f7', 'stroke-width':3, 'stroke-linecap':'round'});
+    p.classList.add('hop');
+    const len = Math.abs(x1-x2) * 1.6 + h;
+    p.style.setProperty('--len', len);
+    p.style.animationDelay = (0.15 + j*0.42) + 's';
+    svg.appendChild(p);
+    const c = el('circle', {cx:x2, cy:y, r:6, fill:'#4fc3f7'});
+    c.classList.add('dot'); c.style.animationDelay = (0.45 + j*0.42) + 's';
+    svg.appendChild(c);
+    const lab = el('text', {x:mid, y:y-16-h, fill:'#ffc94d', 'font-size':13, 'text-anchor':'middle',
+      'font-family':'system-ui, sans-serif', 'font-weight':'800'});
+    lab.textContent = j+1;
+    lab.classList.add('fadein'); lab.style.animationDelay = (0.45 + j*0.42) + 's';
+    svg.appendChild(lab);
+  }
+}
+/* array: rows fill in one after another */
+function arrayPic(svg, rows, cols){
+  const maxW = 268, maxH = 96;
+  const gap = Math.min(26, maxW/Math.max(cols,1), maxH/Math.max(rows,1));
+  const r = Math.max(4, Math.min(9, gap*0.34));
+  const w = (cols-1)*gap, h = (rows-1)*gap;
+  const ox = 160 - w/2, oy = 66 - h/2;
+  for(let i=0;i<rows;i++){
+    for(let j=0;j<cols;j++){
+      const c = el('circle', {cx:ox+j*gap, cy:oy+i*gap, r, fill:'#4fc3f7'});
+      c.classList.add('dot');
+      c.style.animationDelay = (0.1 + i*0.16 + j*0.02) + 's';
+      svg.appendChild(c);
+    }
+  }
+  const t = el('text', {x:160, y:132, fill:'#9db4d0', 'font-size':13, 'text-anchor':'middle',
+    'font-family':'system-ui, sans-serif', 'font-weight':'700'});
+  t.textContent = rows + ' rows of ' + cols;
+  svg.appendChild(t);
+}
+/* groups: rings that fill up, one group at a time */
+function groupsPic(svg, groups, per){
+  const perRow = groups <= 5 ? groups : Math.ceil(groups/2);
+  const rows = Math.ceil(groups/perRow);
+  const bw = Math.min(88, 300/perRow - 6), bh = rows > 1 ? 48 : 78;
+  const cols = Math.min(per, 4), pr = Math.ceil(per/cols);
+  let n = 0;
+  for(let gi=0; gi<groups; gi++){
+    const ri = Math.floor(gi/perRow), ci = gi % perRow;
+    const rowCount = Math.min(perRow, groups - ri*perRow);
+    const ox = 160 - (rowCount*(bw+6))/2 + ci*(bw+6) + 3;
+    const oy = 12 + ri*(bh+10);
+    svg.appendChild(el('rect', {x:ox, y:oy, width:bw, height:bh, rx:14, fill:'none',
+      stroke:'#2b4364', 'stroke-width':2}));
+    const dr = Math.max(3, Math.min(6, bw/(cols*3.4)));
+    const gx = bw/(cols+1), gy = bh/(pr+1);
+    for(let k=0;k<per;k++){
+      const kr = Math.floor(k/cols), kc = k % cols;
+      const c = el('circle', {cx:ox + gx*(kc+1), cy:oy + gy*(kr+1), r:dr, fill:'#5ddba0'});
+      c.classList.add('dot');
+      c.style.animationDelay = (0.12 + n*0.05) + 's'; n++;
+      svg.appendChild(c);
+    }
+  }
+  const t = el('text', {x:160, y:136, fill:'#9db4d0', 'font-size':13, 'text-anchor':'middle',
+    'font-family':'system-ui, sans-serif', 'font-weight':'700'});
+  t.textContent = groups + ' groups of ' + per;
+  svg.appendChild(t);
+}
+
+const ZEN_SVG = `<svg viewBox="0 0 100 100" width="100%" height="100%">
+ <defs>
+  <linearGradient id="zring" x1="0" y1="0" x2="1" y2="1">
+   <stop offset="0" stop-color="#6fe0ff"/><stop offset="1" stop-color="#5ddba0"/>
+  </linearGradient>
+  <clipPath id="zin"><circle cx="50" cy="50" r="41"/></clipPath>
+ </defs>
+ <circle cx="50" cy="50" r="48" fill="url(#zring)"/>
+ <circle cx="50" cy="50" r="41" fill="#12283f"/>
+ <g clip-path="url(#zin)">
+  <rect x="6" y="14" width="88" height="34" rx="3" fill="#1d4a3c"/>
+  <rect x="6" y="14" width="88" height="34" rx="3" fill="none" stroke="#8a6a3f" stroke-width="2.5"/>
+  <!-- the sum sits clear of his head, on the left, where it can be read -->
+  <text x="25" y="28" fill="#cdeee0" font-size="9.5" font-family="system-ui,sans-serif"
+        font-weight="800" text-anchor="middle" opacity=".9">3×4</text>
+  <line x1="18" y1="32" x2="32" y2="32" stroke="#cdeee0" stroke-width="1.4" opacity=".75"/>
+  <text x="25" y="43" fill="#cdeee0" font-size="9.5" font-family="system-ui,sans-serif"
+        font-weight="800" text-anchor="middle" opacity=".9">12</text>
+
+  <!-- left arm -->
+  <rect x="22" y="62" width="10.5" height="24" rx="3.5" fill="#2f9c74"/>
+  <rect x="22.8" y="80" width="9" height="7" rx="2.6" fill="#f0c08a"/>
+  <!-- torso -->
+  <rect x="31" y="59" width="38" height="29" rx="4" fill="#3ab98a"/>
+  <path d="M43.5 59 h13 l-6.5 12 Z" fill="#f4f7fb"/>
+  <rect x="47.8" y="63" width="4.4" height="13" rx="1.5" fill="#ffc94d"/>
+  <!-- right arm raised, hand and pointer travelling with it -->
+  <g id="zArm" style="transform-origin:70px 66px">
+   <rect x="66.5" y="56" width="10.5" height="24" rx="3.5" fill="#2f9c74"
+         transform="rotate(32 71.75 68)"/>
+   <rect x="76.2" y="50.5" width="8" height="7.4" rx="2.4" fill="#f0c08a"
+         transform="rotate(32 80.2 54.2)"/>
+   <line x1="79" y1="53" x2="92" y2="33" stroke="#c98f52" stroke-width="2.6" stroke-linecap="round"/>
+   <circle cx="92.6" cy="32.2" r="2.4" fill="#ff9a76"/>
+  </g>
+  <!-- neck + blocky head -->
+  <rect x="45.6" y="51" width="8.8" height="9" rx="1.8" fill="#d9a875"/>
+  <rect x="34.5" y="23" width="31" height="29.5" rx="6" fill="#f0c08a"/>
+  <rect x="33.2" y="19.8" width="33.6" height="11.5" rx="4.6" fill="#3a2a1a"/>
+  <rect x="33.2" y="25.5" width="4.3" height="11" rx="2.1" fill="#3a2a1a"/>
+  <rect x="62.5" y="25.5" width="4.3" height="11" rx="2.1" fill="#3a2a1a"/>
+  <rect x="37.4" y="31.4" width="10.6" height="8.6" rx="2.4" fill="#0f1b2e" opacity=".16"/>
+  <rect x="52" y="31.4" width="10.6" height="8.6" rx="2.4" fill="#0f1b2e" opacity=".16"/>
+  <rect x="37.4" y="31.4" width="10.6" height="8.6" rx="2.4" fill="none" stroke="#2b2b2b" stroke-width="1.6"/>
+  <rect x="52" y="31.4" width="10.6" height="8.6" rx="2.4" fill="none" stroke="#2b2b2b" stroke-width="1.6"/>
+  <line x1="48" y1="35.7" x2="52" y2="35.7" stroke="#2b2b2b" stroke-width="1.6"/>
+  <g id="zEyes">
+   <rect x="40.8" y="33.6" width="3.8" height="4.2" rx="1.5" fill="#26313d"/>
+   <rect x="55.4" y="33.6" width="3.8" height="4.2" rx="1.5" fill="#26313d"/>
+  </g>
+  <path d="M44.2 44.4 q5.8 5 11.6 0" stroke="#b4693f" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+  <rect x="36.6" y="41.6" width="4.6" height="3" rx="1.5" fill="#ff9a76" opacity=".42"/>
+  <rect x="58.8" y="41.6" width="4.6" height="3" rx="1.5" fill="#ff9a76" opacity=".42"/>
+ </g>
+</svg>`;
+document.getElementById('teachArt').innerHTML = ZEN_SVG;
+document.getElementById('teachArt2').innerHTML = ZEN_SVG;
+const HELLO = [
+  "Hi Zen. Pick a box and we'll do ten.",
+  "Ready when you are. Ten questions, that's it.",
+  "Back again. Let's find one you haven't beaten yet.",
+  "Pick anything. I'll read it out to you.",
+  "Short round today? Ten and done."
+];
+function greet(){
+  document.getElementById('teachSays').innerHTML =
+    HELLO[(Math.random()*HELLO.length)|0];
+}
+
+/* ---------------- screens ---------------- */
 function go(id){
+  document.body.classList.toggle('hidenav', id==='round' || id==='speed');
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
   document.getElementById('s-'+id).classList.add('on');
   window.scrollTo(0,0);
 }
-
-/* ---------------- home ---------------- */
 const HUES = ['#4fc3f7','#5ddba0','#ffc94d','#ff9a76','#b39ddb','#4fc3f7','#5ddba0','#ffc94d'];
 function renderHome(){
+  greet();
+  renderSubjects();
+  setNav('home');
   const total = Object.values(best).reduce((a,b)=>a+b,0);
   const started = Object.keys(best).length;
   document.getElementById('hiS').textContent = started
     ? `${started} of 8 started · ${total} right so far. Pick up anywhere.`
     : 'Pick a box to start. Each round is 10 questions — short on purpose.';
+  document.getElementById('voiceBar').innerHTML = VOICES.map(([s,n])=>
+    `<button data-v="${s}" class="${Voice.suffix()===s?'on':''}">${n}</button>`).join('');
   document.getElementById('unitList').innerHTML = U.map((u,i)=>
     `<button class="unit" data-u="${i}">
        <span class="unum" style="background:${HUES[i]}">${i+1}</span>
@@ -180,7 +578,13 @@ function renderHome(){
        <span class="stars">${starStr(best[i]||0)}</span>
      </button>`).join('');
 }
+function starsFor(n){ return n>=10?3 : n>=8?2 : n>=6?1 : 0; }
+function starStr(n){ const s=starsFor(n); return '★'.repeat(s)+'☆'.repeat(3-s); }
+
 document.addEventListener('click', e=>{
+  const v = e.target.closest('[data-v]');
+  if(v){ Voice.unlock(); Voice.setVoice(v.dataset.v); renderHome();
+         Voice.say(0, U[0].a.title, U[0].t); return; }
   const t = e.target.closest('[data-u]');
   if(t) openLesson(+t.dataset.u);
 });
@@ -189,25 +593,31 @@ document.addEventListener('click', e=>{
 let CUR = 0;
 function openLesson(i){
   CUR = i; const u = U[i];
+  Voice.warm(i);
   document.getElementById('lTitle').textContent = u.t;
   document.getElementById('lRule').textContent = u.rule;
   document.getElementById('lEx').textContent = u.ex;
   document.getElementById('lHook').textContent = u.hook;
   const box = document.getElementById('lChant');
-  if(u.chant){
-    // Skip counting only sticks if he says it. The button reads it out with
-    // gaps so he can chase it, rather than just showing him the numbers.
-    box.innerHTML = u.chant.map((c,ci)=>
+  box.innerHTML = u.chant ? u.chant.map((c,ci)=>
       `<div class="chant">
          <div class="lab">Say the ${c[0]} out loud</div>
          <div class="chantrow" id="ch${ci}">${c[1].map((n,j)=>`<span data-i="${j}">${n}</span>`).join('')}</div>
          <button class="btn ghost sm" data-chant="${ci}">🔊 Say it with me</button>
-       </div>`).join('');
-  } else box.innerHTML = '';
+       </div>`).join('') : '';
   go('lesson');
+  readLesson();
 }
-document.getElementById('lBack').onclick = ()=>{ stopChant(); renderHome(); go('home'); };
-document.getElementById('lGo').onclick = ()=>{ stopChant(); startRound(CUR); };
+function readLesson(){
+  const u = U[CUR], a = u.a;
+  const items = [[a.rule, u.rule]].concat(a.ex.map((ix,k)=>[ix, u.ex.split('\n')[k]||''])).concat([[a.hook, u.hook]]);
+  const btn = document.getElementById('lSpk');
+  btn.classList.add('playing');
+  Voice.sayAll(CUR, items, ()=> btn.classList.remove('playing'));
+}
+document.getElementById('lSpk').onclick = ()=>{ Voice.stop(); readLesson(); };
+document.getElementById('lBack').onclick = ()=>{ Voice.stop(); stopChant(); renderHome(); go('home'); };
+document.getElementById('lGo').onclick  = ()=>{ Voice.stop(); stopChant(); startRound(CUR); };
 
 let chantTimer = null;
 function stopChant(){
@@ -218,7 +628,7 @@ function stopChant(){
 document.addEventListener('click', e=>{
   const t = e.target.closest('[data-chant]'); if(!t) return;
   const ci = +t.dataset.chant, nums = U[CUR].chant[ci][1];
-  stopChant();
+  Voice.stop(); stopChant();
   const row = document.getElementById('ch'+ci);
   let i = 0;
   (function step(){
@@ -226,31 +636,258 @@ document.addEventListener('click', e=>{
     if(i >= nums.length) return;
     const cell = row.querySelector(`[data-i="${i}"]`);
     if(cell) cell.classList.add('lit');
-    try{
-      const utt = new SpeechSynthesisUtterance(String(nums[i]));
-      utt.rate = 0.85; speechSynthesis.speak(utt);
-    }catch(e){}
-    i++;
-    chantTimer = setTimeout(step, 900);
+    try{ const utt = new SpeechSynthesisUtterance(String(nums[i])); utt.rate = 0.85;
+         speechSynthesis.speak(utt); }catch(e){}
+    i++; chantTimer = setTimeout(step, 900);
   })();
 });
 
+
+/* ============================================================
+   SUBJECTS — math is the one that's built. The others sit here so
+   the shape of the app is obvious the moment more arrives.
+   ============================================================ */
+const SUBJECTS = [
+  {id:'math',    name:'Math',    ready:true},
+  {id:'reading', name:'Reading', ready:false},
+  {id:'spell',   name:'Spelling',ready:false}
+];
+function renderSubjects(){
+  document.getElementById('subjBar').innerHTML = SUBJECTS.map(x=>
+    `<button data-subj="${x.id}" class="${x.ready?'on':'soon'}">${x.name}${x.ready?'':' · soon'}</button>`
+  ).join('');
+}
+document.addEventListener('click', e=>{
+  const t = e.target.closest('[data-subj]'); if(!t) return;
+  const sub = SUBJECTS.find(x=>x.id===t.dataset.subj);
+  if(sub && !sub.ready){
+    document.getElementById('teachSays').textContent =
+      sub.name + ' isn\'t loaded yet. Ask your dad to send it over and it\'ll show up here.';
+  }
+});
+
+/* ============================================================
+   BOTTOM MENU
+   ============================================================ */
+let NAVMODE = 'quest';       // what "pick a unit" leads into
+function setNav(id){
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on', b.dataset.nav===id));
+}
+document.addEventListener('click', e=>{
+  const t = e.target.closest('[data-nav]'); if(!t) return;
+  Voice.stop(); stopChant();
+  const n = t.dataset.nav;
+  setNav(n);
+  if(n === 'home')  { renderHome(); go('home'); return; }
+  if(n === 'cards') { openPicker('cards'); return; }
+  if(n === 'play')  { openPicker('quest'); return; }
+  if(n === 'speed') { openPicker('speed'); return; }
+});
+
+const PICKER = {
+  cards: ['Flashcards', 'Flip through the facts. Tap a card to turn it over.'],
+  quest: ['Practice',   'Ten questions, read out loud, with a picture for each one.'],
+  speed: ['Beat the clock', 'Ten facts as fast as you can. Only the ones you already know.']
+};
+function openPicker(mode){
+  NAVMODE = mode;
+  const [t, sub] = PICKER[mode];
+  document.getElementById('pkTitle').textContent = t;
+  document.getElementById('pkSub').textContent = sub;
+  document.getElementById('pkList').innerHTML = U.map((u,i)=>
+    `<button class="unit" data-pk="${i}">
+       <span class="unum" style="background:${HUES[i]}">${i+1}</span>
+       <span class="utx"><b>${u.t}</b><span>${u.s}</span></span>
+       <span class="stars">${mode==='speed' ? (bestTime[i]?bestTime[i].toFixed(1)+'s':'—') : starStr(best[i]||0)}</span>
+     </button>`).join('');
+  go('pick');
+}
+document.getElementById('pkBack').onclick = ()=>{ setNav('home'); renderHome(); go('home'); };
+document.addEventListener('click', e=>{
+  const t = e.target.closest('[data-pk]'); if(!t) return;
+  const i = +t.dataset.pk;
+  if(NAVMODE === 'cards') openCards(i);
+  else if(NAVMODE === 'speed') startSpeed(i);
+  else openLesson(i);
+});
+
+/* ============================================================
+   FLASHCARDS — the same facts, no scoring, no pressure.
+   ============================================================ */
+let C = null;
+function openCards(i){
+  CUR = i;
+  Voice.warm(i);
+  C = { list: U[i].q.slice(), n: 0, flipped: false };
+  document.getElementById('cTitle').textContent = U[i].t;
+  go('cards'); renderCard();
+}
+function renderCard(){
+  const q = C.list[C.n];
+  document.getElementById('cCount').textContent = `Card ${C.n+1} of ${C.list.length}`;
+  document.getElementById('cBar').style.width = ((C.n+1)/C.list.length*100) + '%';
+  const front = q[1].replace(/\n/g,' ');
+  const answer = q[0]===1 ? q[4][q[2]] : q[2];
+  const host = document.getElementById('cCard');
+  host.innerHTML = C.flipped
+    ? `<div class="card"><div class="ans">${answer}</div>
+         <div class="sub">${q[3]}</div><div class="flip">Tap to turn back</div></div>`
+    : `<div class="card"><div class="face${front.length>10?' word':''}">${front}</div>
+         ${q[5] ? '<div style="width:100%;max-width:290px;margin-top:16px" id="cPic"></div>' : ''}
+         <div class="flip">Tap to see the answer</div></div>`;
+  if(!C.flipped && q[5]) drawPic(q[5], document.getElementById('cPic'));
+  host.querySelector('.card').onclick = ()=>{
+    C.flipped = !C.flipped; renderCard(); speakCard();
+  };
+  speakCard();
+}
+function speakCard(){
+  const q = C.list[C.n], a = q[6];
+  const btn = document.getElementById('cSpk');
+  btn.classList.add('playing');
+  if(C.flipped){
+    const answer = q[0]===1 ? q[4][q[2]] : q[2];
+    Voice.say(CUR, a.w, answer + '. ' + q[3], ()=> btn.classList.remove('playing'));
+  } else {
+    Voice.say(CUR, a.q, q[1].replace(/\n/g,' '), ()=> btn.classList.remove('playing'));
+  }
+}
+document.getElementById('cSpk').onclick  = ()=>{ Voice.stop(); speakCard(); };
+document.getElementById('cBack').onclick = ()=>{ Voice.stop(); openPicker('cards'); };
+document.getElementById('cNext').onclick = ()=>{
+  Voice.stop(); C.flipped=false; C.n=(C.n+1)%C.list.length; renderCard(); };
+document.getElementById('cPrev').onclick = ()=>{
+  Voice.stop(); C.flipped=false; C.n=(C.n-1+C.list.length)%C.list.length; renderCard(); };
+
+/* ============================================================
+   BEAT THE CLOCK — plain facts only, timed, no reading needed.
+   Speed is the point of the tables, so this is the drill that
+   actually builds the thing enVision is after.
+   ============================================================ */
+let bestTime = db.get('bestTime', {});
+let SP = null, spTimer = null;
+function startSpeed(i){
+  CUR = i;
+  // word problems don't belong in a speed run — short facts only
+  const facts = U[i].q.filter(q=> q[0]===0 && q[1].length <= 10);
+  const pool = facts.length >= 6 ? facts : U[i].q.filter(q=>q[0]===0);
+  SP = { qs: pick(pool, Math.min(10, pool.length)), n:0, t0:Date.now(), typed:'', streak:0 };
+  document.getElementById('spTitle').textContent = U[i].t;
+  document.getElementById('spBest').textContent = bestTime[i] ? bestTime[i].toFixed(1) : '—';
+  go('speed');
+  clearInterval(spTimer);
+  spTimer = setInterval(()=>{
+    if(!SP) return;
+    document.getElementById('spTime').textContent = ((Date.now()-SP.t0)/1000).toFixed(1);
+  }, 100);
+  renderSpeed();
+}
+function renderSpeed(){
+  const q = SP.qs[SP.n];
+  SP.typed = '';
+  document.getElementById('spDone').textContent = SP.n + '/' + SP.qs.length;
+  document.getElementById('spText').textContent = q[1];
+  document.getElementById('spAnswer').innerHTML =
+    `<div class="entry" id="spEntry">–</div><div class="pad">` +
+    [1,2,3,4,5,6,7,8,9].map(n=>`<button data-s="${n}">${n}</button>`).join('') +
+    `<button data-s="del">⌫</button><button data-s="0">0</button>
+     <button class="go" data-s="ok">Go</button></div>`;
+  document.querySelectorAll('[data-s]').forEach(b=> b.onclick = ()=> speedKey(b.dataset.s));
+}
+function speedKey(k){
+  const q = SP.qs[SP.n], e = document.getElementById('spEntry');
+  if(k === 'del') SP.typed = SP.typed.slice(0,-1);
+  else if(k === 'ok'){ checkSpeed(); return; }
+  else if(SP.typed.length < 4) SP.typed += k;
+  e.textContent = SP.typed === '' ? '–' : SP.typed;
+  // as soon as the digits could be right, check — no extra button press
+  if(SP.typed !== '' && String(q[2]).length === SP.typed.length) checkSpeed();
+}
+function checkSpeed(){
+  const q = SP.qs[SP.n], e = document.getElementById('spEntry');
+  if(SP.typed === '') return;
+  if(+SP.typed === q[2]){
+    SP.streak++;
+    e.classList.add('right');
+    if(SP.streak >= 3) popStreak(SP.streak);
+    setTimeout(()=>{
+      SP.n++;
+      if(SP.n >= SP.qs.length) endSpeed(); else renderSpeed();
+    }, 190);
+  } else {
+    SP.streak = 0;
+    e.classList.add('wrong');
+    e.textContent = SP.typed + '  →  ' + q[2];
+    setTimeout(()=>{
+      SP.n++;
+      if(SP.n >= SP.qs.length) endSpeed(); else renderSpeed();
+    }, 1100);
+  }
+}
+function popStreak(n){
+  const d = document.createElement('div');
+  d.className = 'streakpop'; d.textContent = n + ' in a row';
+  d.style.fontSize = '26px';
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(), 750);
+}
+function endSpeed(){
+  clearInterval(spTimer);
+  const secs = (Date.now()-SP.t0)/1000;
+  const prev = bestTime[CUR];
+  const beat = !prev || secs < prev;
+  if(beat){ bestTime[CUR] = Math.round(secs*10)/10; db.set('bestTime', bestTime); }
+  db.set('last', new Date().toISOString().slice(0,10));
+  db.set('rounds', (db.get('rounds',0)|0) + 1);
+  document.getElementById('dScore').textContent = secs.toFixed(1) + 's';
+  document.getElementById('dStars').innerHTML = beat ? '⚡' : '';
+  document.getElementById('dMsg').textContent = beat
+    ? (prev ? `New best — you took ${(prev-secs).toFixed(1)} seconds off.` : 'That is your time to beat now.')
+    : `Your best is still ${prev.toFixed(1)}s. Close one.`;
+  document.getElementById('dMissed').innerHTML = '';
+  SPEED_LAST = true;
+  go('done');
+}
+let SPEED_LAST = false;
+
 /* ---------------- a round ---------------- */
-let R = null;
+let R = null, typed = '';
 function pick(arr, n){
   const a = arr.slice();
   for(let i=a.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [a[i],a[j]]=[a[j],a[i]]; }
   return a.slice(0, n);
 }
 function startRound(i){
-  CUR = i;
+  CUR = i; SPEED_LAST = false;
   R = { qs: pick(U[i].q, Math.min(10, U[i].q.length)), n:0, right:0, missed:[], locked:false };
   document.getElementById('rTitle').textContent = U[i].t;
   go('round'); renderQ();
 }
-document.getElementById('rBack').onclick = ()=>{ renderHome(); go('home'); };
+document.getElementById('rBack').onclick  = ()=>{ Voice.stop(); openPicker('quest'); };
+document.getElementById('spBack').onclick = ()=>{ clearInterval(spTimer); SP=null; openPicker('speed'); };
+document.getElementById('qSpk').onclick  = ()=> readQuestion();
 
-let typed = '';
+function readQuestion(){
+  const q = R.qs[R.n], a = q[6];
+  const btn = document.getElementById('qSpk');
+  btn.classList.add('playing');
+  const items = [[a.q, q[1].replace(/\n/g,' ')]];
+  // he can't read the choices either, so they get read out and lit up in turn
+  if(q[0] === 1 && a.o) q[4].forEach((o,i)=> items.push([a.o[i], o, i]));
+  let step = 0;
+  const orig = Voice.sayAll;
+  (function run(){
+    if(step >= items.length){ btn.classList.remove('playing');
+      document.querySelectorAll('.opt.reading').forEach(o=>o.classList.remove('reading')); return; }
+    const it = items[step++];
+    document.querySelectorAll('.opt.reading').forEach(o=>o.classList.remove('reading'));
+    if(it.length > 2){
+      const o = document.querySelector(`[data-o="${it[2]}"]`);
+      if(o) o.classList.add('reading');
+    }
+    Voice.say(CUR, it[0], it[1], ()=> setTimeout(run, 200));
+  })();
+}
 function renderQ(){
   const q = R.qs[R.n];
   R.locked = false; typed = '';
@@ -258,25 +895,36 @@ function renderQ(){
   document.getElementById('qBar').style.width = (R.n / R.qs.length * 100) + '%';
   const tx = document.getElementById('qText');
   tx.textContent = q[1];
-  // bare facts like "7 × 8" get the big treatment; word problems need to stay readable
   tx.className = 'qtext' + (q[1].length <= 8 ? ' big' : '');
   document.getElementById('qWhy').innerHTML = '';
 
+  const pic = document.getElementById('qPic');
+  pic.innerHTML = '';
+  if(q[5]){
+    const wrap = document.createElement('div'); wrap.className = 'pic';
+    const holder = document.createElement('div');
+    wrap.appendChild(holder);
+    const rp = document.createElement('button');
+    rp.className = 'replay'; rp.textContent = '↻'; rp.title = 'Show it again';
+    rp.onclick = ()=> drawPic(q[5], holder);
+    wrap.appendChild(rp);
+    pic.appendChild(wrap);
+    drawPic(q[5], holder);
+  }
+
   const box = document.getElementById('qAnswer');
   if(q[0] === 1){
-    box.innerHTML = `<div class="opts">` +
-      q[4].map((o,i)=>`<button class="opt" data-o="${i}">${o}</button>`).join('') + `</div>`;
-    box.querySelectorAll('[data-o]').forEach(b=>{
-      b.onclick = ()=>answerMC(+b.dataset.o, b);
-    });
+    box.innerHTML = `<div class="opts">` + q[4].map((o,i)=>
+      `<button class="opt" data-o="${i}"><span class="num">${i+1}</span><span>${o}</span></button>`).join('') + `</div>`;
+    box.querySelectorAll('[data-o]').forEach(b=> b.onclick = ()=> answerMC(+b.dataset.o, b));
   } else {
-    box.innerHTML = `<div class="entry" id="entry">–</div>
-      <div class="pad">` +
+    box.innerHTML = `<div class="entry" id="entry">–</div><div class="pad">` +
       [1,2,3,4,5,6,7,8,9].map(n=>`<button data-k="${n}">${n}</button>`).join('') +
       `<button data-k="del">⌫</button><button data-k="0">0</button>
        <button class="go" data-k="ok">Check</button></div>`;
-    box.querySelectorAll('[data-k]').forEach(b=>{ b.onclick = ()=>key(b.dataset.k); });
+    box.querySelectorAll('[data-k]').forEach(b=> b.onclick = ()=> key(b.dataset.k));
   }
+  readQuestion();
 }
 function key(k){
   if(R.locked) return;
@@ -299,30 +947,26 @@ function answerMC(i, btn){
   if(R.locked) return;
   R.locked = true;
   btn.classList.add(ok ? 'right' : 'wrong');
-  if(!ok){
-    const right = document.querySelector(`[data-o="${q[2]}"]`);
-    if(right) right.classList.add('right');
-  }
+  if(!ok){ const right = document.querySelector(`[data-o="${q[2]}"]`); if(right) right.classList.add('right'); }
   finish(ok, q);
 }
-/* Right or wrong, the one-line reason shows. That line is the lesson —
-   a wrong answer just means he reads it a beat more carefully. */
+/* Right or wrong, the one-line reason shows AND gets read out.
+   That line is the lesson — a wrong answer just means he hears it again. */
 function finish(ok, q){
-  if(ok) R.right++;
-  else R.missed.push(q);
+  Voice.stop();
+  if(ok) R.right++; else R.missed.push(q);
   const w = document.getElementById('qWhy');
-  w.innerHTML = `<div class="why${ok?'':' miss'}">
-      <b>${ok ? 'Yes.' : (q[0]===1 ? 'The answer is above.' : 'The answer is ' + q[2] + '.')}</b> ${q[3]}
-    </div>
+  const lead = ok ? 'Yes.' : (q[0]===1 ? 'The answer is lit up.' : 'The answer is ' + q[2] + '.');
+  w.innerHTML = `<div class="why${ok?'':' miss'}"><b>${lead}</b> ${q[3]}</div>
     <button class="btn" id="nextQ" style="margin-top:14px">${R.n+1 >= R.qs.length ? 'See how you did' : 'Next'}</button>`;
   document.getElementById('nextQ').onclick = ()=>{
-    R.n++;
+    Voice.stop(); R.n++;
     if(R.n >= R.qs.length) endRound(); else renderQ();
   };
+  Voice.say(CUR, q[6].w, lead + ' ' + q[3]);
   document.getElementById('nextQ').scrollIntoView({block:'nearest', behavior:'smooth'});
 }
 
-/* ---------------- the end of a round ---------------- */
 const MSG = [
   [10,'Every single one. That is the whole unit done.'],
   [8, 'Strong round. The ones you missed are the ones to look at again.'],
@@ -332,12 +976,12 @@ const MSG = [
 function endRound(){
   const n = R.right;
   if(n > (best[CUR]||0)){ best[CUR] = n; db.set('best', best); }
-  // Nova's front page reads these to show Leo how Zen is getting on.
   db.set('last', new Date().toISOString().slice(0,10));
   db.set('rounds', (db.get('rounds',0)|0) + 1);
   db.set('right', (db.get('right',0)|0) + n);
   document.getElementById('dScore').textContent = n + ' / ' + R.qs.length;
-  document.getElementById('dStars').textContent = starStr(n);
+  document.getElementById('dStars').innerHTML = starStr(n).split('')
+    .map((c,i)=>`<span style="animation-delay:${0.1+i*0.16}s">${c}</span>`).join('');
   document.getElementById('dMsg').textContent = (MSG.find(m=>n>=m[0])||MSG[3])[1];
   const box = document.getElementById('dMissed');
   box.innerHTML = R.missed.length
@@ -348,8 +992,8 @@ function endRound(){
     : '';
   go('done');
 }
-document.getElementById('dAgain').onclick = ()=> startRound(CUR);
-document.getElementById('dHome').onclick  = ()=>{ renderHome(); go('home'); };
+document.getElementById('dAgain').onclick = ()=> SPEED_LAST ? startSpeed(CUR) : startRound(CUR);
+document.getElementById('dHome').onclick  = ()=>{ Voice.stop(); renderHome(); go('home'); };
 
 renderHome();
 </script>
