@@ -84,6 +84,128 @@ body.hidenav .nav{display:none}
 .bubble{background:var(--card);border:1px solid var(--line);border-radius:18px;border-bottom-left-radius:6px;
   padding:12px 14px;font-size:14.5px;line-height:1.45;flex:1;min-height:50px;display:flex;align-items:center}
 .bubble b{color:var(--sky)}
+
+/* ---------- games ---------- */
+.gamegrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.gtile{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px 14px;
+  cursor:pointer;color:inherit;font-family:inherit;text-align:left;transition:transform .08s}
+.gtile:active{transform:scale(.97)}
+.gtile .gic{font-size:30px;line-height:1;margin-bottom:9px;display:block}
+.gtile b{display:block;font-size:15px;line-height:1.25}
+.gtile span{display:block;font-size:11.5px;color:var(--dim);margin-top:4px;line-height:1.35}
+.gwrap{flex:1;display:flex;flex-direction:column}
+.gtask{font-size:20px;font-weight:800;line-height:1.35;margin:4px 0 14px;text-align:center}
+.gtask small{display:block;font-size:13px;font-weight:700;color:var(--dim);margin-top:5px}
+.tray{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;
+  min-height:74px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;justify-content:center;
+  margin-bottom:14px}
+.chip{width:30px;height:30px;border-radius:50%;background:var(--sky);flex:0 0 auto;cursor:grab;
+  touch-action:none;box-shadow:0 2px 0 #2a7fa6;animation:drop .3s cubic-bezier(.2,1.5,.4,1) backwards}
+.chip.flying{position:fixed;z-index:60;pointer-events:none;cursor:grabbing;box-shadow:0 6px 14px rgba(0,0,0,.4)}
+.bowls{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.bowlwrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+.bowlwrap small{font-size:13px;font-weight:800;color:var(--dim);font-variant-numeric:tabular-nums}
+.bowlwrap small.ok{color:var(--grass)}
+.bowl{border:2.5px dashed var(--line);border-bottom-left-radius:34px;border-bottom-right-radius:34px;
+  border-top-left-radius:10px;border-top-right-radius:10px;min-width:94px;min-height:104px;padding:11px 9px;
+  display:flex;flex-wrap:wrap;gap:6px;align-content:flex-end;justify-content:center;transition:all .15s}
+.bowl.hot{border-color:var(--sun);background:rgba(255,201,77,.09);transform:scale(1.04)}
+.bowl.ok{border-color:var(--grass);border-style:solid}
+.bowl .chip{width:23px;height:23px;cursor:default;box-shadow:0 1.5px 0 #2a7fa6}
+.gridbox{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;
+  margin-bottom:14px;display:flex;justify-content:flex-start;align-items:flex-start;
+  min-height:300px;position:relative;touch-action:none;overflow:hidden}
+.agrid{display:grid;gap:6px;position:relative}
+.agrid i{width:20px;height:20px;border-radius:50%;background:var(--grass);display:block;
+  animation:drop .22s cubic-bezier(.2,1.5,.4,1) backwards}
+.handle{position:absolute;right:-13px;bottom:-13px;width:34px;height:34px;border-radius:50%;
+  background:var(--sun);border:3px solid var(--bg);cursor:grab;touch-action:none;
+  display:flex;align-items:center;justify-content:center;font-size:15px;color:#0d2033;font-weight:800}
+.gsum{text-align:center;font-size:27px;font-weight:800;font-variant-numeric:tabular-nums;margin-bottom:12px}
+.gsum b{color:var(--sun)}
+.jline{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 10px 10px;
+  margin-bottom:14px}
+.jline svg{width:100%;height:auto;overflow:visible}
+.jcount{text-align:center;font-size:17px;font-weight:800;color:var(--dim);margin-bottom:12px}
+.jcount b{color:var(--sun);font-size:26px}
+.matchgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:14px}
+.mtile{aspect-ratio:1;border-radius:15px;background:var(--card2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;cursor:pointer;
+  color:transparent;font-variant-numeric:tabular-nums;transition:all .2s;font-family:inherit}
+.mtile.up{background:var(--sky);color:#0d2033;border-color:var(--sky)}
+.mtile.gone{background:rgba(93,219,160,.16);border-color:var(--grass);color:var(--grass);
+  pointer-events:none;transform:none}
+/* ---------- boat race ---------- */
+.race{background:var(--card);border:1px solid var(--line);border-radius:16px;height:46px;
+  margin-bottom:14px;position:relative;overflow:hidden}
+.race .water{position:absolute;left:0;right:0;bottom:0;height:17px;background:#1c4f63}
+.race .boat{position:absolute;bottom:9px;left:0;width:30px;transition:left .5s cubic-bezier(.3,1.2,.5,1)}
+.race .flag{position:absolute;right:7px;bottom:11px;font-size:17px}
+/* ---------- stickers ---------- */
+.stickers{display:flex;flex-wrap:wrap;gap:9px;background:var(--card);border:1px solid var(--line);
+  border-radius:18px;padding:14px;margin-bottom:16px;min-height:62px;align-items:center}
+.stickers .st{font-size:27px;animation:drop .4s cubic-bezier(.2,1.6,.4,1) backwards}
+.stickers .none{font-size:13px;color:var(--dim);line-height:1.5}
+
+/* ---------- the daily pass ---------- */
+.passcard{background:linear-gradient(135deg,#1b3d5c,#1d4f45);border:1px solid var(--line);
+  border-radius:22px;padding:18px;margin-bottom:16px;position:relative;overflow:hidden}
+.passcard.got{background:linear-gradient(135deg,#1d5c3e,#2a7a4f)}
+.passcard b{display:block;font-size:17px;margin-bottom:5px}
+.passcard span{display:block;font-size:13px;color:#cfe6f5;line-height:1.5}
+.passcard .btn{margin-top:13px}
+.passbig{font-size:44px;line-height:1;margin-bottom:8px}
+.track{display:flex;gap:6px;margin-bottom:12px}
+.track i{flex:1;height:7px;border-radius:99px;background:var(--card2);display:block;transition:background .3s}
+.track i.done{background:var(--grass)}
+.track i.now{background:var(--sun)}
+.sesshud{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:12px;
+  color:var(--dim);font-weight:800;letter-spacing:.3px}
+.sesshud .step{flex:1}
+.sesshud .clock{font-variant-numeric:tabular-nums}
+.readdone{margin-top:16px}
+.passwin{text-align:center;padding:30px 10px}
+.passwin .big{font-size:74px;line-height:1;margin-bottom:14px;animation:drop .6s cubic-bezier(.2,1.6,.4,1)}
+.passwin h2{font-size:26px;margin:0 0 10px;font-weight:800}
+.passwin p{color:var(--dim);font-size:16px;line-height:1.55;max-width:330px;margin:0 auto 6px}
+.passwin .stamp{display:inline-block;margin-top:18px;border:2.5px solid var(--grass);color:var(--grass);
+  border-radius:14px;padding:9px 18px;font-weight:800;font-size:14px;letter-spacing:1.2px;
+  transform:rotate(-4deg)}
+
+/* ---------- reading ---------- */
+.story{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:var(--card);
+  border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:11px;cursor:pointer;
+  color:inherit;font-family:inherit}
+.story .sic{font-size:29px;flex:0 0 auto;width:46px;text-align:center}
+.story b{display:block;font-size:15px;line-height:1.3}
+.story span{display:block;font-size:12px;color:var(--dim);margin-top:3px;line-height:1.4}
+.story .prog{font-size:11px;color:var(--sky);font-weight:800;margin-top:4px;display:block}
+.pagetext{font-size:21px;line-height:1.95;letter-spacing:.2px;word-spacing:2px;
+  background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px 18px;
+  margin-bottom:14px}
+.sent{transition:background .2s;border-radius:6px;padding:1px 0}
+.sent.lit{background:rgba(255,201,77,.22);box-shadow:0 0 0 4px rgba(255,201,77,.22)}
+.w{cursor:pointer;border-radius:4px;padding:0 1px}
+.w:active{background:var(--sky);color:#0d2033}
+.w.hard{border-bottom:2px dotted var(--sun)}
+.pagebar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.pagebar .n{font-size:12.5px;color:var(--dim);font-weight:800;flex:1}
+.dayline{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 12px;
+  font-size:12.5px;font-weight:800;color:var(--dim);margin-bottom:12px;display:flex;
+  align-items:center;gap:9px}
+.dayline .fill{flex:1;height:8px;background:var(--card2);border-radius:99px;overflow:hidden}
+.dayline .fill i{display:block;height:100%;background:linear-gradient(90deg,var(--sun),var(--grass));
+  transition:width .4s}
+.wordcard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:11px}
+.wordcard b{font-size:19px;display:block}
+.wordcard .say{font-size:13.5px;color:var(--sun);font-weight:800;letter-spacing:.6px;margin:3px 0 7px}
+.wordcard span{font-size:14.5px;color:var(--dim);line-height:1.55}
+.breakbtn{background:var(--card2);border:1px solid var(--line);color:var(--dim);border-radius:12px;
+  padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;flex:0 0 auto}
+.paused{position:fixed;inset:0;background:rgba(15,27,46,.96);z-index:80;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px}
+.paused h2{font-size:24px;margin:0 0 10px}
+.paused p{color:var(--dim);font-size:16px;line-height:1.6;max-width:300px;margin:0 0 24px}
 .hi{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:15px 16px;margin-bottom:14px}
 .hi b{display:block;font-size:17px;margin-bottom:4px}
 .hi span{font-size:13.5px;color:var(--dim);line-height:1.5}
@@ -191,9 +313,12 @@ body.hidenav .nav{display:none}
   <div class="teach" id="teachArt"></div>
   <div class="bubble" id="teachSays"></div>
 </div>
+  <div id="passBox"></div>
   <div class="chipbar" id="subjBar"></div>
   <div class="hi"><b id="hiT">Multiplication and division</b><span id="hiS"></span></div>
   <div class="voicebar" id="voiceBar"></div>
+  <div class="sechead" style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.9px;font-weight:800;margin:4px 0 9px">Your stickers</div>
+  <div class="stickers" id="stickerBox"></div>
   <div id="unitList"></div>
   <p class="foot">Grade 3 · enVision Topics 1 and 2</p>
 </section>
@@ -266,11 +391,69 @@ body.hidenav .nav{display:none}
   <div id="pkList"></div>
 </section>
 
+
+<!-- ===================== GAMES ===================== -->
+<section class="screen" id="s-games">
+  <div class="top"><button class="iconbtn" id="gmBack">‹</button><h2>Games</h2></div>
+  <div class="gamegrid" id="gameGrid"></div>
+  <p class="foot">Every game uses the same facts you're learning.</p>
+</section>
+
+<section class="screen" id="s-game">
+  <div class="top"><button class="iconbtn" id="gBack">✕</button><h2 id="gTitle"></h2>
+    <button class="spk" id="gSpk">🔊</button></div>
+  <div class="gwrap">
+    <div class="gtask" id="gTask"></div>
+    <div id="gBody"></div>
+    <div id="gFoot"></div>
+  </div>
+</section>
+<section class="screen" id="s-pass">
+  <div class="passwin">
+    <div class="big" id="passIcon">🎟️</div>
+    <h2 id="passH"></h2>
+    <p id="passP"></p>
+    <div class="stamp" id="passStamp"></div>
+  </div>
+  <button class="btn" id="passDone" style="margin-top:26px">Done</button>
+  <button class="btn ghost sm" id="passMore" style="margin-top:10px">Keep playing anyway</button>
+</section>
+
+
+<!-- ===================== READING ===================== -->
+<section class="screen" id="s-stories">
+  <div class="top"><button class="iconbtn" id="stBack">‹</button><h2>Reading</h2></div>
+  <div class="dayline" id="dayLine"></div>
+  <div id="storyList"></div>
+</section>
+
+<section class="screen" id="s-page">
+  <div class="top"><button class="iconbtn" id="pgBack">‹</button><h2 id="pgTitle"></h2>
+    <button class="spk" id="pgSpk">🔊</button></div>
+  <div class="pagebar">
+    <span class="n" id="pgNum"></span>
+    <button class="breakbtn" id="pgBreak">Need a break</button>
+  </div>
+  <div class="qbar"><i id="pgBar" style="width:0%"></i></div>
+  <div class="pagetext" id="pgText"></div>
+  <div id="pgAfter"></div>
+  <div class="cardnav">
+    <button class="btn ghost sm" id="pgPrev">‹ Back</button>
+    <button class="btn sm" id="pgNext">Next page ›</button>
+  </div>
+</section>
+
+<section class="screen" id="s-words">
+  <div class="top"><button class="iconbtn" id="wdBack">‹</button><h2>Tricky words</h2></div>
+  <p class="foot" style="text-align:left;margin:0 0 14px">Tap a word to hear it. These are the ones in this story worth knowing.</p>
+  <div id="wordList"></div>
+  <button class="btn" id="wdGo" style="margin-top:8px">Start reading</button>
+</section>
 <nav class="nav">
   <button data-nav="home" class="on"><i>🏠</i>Home</button>
   <button data-nav="cards"><i>🃏</i>Cards</button>
   <button data-nav="play"><i>🎯</i>Play</button>
-  <button data-nav="speed"><i>⚡</i>Speed</button>
+  <button data-nav="games"><i>🎮</i>Games</button>
 </nav>
 </div>
 <script>
@@ -561,8 +744,11 @@ function go(id){
 }
 const HUES = ['#4fc3f7','#5ddba0','#ffc94d','#ff9a76','#b39ddb','#4fc3f7','#5ddba0','#ffc94d'];
 function renderHome(){
+  SESS = null;
   greet();
   renderSubjects();
+  renderPass();
+  renderStickers();
   setNav('home');
   const total = Object.values(best).reduce((a,b)=>a+b,0);
   const started = Object.keys(best).length;
@@ -605,7 +791,9 @@ function openLesson(i){
          <div class="chantrow" id="ch${ci}">${c[1].map((n,j)=>`<span data-i="${j}">${n}</span>`).join('')}</div>
          <button class="btn ghost sm" data-chant="${ci}">🔊 Say it with me</button>
        </div>`).join('') : '';
+  document.getElementById('lGo').textContent = SESS ? 'Done reading — next' : 'Start — 10 questions';
   go('lesson');
+  paintHud('s-lesson');
   readLesson();
 }
 function readLesson(){
@@ -617,7 +805,9 @@ function readLesson(){
 }
 document.getElementById('lSpk').onclick = ()=>{ Voice.stop(); readLesson(); };
 document.getElementById('lBack').onclick = ()=>{ Voice.stop(); stopChant(); renderHome(); go('home'); };
-document.getElementById('lGo').onclick  = ()=>{ Voice.stop(); stopChant(); startRound(CUR); };
+document.getElementById('lGo').onclick  = ()=>{ Voice.stop(); stopChant();
+  if(SESS && SESS.steps[SESS.i].kind==='lesson'){ stepDone(); return; }
+  startRound(CUR); };
 
 let chantTimer = null;
 function stopChant(){
@@ -649,7 +839,7 @@ document.addEventListener('click', e=>{
    ============================================================ */
 const SUBJECTS = [
   {id:'math',    name:'Math',    ready:true},
-  {id:'reading', name:'Reading', ready:false},
+  {id:'reading', name:'Reading', ready:true},
   {id:'spell',   name:'Spelling',ready:false}
 ];
 function renderSubjects(){
@@ -660,6 +850,7 @@ function renderSubjects(){
 document.addEventListener('click', e=>{
   const t = e.target.closest('[data-subj]'); if(!t) return;
   const sub = SUBJECTS.find(x=>x.id===t.dataset.subj);
+  if(sub && sub.id === 'reading'){ openReading(); return; }
   if(sub && !sub.ready){
     document.getElementById('teachSays').textContent =
       sub.name + ' isn\'t loaded yet. Ask your dad to send it over and it\'ll show up here.';
@@ -681,6 +872,7 @@ document.addEventListener('click', e=>{
   if(n === 'home')  { renderHome(); go('home'); return; }
   if(n === 'cards') { openPicker('cards'); return; }
   if(n === 'play')  { openPicker('quest'); return; }
+  if(n === 'games') { renderGames(); go('games'); return; }
   if(n === 'speed') { openPicker('speed'); return; }
 });
 
@@ -774,7 +966,7 @@ function startSpeed(i){
   SP = { qs: pick(pool, Math.min(10, pool.length)), n:0, t0:Date.now(), typed:'', streak:0 };
   document.getElementById('spTitle').textContent = U[i].t;
   document.getElementById('spBest').textContent = bestTime[i] ? bestTime[i].toFixed(1) : '—';
-  go('speed');
+  go('speed'); paintHud('s-speed');
   clearInterval(spTimer);
   spTimer = setInterval(()=>{
     if(!SP) return;
@@ -833,6 +1025,9 @@ function popStreak(n){
 }
 function endSpeed(){
   clearInterval(spTimer);
+  if(SESS){ const secs=(Date.now()-SP.t0)/1000;
+            if(!bestTime[CUR] || secs<bestTime[CUR]){ bestTime[CUR]=Math.round(secs*10)/10; db.set('bestTime',bestTime); }
+            return void stepDone(); }
   const secs = (Date.now()-SP.t0)/1000;
   const prev = bestTime[CUR];
   const beat = !prev || secs < prev;
@@ -850,6 +1045,697 @@ function endSpeed(){
 }
 let SPEED_LAST = false;
 
+
+/* ============================================================
+   STICKERS — earned, never given. One per unit for a clean round,
+   one the first time each game is finished.
+   ============================================================ */
+let stickers = db.get('stickers', []);
+const STICKER_ART = {
+  unit0:'🏅', unit1:'🏅', unit2:'🏅', unit3:'🏅', unit4:'🏅', unit5:'🏅', unit6:'🏅', unit7:'🏅',
+  deal:'🥣', build:'🟩', jump:'🐸', match:'🧠', speed:'⚡'
+};
+function award(id){
+  if(stickers.indexOf(id) >= 0) return false;
+  stickers.push(id); db.set('stickers', stickers);
+  return true;
+}
+function renderStickers(){
+  const box = document.getElementById('stickerBox');
+  if(!box) return;
+  box.innerHTML = stickers.length
+    ? stickers.map((k,i)=>`<span class="st" style="animation-delay:${i*0.05}s">${STICKER_ART[k]||'⭐'}</span>`).join('')
+    : '<span class="none">Empty for now. Finish a round with 10 out of 10, or beat any game once, and one lands here.</span>';
+}
+
+/* ============================================================
+   BOAT RACE — the reward layer on a normal round. A right answer
+   moves the boat. A wrong one simply doesn't. Nothing goes backwards.
+   ============================================================ */
+const BOAT = `<svg viewBox="0 0 40 26" width="30"><path d="M4 17 h32 l-5 7 H9 Z" fill="#8a5a2f"/>
+ <path d="M19 2 l11 12 H19 Z" fill="#f4f7fb"/><path d="M17 3 l-8 11 h8 Z" fill="#ffc94d"/>
+ <line x1="19" y1="1" x2="19" y2="17" stroke="#6b4423" stroke-width="1.6"/></svg>`;
+function raceHtml(){
+  return `<div class="race"><div class="water"></div>
+    <div class="boat" id="raceBoat" style="left:4px">${BOAT}</div>
+    <div class="flag">🏁</div></div>`;
+}
+function raceTo(frac){
+  const b = document.getElementById('raceBoat');
+  if(b) b.style.left = `calc(${Math.min(1,frac)*100}% - ${Math.min(1,frac)*38}px + 4px)`;
+}
+
+/* ============================================================
+   GAMES — he moves the maths, rather than watching it move.
+   ============================================================ */
+const GAMES = [
+  ['deal',  '🥣', 'Deal it out',   'Share the counters into the bowls'],
+  ['build', '🟩', 'Build it',      'Pull the corner to make the rectangle'],
+  ['jump',  '🐸', 'Hop to zero',   'Jump backwards and count your jumps'],
+  ['match', '🧠', 'Find the pair', 'Match the sum to its answer'],
+  ['speed', '⚡', 'Beat the clock','Ten facts, as fast as you can']
+];
+function renderGames(){
+  document.getElementById('gameGrid').innerHTML = GAMES.map(([id,ic,t,sub])=>
+    `<button class="gtile" data-game="${id}">
+       <span class="gic">${ic}</span><b>${t}</b><span>${sub}</span></button>`).join('');
+}
+document.addEventListener('click', e=>{
+  const t = e.target.closest('[data-game]'); if(!t) return;
+  const id = t.dataset.game;
+  if(id === 'speed'){ NAVMODE = 'speed'; openPicker('speed'); return; }
+  startGame(id);
+});
+document.getElementById('gmBack').onclick = ()=>{ setNav('home'); renderHome(); go('home'); };
+document.getElementById('gBack').onclick  = ()=>{ Voice.stop();
+  if(SESS && !confirm("Stop today's pass? You'll have to start it again.")) return;
+  SESS = null; renderHome(); go('games'); };
+
+let G = null;
+function startGame(kind){
+  G = { kind, round: 0, wins: 0 };
+  document.getElementById('gTitle').textContent = GAMES.find(g=>g[0]===kind)[2];
+  go('game'); paintHud('s-game');
+  nextGameRound();
+}
+function gameSay(text){
+  const b = document.getElementById('gSpk');
+  b.classList.add('playing');
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text); u.rate = 0.9;
+    u.onend = ()=> b.classList.remove('playing');
+    speechSynthesis.speak(u);
+  }catch(e){ b.classList.remove('playing'); }
+}
+document.getElementById('gSpk').onclick = ()=> gameSay(document.getElementById('gTask').textContent);
+
+function gameWin(msg){
+  G.wins++;
+  const foot = document.getElementById('gFoot');
+  const last = G.round >= (SESS ? 2 : 4);
+  foot.innerHTML = `<div class="why"><b>Yes.</b> ${msg}</div>
+    <button class="btn" id="gNext" style="margin-top:14px">${last?'Finish':'Next one'}</button>`;
+  gameSay(msg);
+  document.getElementById('gNext').onclick = ()=>{
+    if(last && SESS){ award(G.kind); stepDone(); return; }
+    if(last){
+      const fresh = award(G.kind);
+      const f2 = document.getElementById('gFoot');
+      document.getElementById('gTask').innerHTML =
+        `${G.wins} out of 5.<small>${fresh ? 'You earned the ' + STICKER_ART[G.kind] + ' sticker.' : 'Nicely done.'}</small>`;
+      document.getElementById('gBody').innerHTML =
+        `<div style="font-size:76px;text-align:center;margin:24px 0">${STICKER_ART[G.kind]}</div>`;
+      f2.innerHTML = `<button class="btn" id="gAgain">Play again</button>
+        <button class="btn ghost sm" id="gDone" style="margin-top:10px">Back to games</button>`;
+      document.getElementById('gAgain').onclick = ()=> startGame(G.kind);
+      document.getElementById('gDone').onclick  = ()=>{ renderStickers(); go('games'); };
+    } else { G.round++; nextGameRound(); }
+  };
+}
+
+/* pick numbers that make an honest question for each game */
+function factPool(){
+  const out = [];
+  U.forEach(u=> u.q.forEach(q=>{ if(q[5]) out.push(q[5]); }));
+  return out;
+}
+function nextGameRound(){
+  document.getElementById('gFoot').innerHTML = '';
+  if(G.kind === 'deal')  return roundDeal();
+  if(G.kind === 'build') return roundBuild();
+  if(G.kind === 'jump')  return roundJump();
+  if(G.kind === 'match') return roundMatch();
+}
+
+/* ---------- 1. DEAL IT OUT ---------- */
+function roundDeal(){
+  const specs = factPool().filter(v=> v[0]==='groups' && v[1]>=2 && v[1]<=4 && v[2]>=2 && v[2]<=6);
+  const [,groups, per] = specs[(Math.random()*specs.length)|0] || ['groups',3,4];
+  const total = groups * per;
+  const task = `Share ${total} counters into ${groups} bowls. Same number in each.`;
+  document.getElementById('gTask').innerHTML = `${task}<small>Drag them, or tap a bowl.</small>`;
+  document.getElementById('gBody').innerHTML =
+    `<div class="tray" id="tray">${Array.from({length:total},(_,i)=>
+      `<div class="chip" data-c="${i}" style="animation-delay:${i*0.03}s"></div>`).join('')}</div>
+     <div class="bowls" id="bowls">${Array.from({length:groups},(_,i)=>
+      `<div class="bowlwrap"><div class="bowl" data-b="${i}"></div><small id="bc${i}">0</small></div>`
+      ).join('')}</div>`;
+  gameSay(task);
+  const counts = new Array(groups).fill(0);
+  let left = total;
+
+  function place(bowlEl){
+    const chip = document.querySelector('#tray .chip');
+    if(!chip) return;
+    const bi = +bowlEl.dataset.b;
+    chip.remove();
+    const c = document.createElement('div'); c.className = 'chip';
+    bowlEl.appendChild(c);
+    counts[bi]++; left--;
+    check();
+  }
+  function check(){
+    const bowls = [...document.querySelectorAll('.bowl')];
+    bowls.forEach((b,i)=>{
+      b.classList.toggle('ok', counts[i] === per);
+      const lab = document.getElementById('bc'+i);
+      if(lab){ lab.textContent = counts[i]; lab.classList.toggle('ok', counts[i] === per); }
+    });
+    if(left > 0) return;
+    if(counts.every(c=>c === per)){
+      gameWin(`${total} shared into ${groups} bowls is ${per} in each. ${total} ÷ ${groups} = ${per}.`);
+    } else {
+      document.getElementById('gFoot').innerHTML =
+        `<div class="why miss"><b>Not even yet.</b> Every bowl needs the same number. Try again.</div>
+         <button class="btn" id="gRetry" style="margin-top:14px">Start this one over</button>`;
+      document.getElementById('gRetry').onclick = roundDeal;
+    }
+  }
+  document.querySelectorAll('.bowl').forEach(b=> b.onclick = ()=> place(b));
+
+  // drag: a copy follows the finger, and drops into whichever bowl it lands on
+  document.getElementById('tray').addEventListener('pointerdown', ev=>{
+    const chip = ev.target.closest('.chip'); if(!chip) return;
+    ev.preventDefault();
+    const ghost = chip.cloneNode(); ghost.classList.add('flying');
+    document.body.appendChild(ghost);
+    const move = e=>{
+      ghost.style.left = (e.clientX - 15) + 'px';
+      ghost.style.top  = (e.clientY - 15) + 'px';
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const bowl = el && el.closest ? el.closest('.bowl') : null;
+      document.querySelectorAll('.bowl').forEach(b=> b.classList.toggle('hot', b === bowl));
+    };
+    move(ev);
+    const up = e=>{
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      ghost.remove();
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const bowl = el && el.closest ? el.closest('.bowl') : null;
+      document.querySelectorAll('.bowl').forEach(b=> b.classList.remove('hot'));
+      if(bowl) place(bowl);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  });
+}
+
+/* ---------- 2. BUILD IT ---------- */
+function roundBuild(){
+  const specs = factPool().filter(v=> v[0]==='array' && v[1]>=2 && v[1]<=8 && v[2]>=2 && v[2]<=8);
+  const [,tr, tc] = specs[(Math.random()*specs.length)|0] || ['array',4,6];
+  const target = tr * tc;
+  const task = `Make a rectangle with exactly ${target} dots.`;
+  document.getElementById('gTask').innerHTML = `${task}<small>Pull the yellow corner.</small>`;
+  let rows = 1, cols = 1;
+  document.getElementById('gBody').innerHTML =
+    `<div class="gsum" id="gSum"></div>
+     <div class="gridbox" id="gridBox">
+       <div class="agrid" id="agrid"></div>
+     </div>`;
+  gameSay(task);
+  const grid = document.getElementById('agrid');
+  const handle = document.createElement('div');
+  handle.className = 'handle'; handle.textContent = '⤡';
+  grid.appendChild(handle);
+
+  function paint(){
+    grid.style.gridTemplateColumns = `repeat(${cols}, 20px)`;
+    [...grid.querySelectorAll('i')].forEach(n=>n.remove());
+    for(let i=0;i<rows*cols;i++){
+      const d = document.createElement('i');
+      d.style.animationDelay = (i*0.012) + 's';
+      grid.insertBefore(d, handle);
+    }
+    const p = rows*cols;
+    const sum = document.getElementById('gSum');
+    sum.innerHTML = `${rows} × ${cols} = <b>${p}</b>` +
+      (p===target ? ' ✓' : ` <span style="font-size:15px;color:var(--dim)">(need ${target})</span>`);
+  }
+  paint();
+  handle.addEventListener('pointerdown', ev=>{
+    ev.preventDefault();
+    // grab the corner ONCE. Measuring live would chase the finger as the
+    // grid resizes, which makes the handle impossible to hold.
+    const o = grid.getBoundingClientRect();
+    const move = e=>{
+      cols = Math.max(1, Math.min(10, Math.round((e.clientX - o.left) / 26)));
+      rows = Math.max(1, Math.min(10, Math.round((e.clientY - o.top)  / 26)));
+      paint();
+    };
+    const up = ()=>{
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      if(rows*cols === target)
+        gameWin(`${rows} rows of ${cols} is ${target}. Any rectangle that makes ${target} counts.`);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  });
+}
+
+/* ---------- 3. HOP TO ZERO ---------- */
+function roundJump(){
+  const specs = factPool().filter(v=> v[0]==='line' && v[1]/v[2] >= 2 && v[1]/v[2] <= 8);
+  const [,total, step] = specs[(Math.random()*specs.length)|0] || ['line',12,3];
+  const jumps = total/step;
+  const task = `Start at ${total}. Take away ${step} each time until you land on 0.`;
+  document.getElementById('gTask').innerHTML = `${task}<small>Tap the frog to hop.</small>`;
+  let at = total, made = 0;
+  document.getElementById('gBody').innerHTML =
+    `<div class="jcount" id="jc">You are on <b id="jat">${total}</b> · jumps: <b id="jn">0</b></div>
+     <div class="jline"><svg viewBox="0 0 320 90" id="jsvg"></svg></div>
+     <button class="btn" id="jhop">🐸 Hop back ${step}</button>`;
+  gameSay(task);
+  function draw(){
+    const svg = document.getElementById('jsvg');
+    const L=20, R=300, y=58, x=v=> L + (R-L)*(v/total);
+    let h = `<line x1="${L}" y1="${y}" x2="${R}" y2="${y}" stroke="#2b4364" stroke-width="3" stroke-linecap="round"/>`;
+    for(let v=0; v<=total; v+=step){
+      h += `<line x1="${x(v)}" y1="${y-6}" x2="${x(v)}" y2="${y+6}" stroke="#5a7699" stroke-width="2"/>
+            <text x="${x(v)}" y="${y+24}" fill="#9db4d0" font-size="12" text-anchor="middle"
+                  font-family="system-ui,sans-serif" font-weight="700">${v}</text>`;
+    }
+    for(let j=0;j<made;j++){
+      const f=total-j*step, t=f-step, m=(x(f)+x(t))/2, hh=Math.min(34,14+(x(f)-x(t))*0.45);
+      h += `<path d="M ${x(f)} ${y-8} Q ${m} ${y-8-hh} ${x(t)} ${y-8}" fill="none"
+                  stroke="#4fc3f7" stroke-width="3" stroke-linecap="round"/>
+            <text x="${m}" y="${y-14-hh}" fill="#ffc94d" font-size="13" text-anchor="middle"
+                  font-family="system-ui,sans-serif" font-weight="800">${j+1}</text>`;
+    }
+    h += `<text x="${x(at)}" y="${y-12}" font-size="22" text-anchor="middle">🐸</text>`;
+    svg.innerHTML = h;
+  }
+  draw();
+  document.getElementById('jhop').onclick = ()=>{
+    if(at <= 0) return;
+    at -= step; made++;
+    document.getElementById('jat').textContent = at;
+    document.getElementById('jn').textContent = made;
+    draw();
+    if(at === 0){
+      document.getElementById('jhop').style.display = 'none';
+      gameWin(`${jumps} jumps to get from ${total} down to 0. That is ${total} ÷ ${step} = ${jumps}.`);
+    }
+  };
+}
+
+/* ---------- 4. FIND THE PAIR ---------- */
+function roundMatch(){
+  const facts = [];
+  U.forEach(u=> u.q.forEach(q=>{
+    if(q[0]===0 && /^\d+ × \d+$/.test(q[1]) && q[2] <= 100) facts.push([q[1], q[2]]);
+  }));
+  const seen = new Set(), picked = [];
+  while(picked.length < 6 && facts.length){
+    const f = facts[(Math.random()*facts.length)|0];
+    if(seen.has(f[1])) continue;      // two sums with the same answer would be unmatchable
+    seen.add(f[1]); picked.push(f);
+  }
+  const task = 'Turn over two tiles. Match each sum to its answer.';
+  document.getElementById('gTask').innerHTML = `${task}<small>Six pairs.</small>`;
+  const tiles = [];
+  picked.forEach((f,i)=>{ tiles.push({k:i, t:f[0]}); tiles.push({k:i, t:String(f[1])}); });
+  for(let i=tiles.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [tiles[i],tiles[j]]=[tiles[j],tiles[i]]; }
+  document.getElementById('gBody').innerHTML =
+    `<div class="matchgrid" id="mg">${tiles.map((t,i)=>
+      `<button class="mtile" data-m="${i}">${t.t}</button>`).join('')}</div>`;
+  gameSay(task);
+  let up = [], busy = false, found = 0;
+  document.querySelectorAll('[data-m]').forEach(b=> b.onclick = ()=>{
+    if(busy) return;
+    const i = +b.dataset.m;
+    if(b.classList.contains('up') || b.classList.contains('gone')) return;
+    b.classList.add('up'); up.push(i);
+    if(up.length < 2) return;
+    busy = true;
+    const [a, c] = up;
+    if(tiles[a].k === tiles[c].k){
+      found++;
+      setTimeout(()=>{
+        document.querySelector(`[data-m="${a}"]`).classList.add('gone');
+        document.querySelector(`[data-m="${c}"]`).classList.add('gone');
+        up = []; busy = false;
+        if(found === picked.length)
+          gameWin('All six. ' + picked.map(f=>f[0]+' = '+f[1]).slice(0,3).join(', ') + ' — and the rest.');
+      }, 380);
+    } else {
+      setTimeout(()=>{
+        document.querySelector(`[data-m="${a}"]`).classList.remove('up');
+        document.querySelector(`[data-m="${c}"]`).classList.remove('up');
+        up = []; busy = false;
+      }, 780);
+    }
+  });
+}
+
+
+/* ============================================================
+   TODAY'S PASS
+   One session, five different things, roughly ten to fifteen minutes.
+   The variety is the point — an eight-year-old with ADHD will quit a
+   ten-minute grind of the same activity, but will happily do five
+   two-minute ones that keep changing.
+
+   It unlocks on doing the work, not on being perfect. Getting things
+   wrong and carrying on still earns the pass; quitting doesn't.
+   ============================================================ */
+const PASS_FLOOR = 5 * 60 * 1000;      // don't let him rush it in ninety seconds
+let SESS = null;
+
+function today(){ return new Date().toISOString().slice(0,10); }
+function hasPass(){ return db.get('pass','') === today(); }
+
+/* the unit he needs most: the lowest-scoring one he's touched,
+   or the next one he hasn't started */
+function targetUnit(){
+  for(let i=0;i<U.length;i++) if((best[i]||0) < 8) return i;
+  let worst = 0;
+  for(let i=1;i<U.length;i++) if((best[i]||0) < (best[worst]||0)) worst = i;
+  return worst;
+}
+function renderPass(){
+  const box = document.getElementById('passBox');
+  if(!box) return;
+  const streak = db.get('passStreak', 0);
+  box.innerHTML = hasPass()
+    ? `<div class="passcard got"><div class="passbig">🎟️</div>
+        <b>Today's pass is earned</b>
+        <span>You're done — go play.${streak>1?` That's ${streak} days in a row.`:''}</span>
+        <button class="btn ghost sm" id="passAgain" style="margin-top:12px">Do another round anyway</button></div>`
+    : `<div class="passcard"><div class="passbig">🔒</div>
+        <b>Today's pass</b>
+        <span>Five quick things — about ten minutes. Finish them and the pass is yours.</span>
+        <button class="btn" id="passStart">Start</button></div>`;
+  const a = document.getElementById('passStart');
+  if(a) a.onclick = startSession;
+  const b = document.getElementById('passAgain');
+  if(b) b.onclick = ()=>{ renderGames(); go('games'); };
+}
+
+function startSession(){
+  const u = targetUnit();
+  // deliberately alternating: something playful, something to read,
+  // the real practice, something hands-on, then a fast finish
+  SESS = {
+    i: 0, t0: Date.now(), unit: u,
+    steps: [
+      {kind:'game',   game:'match', label:'Warm up'},
+      {kind:'lesson', unit:u,       label:'Learn it'},
+      {kind:'quest',  unit:u,       label:'Practice'},
+      {kind:'game',   game:handsOn(u), label:'Make it real'},
+      {kind:'speed',  unit:u,       label:'Finish fast'}
+    ]
+  };
+  runStep();
+}
+/* pick the hands-on game that actually matches what the unit teaches */
+function handsOn(u){
+  if(u === 0) return 'jump';
+  if(u === 1) return 'deal';
+  return 'build';
+}
+function sessHud(){
+  if(!SESS) return '';
+  const mins = Math.floor((Date.now()-SESS.t0)/60000);
+  return `<div class="sesshud">
+      <span class="step">Today's pass · ${SESS.steps[SESS.i].label} (${SESS.i+1} of ${SESS.steps.length})</span>
+      <span class="clock">${mins} min</span>
+    </div>
+    <div class="track">${SESS.steps.map((s,i)=>
+      `<i class="${i<SESS.i?'done':(i===SESS.i?'now':'')}"></i>`).join('')}</div>`;
+}
+function paintHud(hostId){
+  if(!SESS) return;
+  const host = document.getElementById(hostId);
+  if(!host) return;
+  const old = host.querySelector('.sesshud');
+  if(old){ old.remove(); const t = host.querySelector('.track'); if(t) t.remove(); }
+  host.insertAdjacentHTML('afterbegin', sessHud());
+}
+function runStep(){
+  const st = SESS.steps[SESS.i];
+  if(st.kind === 'lesson'){ openLesson(st.unit); }
+  if(st.kind === 'quest'){  startRound(st.unit); }
+  if(st.kind === 'speed'){  startSpeed(st.unit); }
+  if(st.kind === 'game'){   startGame(st.game); }
+}
+function stepDone(){
+  if(!SESS) return false;
+  SESS.i++;
+  if(SESS.i < SESS.steps.length){ runStep(); return true; }
+  finishSession();
+  return true;
+}
+function finishSession(){
+  const spent = Date.now() - SESS.t0;
+  if(spent < PASS_FLOOR){
+    // he blitzed it — one more round rather than handing it over
+    SESS.steps.push({kind:'game', game:'match', label:'One more'});
+    runStep();
+    return;
+  }
+  const mins = Math.round(spent/60000);
+  const last = db.get('passDay','');
+  const y = new Date(Date.now()-86400000).toISOString().slice(0,10);
+  const streak = (last === y) ? (db.get('passStreak',0)|0) + 1 : 1;
+  db.set('pass', today()); db.set('passDay', today()); db.set('passStreak', streak);
+  db.set('last', today());
+  SESS = null;
+  document.getElementById('passIcon').textContent = '🎟️';
+  document.getElementById('passH').textContent = "Pass earned";
+  document.getElementById('passP').textContent =
+    `${mins} minutes of real work. Go play — you've done today's.` +
+    (streak > 1 ? ` That's ${streak} days in a row.` : '');
+  document.getElementById('passStamp').textContent = today();
+  go('pass');
+}
+document.getElementById('passDone').onclick = ()=>{ renderHome(); go('home'); };
+document.getElementById('passMore').onclick = ()=>{ renderGames(); go('games'); };
+
+
+/* ============================================================
+   READING — grade 3.
+
+   A "page" here is one screenful, 70 to 120 words, which is about
+   what a real third-grade chapter book puts on a page. Ten of those
+   is a day's reading.
+
+   Built around the fact that he is not a strong reader AND will leave
+   the room the moment it stops being interesting:
+     · every sentence lights up as it is read to him
+     · any word can be tapped to hear it on its own
+     · comprehension questions land every two or three pages, never
+       all at the end
+     · the page he is on is saved, so a snack break costs nothing
+   ============================================================ */
+let RD = null, STORIES = null;
+function readState(){ return db.get('read', {day:'', pages:0, at:{}}); }
+function pagesToday(){
+  const r = readState();
+  return r.day === today() ? (r.pages|0) : 0;
+}
+function bumpPages(){
+  const r = readState();
+  const n = (r.day === today() ? (r.pages|0) : 0) + 1;
+  db.set('read', {day: today(), pages: n, at: r.at || {}});
+  return n;
+}
+function storyAt(id, page){
+  const r = readState(); r.at = r.at || {}; r.at[id] = page;
+  db.set('read', {day: r.day || today(), pages: r.pages|0, at: r.at});
+}
+
+function loadStories(){
+  if(STORIES) return Promise.resolve(STORIES);
+  return fetch('read.json').then(r=>r.json()).then(j=>{ STORIES = j; return j; });
+}
+function openReading(){
+  loadStories().then(()=>{ renderStories(); go('stories'); })
+    .catch(()=>{ toastLike("Couldn't load the stories file."); });
+}
+function toastLike(m){
+  document.getElementById('teachSays').textContent = m;
+  renderHome(); go('home');
+}
+function dayLine(){
+  const n = pagesToday();
+  return `<span>${n} of 10 pages today</span>
+    <span class="fill"><i style="width:${Math.min(100, n*10)}%"></i></span>
+    <span>${n>=10 ? '✓' : ''}</span>`;
+}
+function renderStories(){
+  document.getElementById('dayLine').innerHTML = dayLine();
+  const at = readState().at || {};
+  document.getElementById('storyList').innerHTML = STORIES.map(st=>{
+    const p = at[st.id] || 0;
+    return `<button class="story" data-st="${st.id}">
+      <span class="sic">${st.icon}</span>
+      <span style="flex:1"><b>${st.title}</b><span>${st.blurb}</span>
+        ${p ? `<span class="prog">${p >= st.pages.length ? 'Finished' : 'On page ' + (p+1) + ' of ' + st.pages.length}</span>` : ''}
+      </span></button>`;
+  }).join('');
+  document.querySelectorAll('[data-st]').forEach(b=> b.onclick = ()=> openWords(b.dataset.st));
+}
+document.getElementById('stBack').onclick = ()=>{ Voice.stop(); renderHome(); go('home'); };
+
+/* word work first — the hard words get met once before they show up mid-sentence */
+function openWords(id){
+  const st = STORIES.find(x=>x.id===id);
+  RD = { st, page: (readState().at||{})[id] || 0, sent: 0, checkDone: {} };
+  if(RD.page >= st.pages.length) RD.page = 0;
+  document.getElementById('wordList').innerHTML = st.words.map(w=>
+    `<div class="wordcard" data-say="${w[0]}"><b>${w[0]}</b>
+       <div class="say">${w[2]}</div><span>${w[1]}</span></div>`).join('');
+  document.querySelectorAll('[data-say]').forEach(el=>
+    el.onclick = ()=> speakWord(el.dataset.say));
+  go('words');
+}
+document.getElementById('wdBack').onclick = ()=>{ renderStories(); go('stories'); };
+document.getElementById('wdGo').onclick   = ()=> openPage();
+
+function speakWord(w){
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(w); u.rate = 0.72;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+const HARD = {};
+function markHard(st){
+  Object.keys(HARD).forEach(k=>delete HARD[k]);
+  st.words.forEach(w=> HARD[w[0].toLowerCase()] = w);
+}
+function openPage(){
+  const st = RD.st;
+  markHard(st);
+  document.getElementById('pgTitle').textContent = st.title;
+  paintPage();
+  go('page');
+}
+function paintPage(){
+  const st = RD.st, sents = st.pages[RD.page];
+  // endStory() hides this — put it back, or the next story opens with no way forward
+  document.getElementById('pgNext').style.display = '';
+  document.getElementById('pgNum').textContent = `Page ${RD.page+1} of ${st.pages.length}`;
+  document.getElementById('pgBar').style.width = ((RD.page+1)/st.pages.length*100)+'%';
+  document.getElementById('pgAfter').innerHTML = '';
+  document.getElementById('pgText').innerHTML = sents.map((sen,i)=>
+    `<span class="sent" data-s="${i}">` + sen.split(/(\s+)/).map(tok=>{
+      if(!tok.trim()) return tok;
+      const bare = tok.replace(/[^A-Za-z']/g,'').toLowerCase();
+      return `<span class="w${HARD[bare]?' hard':''}" data-w="${bare}">${tok}</span>`;
+    }).join('') + `</span> `).join('');
+  document.querySelectorAll('#pgText .w').forEach(el=>
+    el.onclick = ev=>{ ev.stopPropagation(); speakWord(el.dataset.w); });
+  document.querySelectorAll('#pgText .sent').forEach(el=>
+    el.onclick = ()=> readPage(+el.dataset.s));
+  document.getElementById('pgPrev').style.visibility = RD.page ? '' : 'hidden';
+  readPage(0);
+}
+/* read the page aloud, one sentence at a time, lighting each as it goes */
+function readPage(from){
+  const st = RD.st, sents = st.pages[RD.page];
+  const btn = document.getElementById('pgSpk');
+  btn.classList.add('playing');
+  let i = from || 0;
+  RD.stop = false;
+  (function step(){
+    document.querySelectorAll('#pgText .sent').forEach(x=>x.classList.remove('lit'));
+    if(RD.stop || i >= sents.length){ btn.classList.remove('playing'); return; }
+    const el = document.querySelector(`#pgText [data-s="${i}"]`);
+    if(el) el.classList.add('lit');
+    const text = sents[i]; i++;
+    speakSentence(text, ()=> setTimeout(step, 130));
+  })();
+}
+function speakSentence(text, after){
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.86;
+    u.onend = ()=>{ if(after) after(); };
+    u.onerror = ()=>{ if(after) after(); };
+    speechSynthesis.speak(u);
+  }catch(e){ if(after) after(); }
+}
+function stopReading(){
+  RD && (RD.stop = true);
+  try{ speechSynthesis.cancel(); }catch(e){}
+  document.querySelectorAll('.spk.playing').forEach(b=>b.classList.remove('playing'));
+  document.querySelectorAll('#pgText .sent').forEach(x=>x.classList.remove('lit'));
+}
+document.getElementById('pgSpk').onclick  = ()=>{ stopReading(); readPage(0); };
+document.getElementById('pgBack').onclick = ()=>{ stopReading(); renderStories(); go('stories'); };
+document.getElementById('pgPrev').onclick = ()=>{
+  stopReading(); if(RD.page>0){ RD.page--; paintPage(); } };
+document.getElementById('pgNext').onclick = ()=> advancePage();
+
+function advancePage(){
+  stopReading();
+  const st = RD.st;
+  const n = bumpPages();
+  storyAt(st.id, RD.page + 1);
+  // a question every couple of pages, never a pile of them at the end
+  const chk = st.checks.filter(c=> c.after === RD.page && !RD.checkDone[c.q]);
+  if(chk.length){ askCheck(chk[0]); return; }
+  nextPageOrEnd();
+}
+function nextPageOrEnd(){
+  const st = RD.st;
+  if(RD.page + 1 < st.pages.length){ RD.page++; paintPage(); return; }
+  endStory();
+}
+function askCheck(c){
+  RD.checkDone[c.q] = true;
+  document.getElementById('pgAfter').innerHTML =
+    `<div class="qtext" style="font-size:18px;margin:4px 0 12px">${c.q}</div>
+     <div class="opts">${c.o.map((o,i)=>
+       `<button class="opt" data-ck="${i}"><span class="num">${i+1}</span><span>${o}</span></button>`).join('')}</div>`;
+  document.getElementById('pgAfter').scrollIntoView({block:'nearest', behavior:'smooth'});
+  speakSentence(c.q);
+  document.querySelectorAll('[data-ck]').forEach(b=> b.onclick = ()=>{
+    const i = +b.dataset.ck, ok = (i === c.a);
+    document.querySelectorAll('[data-ck]').forEach(x=> x.onclick = null);
+    b.classList.add(ok ? 'right' : 'wrong');
+    if(!ok){ const r = document.querySelector(`[data-ck="${c.a}"]`); if(r) r.classList.add('right'); }
+    const lead = ok ? 'Yes.' : 'It was the highlighted one.';
+    document.getElementById('pgAfter').insertAdjacentHTML('beforeend',
+      `<div class="why${ok?'':' miss'}"><b>${lead}</b> ${c.why}</div>
+       <button class="btn" id="ckNext" style="margin-top:14px">Keep reading</button>`);
+    speakSentence(lead + ' ' + c.why);
+    document.getElementById('ckNext').onclick = ()=>{ stopReading(); nextPageOrEnd(); };
+    document.getElementById('ckNext').scrollIntoView({block:'nearest', behavior:'smooth'});
+  });
+}
+function endStory(){
+  const st = RD.st;
+  award('read_' + st.id);
+  document.getElementById('pgAfter').innerHTML =
+    `<div class="why"><b>That's the whole story.</b> ${st.title} — done.</div>
+     <button class="btn" id="ckNext" style="margin-top:14px">Pick another</button>`;
+  document.getElementById('ckNext').onclick = ()=>{ renderStories(); go('stories'); };
+  document.getElementById('pgNext').style.display = 'none';
+}
+
+/* ---------- the break button ----------
+   He is going to get up. Making that a button instead of a walk-off
+   means the app is still here, on the right page, when he comes back. */
+function showBreak(resume){
+  stopReading();
+  const d = document.createElement('div');
+  d.className = 'paused';
+  d.innerHTML = `<div style="font-size:60px;margin-bottom:14px">⏸️</div>
+    <h2>Paused</h2><p>Go do the thing. Nothing is lost — you'll come back to this exact page.</p>
+    <button class="btn" id="unpause" style="max-width:280px">I'm back</button>`;
+  document.body.appendChild(d);
+  document.getElementById('unpause').onclick = ()=>{ d.remove(); if(resume) resume(); };
+}
+document.getElementById('pgBreak').onclick = ()=> showBreak(()=> readPage(0));
+
 /* ---------------- a round ---------------- */
 let R = null, typed = '';
 function pick(arr, n){
@@ -861,7 +1747,7 @@ function startRound(i){
   CUR = i; SPEED_LAST = false;
   R = { qs: pick(U[i].q, Math.min(10, U[i].q.length)), n:0, right:0, missed:[], locked:false };
   document.getElementById('rTitle').textContent = U[i].t;
-  go('round'); renderQ();
+  go('round'); renderQ(); paintHud('s-round');
 }
 document.getElementById('rBack').onclick  = ()=>{ Voice.stop(); openPicker('quest'); };
 document.getElementById('spBack').onclick = ()=>{ clearInterval(spTimer); SP=null; openPicker('speed'); };
@@ -893,6 +1779,10 @@ function renderQ(){
   R.locked = false; typed = '';
   document.getElementById('qCount').textContent = `Question ${R.n+1} of ${R.qs.length}`;
   document.getElementById('qBar').style.width = (R.n / R.qs.length * 100) + '%';
+  if(!document.getElementById('raceBoat')){
+    document.getElementById('qBar').insertAdjacentHTML('afterend', raceHtml());
+  }
+  raceTo(R.right / R.qs.length);
   const tx = document.getElementById('qText');
   tx.textContent = q[1];
   tx.className = 'qtext' + (q[1].length <= 8 ? ' big' : '');
@@ -954,7 +1844,7 @@ function answerMC(i, btn){
    That line is the lesson — a wrong answer just means he hears it again. */
 function finish(ok, q){
   Voice.stop();
-  if(ok) R.right++; else R.missed.push(q);
+  if(ok){ R.right++; raceTo(R.right / R.qs.length); } else R.missed.push(q);
   const w = document.getElementById('qWhy');
   const lead = ok ? 'Yes.' : (q[0]===1 ? 'The answer is lit up.' : 'The answer is ' + q[2] + '.');
   w.innerHTML = `<div class="why${ok?'':' miss'}"><b>${lead}</b> ${q[3]}</div>
@@ -975,14 +1865,22 @@ const MSG = [
 ];
 function endRound(){
   const n = R.right;
+  if(SESS){ if(n > (best[CUR]||0)){ best[CUR] = n; db.set('best', best); }
+            if(n === R.qs.length) award('unit'+CUR);
+            db.set('rounds',(db.get('rounds',0)|0)+1);
+            db.set('right',(db.get('right',0)|0)+n);
+            return void stepDone(); }
   if(n > (best[CUR]||0)){ best[CUR] = n; db.set('best', best); }
+  const gotSticker = (n === R.qs.length) && award('unit' + CUR);
   db.set('last', new Date().toISOString().slice(0,10));
   db.set('rounds', (db.get('rounds',0)|0) + 1);
   db.set('right', (db.get('right',0)|0) + n);
   document.getElementById('dScore').textContent = n + ' / ' + R.qs.length;
   document.getElementById('dStars').innerHTML = starStr(n).split('')
     .map((c,i)=>`<span style="animation-delay:${0.1+i*0.16}s">${c}</span>`).join('');
-  document.getElementById('dMsg').textContent = (MSG.find(m=>n>=m[0])||MSG[3])[1];
+  document.getElementById('dMsg').textContent = gotSticker
+    ? 'Every one right — that unit\u2019s medal is on your board now.'
+    : (MSG.find(m=>n>=m[0])||MSG[3])[1];
   const box = document.getElementById('dMissed');
   box.innerHTML = R.missed.length
     ? `<div class="lab">Worth another look</div>` + R.missed.map(q=>{
