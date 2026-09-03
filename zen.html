@@ -200,6 +200,10 @@ body.hidenav .nav{display:none}
 .wordcard b{font-size:19px;display:block}
 .wordcard .say{font-size:13.5px;color:var(--sun);font-weight:800;letter-spacing:.6px;margin:3px 0 7px}
 .wordcard span{font-size:14.5px;color:var(--dim);line-height:1.55}
+.speedbar{display:flex;gap:7px;margin-bottom:12px}
+.speedbar button{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:9px 4px;color:var(--ink);font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
+.speedbar button.on{background:var(--sun);color:#0d2033;border-color:var(--sun)}
 .breakbtn{background:var(--card2);border:1px solid var(--line);color:var(--dim);border-radius:12px;
   padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;flex:0 0 auto}
 .paused{position:fixed;inset:0;background:rgba(15,27,46,.96);z-index:80;display:flex;
@@ -424,6 +428,7 @@ body.hidenav .nav{display:none}
 <section class="screen" id="s-stories">
   <div class="top"><button class="iconbtn" id="stBack">‹</button><h2>Reading</h2></div>
   <div class="dayline" id="dayLine"></div>
+  <div class="speedbar" id="speedBar"></div>
   <div id="storyList"></div>
 </section>
 
@@ -435,6 +440,7 @@ body.hidenav .nav{display:none}
     <button class="breakbtn" id="pgBreak">Need a break</button>
   </div>
   <div class="qbar"><i id="pgBar" style="width:0%"></i></div>
+  <div class="speedbar" id="speedBar2"></div>
   <div class="pagetext" id="pgText"></div>
   <div id="pgAfter"></div>
   <div class="cardnav">
@@ -477,9 +483,9 @@ let best = db.get('best', {});
 const VOICES = [['','Sarah'],['.bella','Bella'],['.sky','Sky']];
 const Voice = (()=>{
   let suffix = db.get('voice','');
-  const sprites = {};                 // "0.bella" -> {idx, buf|url}
+  const sprites = {};
   let ctx = null, active = null, unlocked = false;
-  const TAIL = 0.12;                  // the sprite gap is 0.28s; MP3 starts a touch late
+  const TAIL = 0.12;              // the sprite gap is 0.28s; MP3 starts ~0.05s late
 
   function stop(){
     if(!active) return;
@@ -487,76 +493,105 @@ const Voice = (()=>{
     if(a.raf) cancelAnimationFrame(a.raf);
     if(a.timer) clearTimeout(a.timer);
     try{ a.src ? a.src.stop() : a.el.pause(); }catch(e){}
-    if(a.after) a.after();
     document.querySelectorAll('.spk.playing').forEach(b=>b.classList.remove('playing'));
+    if(a.after) a.after();
   }
   function unlock(){
     if(unlocked) return; unlocked = true;
-    try{ ctx = ctx || new (window.AudioContext||window.webkitAudioContext)(); ctx.resume(); }catch(e){}
+    try{ ctx = ctx || new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+    if(ctx && ctx.state === 'suspended') ctx.resume().catch(()=>{});
   }
   function load(u){
     const key = u + suffix;
     if(sprites[key]) return sprites[key];
-    const stem = 'zen' + u + suffix;
-    // a voice with no track of its own borrows Sarah's rather than going quiet
-    const stems = suffix ? [stem, 'zen'+u] : [stem];
-    const p = stems.reduce((chain, s)=> chain.catch(()=>
-        fetch(s + '.json').then(r=>{ if(!r.ok) throw 0; return r.json(); }).then(idx=>({idx, s}))
+    const stems = suffix ? ['zen'+u+suffix, 'zen'+u] : ['zen'+u];
+    sprites[key] = stems.reduce((c, st)=> c.catch(()=>
+        fetch(st+'.json').then(r=>{ if(!r.ok) throw 0; return r.json(); }).then(idx=>({idx, st}))
       ), Promise.reject(0))
-      .then(({idx, s})=> fetch(s + '.mp3').then(r=>{ if(!r.ok) throw 0; return r.arrayBuffer(); })
-        .then(buf=>({ idx, url: URL.createObjectURL(new Blob([buf],{type:'audio/mpeg'})), raw: buf })));
-    sprites[key] = p;
-    return p;
+      .then(({idx, st})=> fetch(st+'.mp3').then(r=>{ if(!r.ok) throw 0; return r.arrayBuffer(); })
+        .then(buf=>{
+          const sp = { idx, url: URL.createObjectURL(new Blob([buf], {type:'audio/mpeg'})), buf: null };
+          // decode once for the Web Audio path — seeking a decoded buffer is exact,
+          // and it is the path that works on the laptop where <audio> never loads
+          try{
+            if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)();
+            const copy = buf.slice(0);
+            return new Promise(res=>{
+              ctx.decodeAudioData(copy, b=>{ sp.buf = b; res(sp); }, ()=> res(sp));
+            });
+          }catch(e){ return sp; }
+        }));
+    return sprites[key];
   }
-  function playClip(sp, i, after){
-    const span = sp.idx[i];
-    if(!span || !span[1]){ if(after) after(); return; }
-    const [start, dur] = span;
-    const el = new Audio(sp.url);
-    el.currentTime = start;
-    const endAt = start + dur + TAIL;
-    const a = active = { el, after };
-    // timeupdate only fires every ~250ms, which overshoots the gap and bleeds
-    // into the next clip — rAF stops it on time.
-    a.tick = ()=>{
-      if(active !== a) return;
-      if(el.ended || el.currentTime >= endAt){ stop(); return; }
-      a.raf = requestAnimationFrame(a.tick);
-    };
-    const pr = el.play();
-    if(pr && pr.catch) pr.catch(()=>{ if(active===a){ active=null; say2(i, sp, after); } });
-    a.raf = requestAnimationFrame(a.tick);
-    a.timer = setTimeout(()=>{ if(active===a) stop(); }, dur*1000 + 900);
-  }
-  function say2(i, sp, after){ if(after) after(); }
-  function speakFallback(text, after){
+  function fallback(text, after){
     try{
       speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.rate = 0.9; u.onend = ()=>{ if(after) after(); };
+      const u = new SpeechSynthesisUtterance(String(text||''));
+      u.rate = db.get('rate', 0.85);
+      u.onend = ()=>{ if(after) after(); };
+      u.onerror = ()=>{ if(after) after(); };
       speechSynthesis.speak(u);
     }catch(e){ if(after) after(); }
+  }
+  function playBuffer(sp, start, dur, after){
+    const src = ctx.createBufferSource();
+    src.buffer = sp.buf;
+    src.playbackRate.value = db.get('rate', 0.85) < 0.8 ? 0.9 : 1;
+    src.connect(ctx.destination);
+    const a = active = { src, after };
+    src.onended = ()=>{ if(active === a) stop(); };
+    try{ src.start(0, start, dur + TAIL); }
+    catch(e){ active = null; if(after) after(); return; }
+    a.timer = setTimeout(()=>{ if(active === a) stop(); }, (dur + 1.2) * 1000);
+  }
+  function playElement(sp, start, dur, text, after){
+    const el = new Audio();
+    const endAt = start + dur + TAIL;
+    const a = active = { el, after };
+    let started = false;
+    el.preload = 'auto';
+    el.src = sp.url;
+    // currentTime only sticks once the browser has metadata — setting it
+    // before that is silently ignored, which played the file from 0.
+    const begin = ()=>{
+      if(started) return; started = true;
+      try{ el.currentTime = start; }catch(e){}
+      const pr = el.play();
+      if(pr && pr.catch) pr.catch(()=>{
+        if(active === a){ active = null; fallback(text, after); }
+      });
+      a.tick = ()=>{
+        if(active !== a) return;
+        if(el.ended || el.currentTime >= endAt){ stop(); return; }
+        a.raf = requestAnimationFrame(a.tick);
+      };
+      a.raf = requestAnimationFrame(a.tick);
+    };
+    if(el.readyState >= 1) begin();
+    else el.addEventListener('loadedmetadata', begin, {once:true});
+    a.timer = setTimeout(()=>{ if(active === a) stop(); }, (dur + 2.5) * 1000);
   }
   return {
     unlock, stop,
     suffix(){ return suffix; },
     setVoice(s){ suffix = s; db.set('voice', s); for(const k in sprites) delete sprites[k]; },
     warm(u){ load(u).catch(()=>{}); },
-    /* speak one line of unit u, by its index in that unit's sprite */
     say(u, i, text, after){
       stop(); unlock();
       load(u).then(sp=>{
-        if(!sp.idx[i]) throw 0;
-        playClip(sp, i, after);
-      }).catch(()=> speakFallback(text, after));
+        const span = sp.idx[i];
+        if(!span || !span[1]) throw 0;
+        const [start, dur] = span;
+        if(sp.buf && ctx && ctx.state !== 'suspended') playBuffer(sp, start, dur, after);
+        else playElement(sp, start, dur, text, after);
+      }).catch(()=> fallback(text, after));
     },
-    /* speak several lines back to back */
     sayAll(u, items, done){
       let n = 0;
       const next = ()=>{
         if(n >= items.length){ if(done) done(); return; }
         const it = items[n++];
-        setTimeout(()=> Voice.say(u, it[0], it[1], next), n===1 ? 0 : 260);
+        setTimeout(()=> Voice.say(u, it[0], it[1], next), n === 1 ? 0 : 260);
       };
       next();
     }
@@ -1567,6 +1602,7 @@ function dayLine(){
     <span>${n>=10 ? '✓' : ''}</span>`;
 }
 function renderStories(){
+  renderSpeed();
   document.getElementById('dayLine').innerHTML = dayLine();
   const at = readState().at || {};
   document.getElementById('storyList').innerHTML = STORIES.map(st=>{
@@ -1599,7 +1635,8 @@ document.getElementById('wdGo').onclick   = ()=> openPage();
 function speakWord(w){
   try{
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(w); u.rate = 0.72;
+    const u = new SpeechSynthesisUtterance(w);
+    u.rate = Math.max(0.5, rate() - 0.15);   // a single word slower still
     speechSynthesis.speak(u);
   }catch(e){}
 }
@@ -1617,6 +1654,7 @@ function openPage(){
   go('page');
 }
 function paintPage(){
+  renderSpeed();
   const st = RD.st, sents = st.pages[RD.page];
   // endStory() hides this — put it back, or the next story opens with no way forward
   document.getElementById('pgNext').style.display = '';
@@ -1656,7 +1694,7 @@ function speakSentence(text, after){
   try{
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.rate = 0.86;
+    u.rate = rate();
     u.onend = ()=>{ if(after) after(); };
     u.onerror = ()=>{ if(after) after(); };
     speechSynthesis.speak(u);
@@ -1735,6 +1773,29 @@ function showBreak(resume){
   document.getElementById('unpause').onclick = ()=>{ d.remove(); if(resume) resume(); };
 }
 document.getElementById('pgBreak').onclick = ()=> showBreak(()=> readPage(0));
+
+
+/* Reading speed. Defaulted to the slowest — he is not a strong reader, and
+   the device voice runs at different speeds on a tablet and a laptop, so
+   one hard-coded number was never going to be right for both. */
+const SPEEDS = [['slow','Slower',0.68],['mid','Normal',0.85],['fast','Faster',1.0]];
+function rate(){ return db.get('rate', 0.68); }
+function renderSpeed(){
+  const cur = rate();
+  const html = SPEEDS.map(([k,n,v])=>
+    `<button data-sp="${v}" class="${Math.abs(cur-v)<0.01?'on':''}">${n}</button>`).join('');
+  ['speedBar','speedBar2'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.innerHTML = html;
+  });
+}
+document.addEventListener('click', e=>{
+  const t = e.target.closest('[data-sp]'); if(!t) return;
+  db.set('rate', +t.dataset.sp);
+  renderSpeed();
+  stopReading();
+  if(document.getElementById('s-page').classList.contains('on')) readPage(0);
+  else speakWord('Like this');
+});
 
 /* ---------------- a round ---------------- */
 let R = null, typed = '';
