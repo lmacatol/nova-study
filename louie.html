@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Louie — Factors &amp; Multiples</title>
+<style>
+:root{
+  --bg:#0b1014; --panel:#121a20; --panel2:#18232b; --line:#24333d;
+  --ink:#e8f1f5; --dim:#8ba3b0; --acc:#3ddc97; --acc2:#2bb37b;
+  --warn:#ffc857; --bad:#ff6b6b; --r:16px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font:16px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding:0 0 92px; min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:660px;margin:0 auto;padding:0 16px}
+a{color:var(--acc);text-decoration:none}
+
+/* ---------- top bar ---------- */
+.top{
+  position:sticky;top:0;z-index:40;background:rgba(11,16,20,.94);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+}
+.topin{max-width:660px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+.badge{
+  width:38px;height:38px;border-radius:11px;background:var(--acc);color:#06210f;
+  display:grid;place-items:center;font-weight:800;font-size:14px;letter-spacing:.3px;flex:0 0 auto
+}
+.who b{display:block;font-size:15px;line-height:1.2}
+.who span{display:block;font-size:12px;color:var(--dim)}
+.topright{margin-left:auto;display:flex;gap:8px;align-items:center}
+.pill{
+  border:1px solid var(--line);background:var(--panel);color:var(--dim);
+  border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer
+}
+.pill.on{border-color:var(--acc);color:var(--acc)}
+
+/* ---------- generic ---------- */
+h1{font-size:22px;margin:22px 0 4px;letter-spacing:-.3px}
+h2{font-size:16px;margin:26px 0 10px;letter-spacing:-.2px}
+.muted{color:var(--dim);font-size:13.5px;line-height:1.6}
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:16px;margin:12px 0
+}
+.btn{
+  display:block;width:100%;border:0;border-radius:13px;padding:14px 16px;
+  background:var(--acc);color:#06210f;font-size:16px;font-weight:700;cursor:pointer;
+  font-family:inherit
+}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line);font-weight:600}
+.btn.warn{background:var(--warn);color:#2a1d00}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+
+/* ---------- menu tiles ---------- */
+.tile{
+  display:flex;gap:14px;align-items:center;width:100%;text-align:left;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:15px 16px;margin:10px 0;cursor:pointer;color:inherit;font-family:inherit
+}
+.tile:active{border-color:var(--acc)}
+.tico{
+  width:44px;height:44px;border-radius:12px;background:var(--panel2);
+  display:grid;place-items:center;font-size:21px;flex:0 0 auto
+}
+.tile b{display:block;font-size:15.5px}
+.tile span{display:block;font-size:12.5px;color:var(--dim);margin-top:2px;line-height:1.45}
+.tchev{margin-left:auto;color:var(--dim);font-size:19px}
+
+/* ---------- question ---------- */
+.qtop{display:flex;align-items:center;gap:10px;margin:18px 0 6px}
+.qnum{font-size:12.5px;color:var(--dim);font-weight:700;letter-spacing:.4px}
+.bar{height:5px;background:var(--panel2);border-radius:99px;overflow:hidden;margin:8px 0 2px}
+.bar i{display:block;height:100%;background:var(--acc);border-radius:99px;transition:width .3s}
+.qask{font-size:20px;line-height:1.45;margin:14px 0 4px;white-space:pre-wrap}
+.qask .big{font-size:27px;font-weight:700;letter-spacing:.4px;display:block;margin-top:6px}
+.tag{
+  display:inline-block;font-size:11px;font-weight:800;letter-spacing:.7px;
+  text-transform:uppercase;color:var(--acc);border:1px solid var(--acc);
+  border-radius:999px;padding:3px 9px
+}
+.tag.b{color:var(--warn);border-color:var(--warn)}
+.tag.c{color:#7db9ff;border-color:#7db9ff}
+.tag.d{color:#c79bff;border-color:#c79bff}
+
+input[type=text],input[type=number],textarea{
+  width:100%;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);
+  border-radius:12px;padding:13px 14px;font-size:18px;font-family:inherit;outline:none
+}
+input:focus,textarea:focus{border-color:var(--acc)}
+textarea{font-size:15px;line-height:1.55;min-height:96px;resize:vertical}
+label.fl{display:block;font-size:12.5px;color:var(--dim);margin:12px 0 5px;font-weight:600}
+
+.fb{border-radius:13px;padding:13px 15px;margin:12px 0;font-size:14.5px;line-height:1.6;display:none}
+.fb.show{display:block}
+.fb.ok{background:rgba(61,220,151,.1);border:1px solid rgba(61,220,151,.4)}
+.fb.no{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.4)}
+.fb b{display:block;margin-bottom:5px;font-size:15px}
+.fb .ans{color:var(--acc);font-weight:700}
+
+/* ---------- scratchpad ---------- */
+.scratch{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--panel);
+  border-top:1px solid var(--line);transform:translateY(calc(100% - 46px));
+  transition:transform .25s ease;padding-bottom:env(safe-area-inset-bottom)
+}
+.scratch.open{transform:translateY(0)}
+.schandle{
+  height:46px;display:flex;align-items:center;gap:9px;padding:0 16px;cursor:pointer;
+  max-width:660px;margin:0 auto;font-size:13.5px;font-weight:700;color:var(--dim)
+}
+.scbody{max-width:660px;margin:0 auto;padding:4px 16px 18px}
+.factout{
+  background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:13px;
+  margin-top:10px;font-size:15px;min-height:52px;line-height:1.7
+}
+.factout .pf{color:var(--acc);font-weight:700;letter-spacing:.5px}
+.chipbar{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.chip{
+  background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  padding:5px 10px;font-size:13px;color:var(--dim);cursor:pointer
+}
+
+/* ---------- results ---------- */
+.score{text-align:center;padding:28px 0 6px}
+.score .n{font-size:60px;font-weight:800;letter-spacing:-2px;line-height:1}
+.score .of{font-size:17px;color:var(--dim);margin-top:4px}
+.secline{
+  display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);
+  font-size:14.5px
+}
+.secline:last-child{border-bottom:0}
+.secline .s{margin-left:auto;font-weight:700}
+.rev{border-left:3px solid var(--line);padding:2px 0 2px 13px;margin:14px 0}
+.rev.wrong{border-color:var(--bad)}
+.rev.right{border-color:var(--acc)}
+.rev p{margin:0 0 5px;font-size:14px;line-height:1.55;white-space:pre-wrap}
+.rev .lbl{font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--dim);text-transform:uppercase}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="top"><div class="topin">
+  <div class="badge">Lou</div>
+  <div class="who"><b>Louie</b><span id="subline">Factors &amp; Multiples</span></div>
+  <div class="topright">
+    <button class="pill" id="homeBtn" onclick="go('home')">Menu</button>
+  </div>
+</div></div>
+
+<div class="wrap" id="app"></div>
+
+<div class="scratch" id="scratch">
+  <div class="schandle" onclick="toggleScratch()">
+    <span id="scarrow">▲</span> Prime factor pad
+    <span style="margin-left:auto;font-weight:500" id="scnote">tap to open</span>
+  </div>
+  <div class="scbody">
+    <input type="number" inputmode="numeric" id="scin" placeholder="Type a number…"
+           oninput="factorNow()" autocomplete="off">
+    <div class="factout" id="scout">Break any number into its prime factors.</div>
+    <div class="chipbar" id="scchips"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   Louie — Factors & Multiples
+   Every answer in this file is COMPUTED, never typed by hand.
+   ============================================================ */
+
+/* ---------- number theory ---------- */
+function gcd2(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ const t=a%b; a=b; b=t; } return a; }
+function lcm2(a,b){ return a/gcd2(a,b)*b; }
+function GCF(){ return [].slice.call(arguments).reduce(gcd2); }
+function LCM(){ return [].slice.call(arguments).reduce(lcm2); }
+function primeFactors(n){
+  const out=[]; n=Math.abs(n|0);
+  if(n<2) return out;
+  for(let d=2; d*d<=n; d++){ while(n%d===0){ out.push(d); n/=d; } }
+  if(n>1) out.push(n);
+  return out;
+}
+function pfString(n){
+  const f=primeFactors(n);
+  return f.length ? f.join(' × ') : String(n);
+}
+function factorPairs(n){
+  const out=[];
+  for(let i=1;i*i<=n;i++) if(n%i===0) out.push([i,n/i]);
+  return out;
+}
+
+/* ---------- storage (shares the Nova origin, so namespace it) ---------- */
+const K='lou:';
+const raw={
+  get(k,d){ try{ const v=localStorage.getItem(K+k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(K+k, JSON.stringify(v)); }catch(e){} }
+};
+function bump(k,by){ raw.set(k,(raw.get(k,0)|0)+(by||1)); }
+
+/* ---------- tiny click sound (no library, no files) ---------- */
+let AC=null;
+function tick(kind){
+  try{
+    AC = AC || new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended') AC.resume();
+    const t=AC.currentTime, o=AC.createOscillator(), g=AC.createGain();
+    const f = kind==='ok'?880 : kind==='no'?180 : 520;
+    o.type = kind==='no' ? 'sawtooth' : 'sine';
+    o.frequency.setValueAtTime(f,t);
+    if(kind==='ok') o.frequency.exponentialRampToValueAtTime(f*1.5,t+.09);
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.exponentialRampToValueAtTime(kind?.13:.06,t+.012);
+    g.gain.exponentialRampToValueAtTime(.0001,t+(kind?.22:.09));
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t+.3);
+  }catch(e){}
+}
+function buzz(ms){ try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} }
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function randInt(lo,hi){ return lo+Math.floor(Math.random()*(hi-lo+1)); }
+function norm(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
+
+/* ---------- the 15-question graded test (same as the printed PDF) ---------- */
+const TEST = [
+ {
+  "sec": "A",
+  "q": "12 and 18",
+  "a": "36",
+  "w": "12 = 2 × 2 × 3, 18 = 2 × 3 × 3. Take the highest power of each prime: LCM = 36."
+ },
+ {
+  "sec": "A",
+  "q": "8 and 20",
+  "a": "40",
+  "w": "8 = 2 × 2 × 2, 20 = 2 × 2 × 5. Take the highest power of each prime: LCM = 40."
+ },
+ {
+  "sec": "A",
+  "q": "6, 9, and 15",
+  "a": "90",
+  "w": "6 = 2 × 3; 9 = 3 × 3; 15 = 3 × 5. Highest power of each prime gives LCM = 90."
+ },
+ {
+  "sec": "A",
+  "q": "4, 10, and 14",
+  "a": "140",
+  "w": "4 = 2 × 2; 10 = 2 × 5; 14 = 2 × 7. Highest power of each prime gives LCM = 140."
+ },
+ {
+  "sec": "B",
+  "q": "48 and 72",
+  "a": "24",
+  "w": "48 = 2 × 2 × 2 × 2 × 3, 72 = 2 × 2 × 2 × 3 × 3. Multiply the primes they share: GCF = 24."
+ },
+ {
+  "sec": "B",
+  "q": "54 and 90",
+  "a": "18",
+  "w": "54 = 2 × 3 × 3 × 3, 90 = 2 × 3 × 3 × 5. Multiply the primes they share: GCF = 18."
+ },
+ {
+  "sec": "B",
+  "q": "24, 60, and 84",
+  "a": "12",
+  "w": "24 = 2 × 2 × 2 × 3; 60 = 2 × 2 × 3 × 5; 84 = 2 × 2 × 3 × 7. Shared primes across all three: GCF = 12."
+ },
+ {
+  "sec": "B",
+  "q": "45, 75, and 120",
+  "a": "15",
+  "w": "45 = 3 × 3 × 5; 75 = 3 × 5 × 5; 120 = 2 × 2 × 2 × 3 × 5. Shared primes across all three: GCF = 15."
+ },
+ {
+  "sec": "C",
+  "q": "Ms. Reyes has 72 pencils and 108 erasers. She wants to make identical supply kits with none left over.\n(a) What is the greatest number of kits she can make?\n(b) How many pencils and how many erasers are in one kit?",
+  "a": "(a) 36 kits  (b) 2 pencils and 3 erasers",
+  "w": "Nothing left over and identical kits means GCF. 72 = 2 × 2 × 2 × 3 × 3, 108 = 2 × 2 × 3 × 3 × 3, so GCF = 36. Then 72 ÷ 36 = 2 pencils and 108 ÷ 36 = 3 erasers."
+ },
+ {
+  "sec": "C",
+  "q": "Two lighthouses flash together at midnight. One flashes every 18 seconds, the other every 24 seconds.\n(a) After how many seconds do they flash together again?\n(b) How many times do they flash together in 10 minutes (not counting midnight)?",
+  "a": "(a) 72 seconds  (b) 8 times",
+  "w": "\"Happen together again\" means LCM. 18 = 2 × 3 × 3, 24 = 2 × 2 × 2 × 3, so LCM = 72 seconds. 10 minutes = 600 seconds, and 600 ÷ 72 = 8.33, so it happens 8 whole times."
+ },
+ {
+  "sec": "C",
+  "q": "Three buses leave the depot together at 6:00 a.m. Bus A leaves every 9 minutes, Bus B every 12 minutes, and Bus C every 15 minutes.\nAt what time do all three next leave together?",
+  "a": "9:00 a.m. (180 minutes later)",
+  "w": "LCM of 9, 12 and 15. 9 = 3 × 3, 12 = 2 × 2 × 3, 15 = 3 × 5, so LCM = 180 minutes = 3 hours. 6:00 a.m. + 3 hours = 9:00 a.m."
+ },
+ {
+  "sec": "C",
+  "q": "Devon has 100 red beads and 75 blue beads. He makes identical bracelets and uses every bead.\n(a) What is the greatest number of bracelets?\n(b) How many beads are on each bracelet altogether?",
+  "a": "(a) 25 bracelets  (b) 7 beads",
+  "w": "GCF(100, 75) = 25. Each bracelet gets 100 ÷ 25 = 4 red and 75 ÷ 25 = 3 blue, so 4+3 = 7 beads in total."
+ },
+ {
+  "sec": "D",
+  "q": "Priya draws a Venn diagram for the prime factors of 90 and 126. She puts 5 in the 90-only side, 7 in the 126-only side, and 2 and 3 in the middle. Malik says her diagram is wrong.\nWho is correct? Explain, and give the correct diagram.",
+  "a": "Malik is correct — Priya is missing a second 3 in the middle.",
+  "w": "90 = 2 × 3 × 3 × 5 and 126 = 2 × 3 × 3 × 7. They share 2, 3 AND 3. Priya only put one 3 in the middle, so her diagram multiplies back to 2x3x5 = 30, not 90. Correct diagram: middle = 2, 3, 3; 90-only = 5; 126-only = 7. (That also shows GCF = 18.)"
+ },
+ {
+  "sec": "D",
+  "q": "Marco says \"the LCM of two numbers is always the two numbers multiplied together.\"\n(a) Give an example where Marco is right.\n(b) Give an example where he is wrong.\n(c) Finish this sentence: Marco's rule only works when ______.",
+  "a": "(a) e.g. 7 and 9 gives LCM 63, which is 7 × 9.  (b) e.g. 6 and 8 gives LCM 24, not 48.  (c) ...the two numbers share no factors except 1 (their GCF is 1)",
+  "w": "When two numbers share a factor, that factor gets counted twice in the product, so the LCM is smaller. 6 = 2x3 and 8 = 2x2x2 share a 2, so LCM = 24 while 6x8 = 48. When the GCF is 1 there is nothing shared, so LCM = the product."
+ },
+ {
+  "sec": "D",
+  "q": "For 12 and 18: the GCF is 6 and the LCM is 36.\n(a) Work out GCF x LCM.\n(b) Work out 12 x 18.\n(c) Test whether the same thing happens for 8 and 20. Does the pattern hold?",
+  "a": "(a) 216  (b) 216  (c) Yes — GCF(8, 20) = 4 and LCM(8, 20) = 40, and 4 × 40 = 160 = 8 × 20",
+  "w": "GCF × LCM always equals the product of the two numbers. Every prime is counted once in the GCF and once in the LCM, which together is exactly how many times it appears in the product."
+ }
+];
+
+/* ============================================================
+   GENERATORS — endless practice. Answers are always computed.
+   ============================================================ */
+
+/* Numbers chosen so the answer is interesting: they must share a
+   factor (otherwise GCF is 1 and LCM is just the product). */
+function pairWithShare(minG, maxN){
+  for(let tries=0; tries<400; tries++){
+    const g = randInt(minG, 12);
+    const a = g*randInt(2,9), b = g*randInt(2,9);
+    if(a===b) continue;
+    if(a>maxN || b>maxN) continue;
+    if(GCF(a,b) < minG) continue;
+    return [a,b];
+  }
+  return [12,18];
+}
+function tripleWithShare(maxN){
+  for(let tries=0; tries<400; tries++){
+    const g = randInt(2,8);
+    const n = [g*randInt(2,7), g*randInt(2,7), g*randInt(2,7)];
+    if(new Set(n).size<3) continue;
+    if(Math.max.apply(null,n)>maxN) continue;
+    if(LCM.apply(null,n) > 600) continue;
+    return n;
+  }
+  return [6,9,15];
+}
+
+function genLCM(hard){
+  const n = hard ? tripleWithShare(60) : pairWithShare(2,40);
+  const ans = LCM.apply(null,n);
+  return {
+    sec:'A', kind:'num',
+    q: listOf(n),
+    ask:'Least common multiple',
+    a: String(ans),
+    w: n.map(x=> x+' = '+pfString(x)).join('; ') +
+       '. Take the highest power of every prime that shows up: LCM = '+ans+'.'
+  };
+}
+function genGCF(hard){
+  const n = hard ? tripleWithShare(140) : pairWithShare(3,120);
+  const ans = GCF.apply(null,n);
+  return {
+    sec:'B', kind:'num',
+    q: listOf(n),
+    ask:'Greatest common factor',
+    a: String(ans),
+    w: n.map(x=> x+' = '+pfString(x)).join('; ') +
+       '. Multiply only the primes all of them share: GCF = '+ans+'.'
+  };
+}
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+function listOf(n){
+  if(n.length===2) return n[0]+' and '+n[1];
+  return n.slice(0,-1).join(', ')+', and '+n[n.length-1];
+}
+
+/* --- word problems. Each template computes its own answer. --- */
+const NAMES = ['Ms. Reyes','Mr. Okafor','Dana','Priya','Marco','Devon','Ms. Han','Jamal','Nina','Mr. Cruz'];
+
+function wpGCF(){
+  const g = randInt(6,18), x = randInt(2,7), y = randInt(2,7);
+  if(x===y) return wpGCF();
+  const A = g*x, B = g*y;
+  if(GCF(A,B)!==g) return wpGCF();
+  const who = pick(NAMES);
+  const kit = pick([
+    ['pencils','erasers','supply kits'],
+    ['red beads','blue beads','bracelets'],
+    ['granola bars','juice boxes','snack bags'],
+    ['stickers','pencils','party favors']
+  ]);
+  return {
+    sec:'C', kind:'two',
+    q: who+' has '+A+' '+kit[0]+' and '+B+' '+kit[1]+'. Every '+
+       kit[2].replace(/s$/,'')+' must be identical with nothing left over.',
+    p1:'Greatest number of '+kit[2]+'?',
+    p2:cap(kit[0])+' in each?',
+    a1:String(g), a2:String(x),
+    a:'(a) '+g+' '+kit[2]+'  (b) '+x+' '+kit[0]+' and '+y+' '+kit[1],
+    w:'Identical groups with nothing left over means GCF. '+
+      A+' = '+pfString(A)+' and '+B+' = '+pfString(B)+', so GCF = '+g+'. '+
+      'Then '+A+' ÷ '+g+' = '+x+' and '+B+' ÷ '+g+' = '+y+'.'
+  };
+}
+function wpLCM(){
+  const a = randInt(4,20), b = randInt(4,20);
+  if(a===b || LCM(a,b)>400) return wpLCM();
+  const L = LCM(a,b);
+  const kind = pick(['light','bus']);
+  if(kind==='light'){
+    const win = 600;
+    const times = Math.floor(win/L);
+    if(times<2) return wpLCM();
+    return {
+      sec:'C', kind:'two',
+      q:'Two lighthouses flash together at midnight. One flashes every '+a+
+        ' seconds, the other every '+b+' seconds.',
+      p1:'Seconds until they flash together again?',
+      p2:'Times together in 10 minutes (not counting midnight)?',
+      a1:String(L), a2:String(times),
+      a:'(a) '+L+' seconds  (b) '+times+' times',
+      w:'"Together again" means LCM. '+a+' = '+pfString(a)+' and '+b+' = '+pfString(b)+
+        ', so LCM = '+L+' seconds. 10 minutes = 600 seconds, and 600 ÷ '+L+
+        ' = '+(600/L).toFixed(2)+', so it happens '+times+' whole times.'
+    };
+  }
+  const hrs = L/60;
+  if(L%60!==0 || hrs>6) return wpLCM();
+  return {
+    sec:'C', kind:'two',
+    q:'Two buses leave the depot together at 6:00 a.m. Bus A leaves every '+a+
+      ' minutes and Bus B every '+b+' minutes.',
+    p1:'Minutes until they leave together again?',
+    p2:'What hour is that? (just the number, e.g. 9)',
+    a1:String(L), a2:String(6+hrs),
+    a:'(a) '+L+' minutes  (b) '+(6+hrs)+':00 a.m.',
+    w:'LCM of '+a+' and '+b+' is '+L+' minutes = '+hrs+' hours. 6:00 + '+hrs+
+      ' hours = '+(6+hrs)+':00 a.m.'
+  };
+}
+
+function genWord(){ return Math.random()<.5 ? wpGCF() : wpLCM(); }
+
+/* --- reasoning: computed both ways, self-graded --- */
+function genReason(){
+  const t = randInt(0,2);
+  if(t===0){
+    const a=pick([90,84,126,120,150]), b=pick([126,140,180,210,198]);
+    if(a===b) return genReason();
+    const fa=primeFactors(a), fb=primeFactors(b);
+    const shared=[]; const cb=fb.slice();
+    fa.forEach(p=>{ const i=cb.indexOf(p); if(i>-1){ shared.push(p); cb.splice(i,1); } });
+    return {
+      sec:'D', kind:'open',
+      q:'Draw the Venn diagram of the prime factors of '+a+' and '+b+
+        '.\nWhat goes in the middle, and what does that tell you about the GCF?',
+      a:'Middle: '+(shared.join(', ')||'nothing shared')+
+        '. Multiplying the middle gives GCF = '+GCF(a,b)+'.',
+      w:a+' = '+pfString(a)+' and '+b+' = '+pfString(b)+
+        '. Watch for repeated primes — if a prime appears twice in BOTH numbers, '+
+        'it goes in the middle twice. The middle multiplied together is always the GCF.'
+    };
+  }
+  if(t===1){
+    const [a,b]=pairWithShare(2,30);
+    return {
+      sec:'D', kind:'open',
+      q:'Is the LCM of '+a+' and '+b+' the same as '+a+' × '+b+'?\n'+
+        'Explain why or why not.',
+      a:'No. LCM = '+LCM(a,b)+' but '+a+' × '+b+' = '+(a*b)+'.',
+      w:'They share a factor of '+GCF(a,b)+'. Multiplying counts that shared factor twice, '+
+        'so the product overshoots. The rule LCM = product only works when the GCF is 1.'
+    };
+  }
+  const [a,b]=pairWithShare(2,30);
+  return {
+    sec:'D', kind:'open',
+    q:'For '+a+' and '+b+': work out GCF × LCM, then work out '+a+' × '+b+
+      '.\nWhat do you notice?',
+    a:'GCF × LCM = '+GCF(a,b)+' × '+LCM(a,b)+' = '+(GCF(a,b)*LCM(a,b))+
+      ', and '+a+' × '+b+' = '+(a*b)+'. They match.',
+    w:'GCF × LCM always equals the product of the two numbers. Every prime gets counted '+
+      'once in the GCF and once in the LCM, which together is exactly how often it appears in the product.'
+  };
+}
+
+function buildPractice(mode, n){
+  const out=[];
+  for(let i=0;i<n;i++){
+    if(mode==='lcm')       out.push(genLCM(i>=Math.floor(n/2)));
+    else if(mode==='gcf')  out.push(genGCF(i>=Math.floor(n/2)));
+    else if(mode==='word') out.push(genWord());
+    else {
+      const r=i%4;
+      out.push(r===0?genLCM(i>n/2):r===1?genGCF(i>n/2):r===2?genWord():genReason());
+    }
+  }
+  return out;
+}
+
+/* ============================================================
+   SCREENS
+   ============================================================ */
+let S = null;                 /* active run */
+const SECNAME = {A:'Least common multiple', B:'Greatest common factor',
+                 C:'Word problems', D:'Explain your thinking'};
+
+function normTest(){
+  return TEST.map(t=>{
+    const o = {sec:t.sec, q:t.q, a:t.a, w:t.w};
+    if(t.sec==='A'){ o.kind='num'; o.ask='Least common multiple'; }
+    else if(t.sec==='B'){ o.kind='num'; o.ask='Greatest common factor'; }
+    else o.kind='open';
+    return o;
+  });
+}
+
+function go(screen, arg){
+  window.scrollTo(0,0);
+  if(screen==='home')    return renderHome();
+  if(screen==='run')     return renderQ();
+  if(screen==='results') return renderResults();
+}
+
+/* ---------- home ---------- */
+function renderHome(){
+  S=null;
+  $('subline').textContent='Factors & Multiples';
+  $('homeBtn').style.display='none';
+  setScratch(true);
+  const best = raw.get('best',{});
+  const done = raw.get('rounds',0)|0, right = raw.get('right',0)|0;
+  const tb = best.test!=null ? '<b style="color:var(--acc)">'+best.test+'/8</b> best on the test' : 'not attempted yet';
+  $('app').innerHTML = `
+    <h1>Factors &amp; Multiples</h1>
+    <p class="muted">LCM, GCF, word problems and the reasoning questions.
+       The practice rounds build brand-new numbers every time, so you can't just
+       memorize the answers.</p>
+
+    <button class="tile" onclick="start('test')">
+      <div class="tico">📝</div>
+      <div><b>Take the test</b><span>The same 15 questions as the printed sheet. Graded at the end.</span></div>
+      <div class="tchev">›</div>
+    </button>
+
+    <h2>Practice</h2>
+    <button class="tile" onclick="start('lcm')">
+      <div class="tico">🔁</div>
+      <div><b>LCM drill</b><span>10 questions, gets harder as you go. Three-number ones near the end.</span></div>
+      <div class="tchev">›</div>
+    </button>
+    <button class="tile" onclick="start('gcf')">
+      <div class="tico">🧩</div>
+      <div><b>GCF drill</b><span>10 questions. Bigger numbers than the homework sheet.</span></div>
+      <div class="tchev">›</div>
+    </button>
+    <button class="tile" onclick="start('word')">
+      <div class="tico">🚌</div>
+      <div><b>Word problems</b><span>8 two-part problems. The hard bit is deciding which one to use.</span></div>
+      <div class="tchev">›</div>
+    </button>
+    <button class="tile" onclick="start('mixed')">
+      <div class="tico">🎲</div>
+      <div><b>Mixed round</b><span>12 questions, all four types shuffled together.</span></div>
+      <div class="tchev">›</div>
+    </button>
+
+    <div class="card">
+      <div class="muted" style="font-size:13px">
+        <b style="color:var(--ink);font-size:14px">Where you're at</b><br>
+        ${done} round${done===1?'':'s'} finished · ${right} answered right · ${tb}
+      </div>
+    </div>
+    <p class="muted" style="font-size:12px;text-align:center;margin:18px 0 6px">
+      Stuck on a factorization? The pad at the bottom breaks any number apart for you —
+      except during the test.
+    </p>`;
+}
+
+/* ---------- start a run ---------- */
+function start(mode){
+  tick();
+  const isTest = mode==='test';
+  S = {
+    mode, isTest,
+    instant: !isTest,
+    list: isTest ? normTest()
+        : mode==='word' ? buildPractice('word',8)
+        : mode==='mixed'? buildPractice('mixed',12)
+        : buildPractice(mode,10),
+    i:0, right:0, auto:0, log:[], answered:false
+  };
+  $('homeBtn').style.display='';
+  $('subline').textContent = isTest ? 'Test — 15 questions'
+     : mode==='lcm' ? 'LCM drill' : mode==='gcf' ? 'GCF drill'
+     : mode==='word' ? 'Word problems' : 'Mixed round';
+  setScratch(!isTest);
+  go('run');
+}
+
+/* ---------- one question ---------- */
+function renderQ(){
+  const q = S.list[S.i], n = S.list.length;
+  S.answered = false;
+  const pct = Math.round(S.i/n*100);
+  let body = '';
+
+  if(q.kind==='num'){
+    body = `
+      <p class="qask">${esc(q.ask)} of<span class="big">${esc(q.q)}</span></p>
+      <label class="fl">Your answer</label>
+      <input type="number" inputmode="numeric" id="in1" autocomplete="off"
+             onkeydown="if(event.key==='Enter')check()">`;
+  } else if(q.kind==='two'){
+    body = `
+      <p class="qask">${esc(q.q)}</p>
+      <label class="fl">a) ${esc(q.p1)}</label>
+      <input type="number" inputmode="numeric" id="in1" autocomplete="off">
+      <label class="fl">b) ${esc(q.p2)}</label>
+      <input type="number" inputmode="numeric" id="in2" autocomplete="off"
+             onkeydown="if(event.key==='Enter')check()">`;
+  } else {
+    body = `
+      <p class="qask">${esc(q.q)}</p>
+      <label class="fl">Write it out — full sentences</label>
+      <textarea id="in1" placeholder="Explain your reasoning…"></textarea>`;
+  }
+
+  $('app').innerHTML = `
+    <div class="qtop">
+      <span class="tag ${q.sec.toLowerCase()}">${SECNAME[q.sec]}</span>
+      <span class="qnum" style="margin-left:auto">${S.i+1} / ${n}</span>
+    </div>
+    <div class="bar"><i style="width:${pct}%"></i></div>
+    ${body}
+    <div class="fb" id="fb"></div>
+    <div id="acts" style="margin-top:16px">
+      <button class="btn" onclick="check()">${q.kind==='open'?'Show the answer':'Check'}</button>
+    </div>`;
+  const f=$('in1'); if(f) f.focus();
+}
+
+function check(){
+  if(S.answered) return;
+  const q = S.list[S.i];
+  let ok=null, given='';
+
+  if(q.kind==='num'){
+    given = ($('in1').value||'').trim();
+    if(given==='') return;
+    ok = Number(given) === Number(q.a);
+  } else if(q.kind==='two'){
+    const v1=($('in1').value||'').trim(), v2=($('in2').value||'').trim();
+    if(v1===''||v2==='') return;
+    given = 'a) '+v1+'   b) '+v2;
+    ok = Number(v1)===Number(q.a1) && Number(v2)===Number(q.a2);
+  } else {
+    given = ($('in1').value||'').trim();
+    ok = null;                       /* self-graded */
+  }
+
+  S.answered = true;
+  S.log.push({q, given, ok});
+
+  if(ok===true){ S.right++; S.auto++; tick('ok'); buzz(18); }
+  else if(ok===false){ S.auto++; tick('no'); buzz([22,50,22]); }
+  else tick();
+
+  const fb=$('fb');
+  fb.className = 'fb show ' + (ok===false?'no':'ok');
+  if(ok===true){
+    fb.innerHTML = '<b>Correct.</b>' + (S.isTest?'':esc(q.w));
+  } else if(ok===false){
+    fb.innerHTML = '<b>Not quite.</b>The answer is <span class="ans">'+esc(q.a)+'</span>.<br>'+esc(q.w);
+  } else {
+    fb.innerHTML = '<b>Model answer</b><span class="ans">'+esc(q.a)+'</span><br>'+esc(q.w)+
+                   '<br><br><span style="color:var(--dim)">Did you get the idea?</span>';
+  }
+  if(S.isTest && ok!==null) fb.innerHTML = '<b>Answer recorded.</b>';
+
+  const last = S.i === S.list.length-1;
+  if(ok===null && !S.isTest){
+    $('acts').innerHTML = `
+      <div class="row">
+        <button class="btn ghost" onclick="selfGrade(false)">Missed it</button>
+        <button class="btn" onclick="selfGrade(true)">Got it</button>
+      </div>`;
+  } else {
+    $('acts').innerHTML = `<button class="btn" onclick="next()">${last?'See results':'Next'}</button>`;
+  }
+}
+
+function selfGrade(good){
+  const e = S.log[S.log.length-1];
+  e.ok = good; S.auto++;
+  if(good){ S.right++; tick('ok'); } else tick('no');
+  const last = S.i === S.list.length-1;
+  $('acts').innerHTML = `<button class="btn" onclick="next()">${last?'See results':'Next'}</button>`;
+}
+
+function next(){
+  tick();
+  S.i++;
+  if(S.i >= S.list.length) return finish();
+  go('run');
+}
+
+/* ---------- finish + results ---------- */
+function finish(){
+  const graded = S.log.filter(e=>e.ok!==null);
+  const right  = graded.filter(e=>e.ok===true).length;
+  bump('rounds',1);
+  bump('right', right);
+  raw.set('last', Date.now());
+  const best = raw.get('best',{});
+  const key  = S.mode;
+  const scoreForBest = S.isTest ? right : right;
+  if(best[key]==null || scoreForBest > best[key]) best[key] = scoreForBest;
+  raw.set('best', best);
+  S.finalRight = right; S.finalOf = graded.length;
+  go('results');
+}
+
+function renderResults(){
+  const graded = S.log.filter(e=>e.ok!==null);
+  const open   = S.log.filter(e=>e.ok===null);
+  const r = S.finalRight, of = S.finalOf;
+  const pctv = of ? Math.round(r/of*100) : 0;
+  const word = !of ? 'Mark the written ones yourself.'
+             : r===of  ? 'Perfect round.'
+             : pctv>=85 ? 'Strong.'
+             : pctv>=70 ? 'Solid \u2014 check the misses.'
+             : pctv>=50 ? 'Getting there.' : 'Worth another run.';
+
+  /* per-section tally */
+  const secs={};
+  S.log.forEach(e=>{
+    const s=e.q.sec; secs[s]=secs[s]||{r:0,n:0,u:0};
+    secs[s].n++;
+    if(e.ok===true) secs[s].r++; else if(e.ok===null) secs[s].u++;
+  });
+  const secRows = Object.keys(secs).sort().map(s=>{
+    const v=secs[s];
+    const txt = v.u===v.n ? 'check below' : v.r+'/'+(v.n-v.u);
+    return `<div class="secline"><span>${SECNAME[s]}</span><span class="s">${txt}</span></div>`;
+  }).join('');
+
+  const review = S.log.map((e,idx)=>{
+    const cls = e.ok===true?'right':e.ok===false?'wrong':'';
+    const head = e.q.kind==='num' ? e.q.ask+' of '+e.q.q : e.q.q;
+    return `<div class="rev ${cls}">
+      <p class="lbl">Q${idx+1} · ${SECNAME[e.q.sec]}</p>
+      <p>${esc(head)}</p>
+      <p class="lbl" style="margin-top:8px">You wrote</p>
+      <p style="color:${e.ok===false?'var(--bad)':'var(--ink)'}">${esc(e.given||'—')}</p>
+      ${e.ok===true?'':`
+        <p class="lbl" style="margin-top:8px">Answer</p>
+        <p style="color:var(--acc)">${esc(e.q.a)}</p>
+        <p class="muted" style="margin-top:6px">${esc(e.q.w)}</p>`}
+    </div>`;
+  }).join('');
+
+  $('subline').textContent='Results';
+  $('app').innerHTML = `
+    <div class="score">
+      <div class="n">${r}<span style="font-size:28px;color:var(--dim)">/${of}</span></div>
+      <div class="of">${word}</div>
+    </div>
+    <div class="card">${secRows}</div>
+    ${open.length && S.isTest ? `<p class="muted">${open.length} written question${open.length===1?'':'s'}
+       aren't auto-graded — read the model answers below and mark them yourself.</p>`:''}
+    <div class="row" style="margin:16px 0">
+      <button class="btn ghost" onclick="go('home')">Menu</button>
+      <button class="btn" onclick="start('${S.mode}')">Again</button>
+    </div>
+    <h2>Every question</h2>
+    ${review}
+    <div style="height:30px"></div>`;
+}
+
+/* ============================================================
+   PRIME FACTOR PAD
+   ============================================================ */
+let scOpen=false, scAllowed=true;
+function setScratch(allow){
+  scAllowed = allow;
+  $('scratch').style.display = allow ? '' : 'none';
+  if(!allow && scOpen) toggleScratch();
+}
+function toggleScratch(){
+  scOpen = !scOpen;
+  $('scratch').classList.toggle('open', scOpen);
+  $('scarrow').textContent = scOpen ? '▼' : '▲';
+  $('scnote').textContent  = scOpen ? '' : 'tap to open';
+  if(scOpen) setTimeout(()=>$('scin').focus(),260);
+  tick();
+}
+function factorNow(){
+  const v = parseInt($('scin').value,10);
+  const out=$('scout'), chips=$('scchips');
+  if(!v || v<2 || v>1000000){
+    out.innerHTML='Break any number into its prime factors.';
+    chips.innerHTML=''; return;
+  }
+  const f = primeFactors(v);
+  const uniq = [];
+  f.forEach(p=>{ const l=uniq[uniq.length-1]; if(l&&l[0]===p) l[1]++; else uniq.push([p,1]); });
+  const powers = uniq.map(([p,c])=> c>1 ? p+'<sup>'+c+'</sup>' : ''+p).join(' × ');
+  out.innerHTML =
+    '<span class="pf">'+v+' = '+f.join(' × ')+'</span>' +
+    (uniq.length && f.length>1 ? '<br><span style="color:var(--dim);font-size:13.5px">written short: '+powers+'</span>' : '') +
+    (f.length===1 ? '<br><span style="color:var(--warn);font-size:13.5px">'+v+' is prime.</span>' : '');
+  const pairs = factorPairs(v).slice(0,8);
+  chips.innerHTML = '<span class="chip" style="border:0;background:none;padding-left:0">factor pairs:</span>' +
+    pairs.map(([a,b])=>`<span class="chip">${a} × ${b}</span>`).join('');
+}
+
+/* ---------- boot ---------- */
+renderHome();
+</script>
+</body>
+</html>

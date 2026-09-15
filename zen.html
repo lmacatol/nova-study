@@ -948,7 +948,7 @@ document.addEventListener('click', e=>{
     renderFxBar(); return;
   }
   const v = e.target.closest('[data-v]');
-  if(v){ Voice.unlock(); Voice.setVoice(v.dataset.v); renderVoiceBar();
+  if(v){ Voice.unlock(); Voice.setVoice(v.dataset.v); RVoice.reset(); renderVoiceBar();
          Voice.say(0, U[0].a.title, U[0].t); return; }
   const t = e.target.closest('[data-u]');
   if(t) openLesson(+t.dataset.u);
@@ -2186,7 +2186,84 @@ document.getElementById('passMore').onclick = ()=>{ renderGames(); go('games'); 
        all at the end
      · the page he is on is saved, so a snack break costs nothing
    ============================================================ */
-let RD = null, STORIES = null;
+
+/* The stories get their own recorded sprites — one MP3 per story. Same
+   engine as the maths voice: decoded Web Audio first, <audio> second,
+   the device's own voice only if nothing is installed. */
+const RVoice = (()=>{
+  const sprites = {};
+  let ctx = null, active = null;
+  const TAIL = 0.12;
+  function stop(){
+    if(!active) return;
+    const a = active; active = null;
+    if(a.raf) cancelAnimationFrame(a.raf);
+    if(a.timer) clearTimeout(a.timer);
+    try{ a.src ? a.src.stop() : a.el.pause(); }catch(e){}
+  }
+  function load(i){
+    const suf = Voice.suffix();
+    const key = i + suf;
+    if(sprites[key]) return sprites[key];
+    const stems = suf ? ['read'+i+suf, 'read'+i] : ['read'+i];
+    sprites[key] = stems.reduce((c, st)=> c.catch(()=>
+        fetch(st+'.json').then(r=>{ if(!r.ok) throw 0; return r.json(); }).then(idx=>({idx, st}))
+      ), Promise.reject(0))
+      .then(({idx, st})=> fetch(st+'.mp3').then(r=>{ if(!r.ok) throw 0; return r.arrayBuffer(); })
+        .then(buf=>{
+          const sp = {idx, url: URL.createObjectURL(new Blob([buf],{type:'audio/mpeg'})), buf:null};
+          try{
+            if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)();
+            return new Promise(res=> ctx.decodeAudioData(buf.slice(0), b=>{ sp.buf=b; res(sp); }, ()=>res(sp)));
+          }catch(e){ return sp; }
+        }));
+    return sprites[key];
+  }
+  return {
+    stop,
+    warm(i){ load(i).catch(()=>{}); },
+    reset(){ for(const k in sprites) delete sprites[k]; },
+    /* speak clip `n` of story `i`; falls back to `text` on the device voice */
+    say(i, n, text, after){
+      stop();
+      if(n == null) return speakSentence(text, after);
+      load(i).then(sp=>{
+        const span = sp.idx[n];
+        if(!span || !span[1]) throw 0;
+        const [start, dur] = span;
+        if(ctx && ctx.state === 'suspended') ctx.resume().catch(()=>{});
+        if(sp.buf && ctx && ctx.state !== 'suspended'){
+          const src = ctx.createBufferSource();
+          src.buffer = sp.buf; src.connect(ctx.destination);
+          const a = active = {src};
+          src.onended = ()=>{ if(active===a){ active=null; if(after) after(); } };
+          try{ src.start(0, start, dur + TAIL); }
+          catch(e){ active=null; if(after) after(); return; }
+          a.timer = setTimeout(()=>{ if(active===a){ stop(); if(after) after(); } }, (dur+1.5)*1000);
+        } else {
+          const el = new Audio(); el.preload='auto'; el.src = sp.url;
+          const endAt = start + dur + TAIL;
+          const a = active = {el};
+          const begin = ()=>{
+            try{ el.currentTime = start; }catch(e){}
+            const pr = el.play();
+            if(pr && pr.catch) pr.catch(()=>{ if(active===a){ active=null; speakSentence(text, after); } });
+            a.tick = ()=>{
+              if(active!==a) return;
+              if(el.ended || el.currentTime >= endAt){ stop(); if(after) after(); return; }
+              a.raf = requestAnimationFrame(a.tick);
+            };
+            a.raf = requestAnimationFrame(a.tick);
+          };
+          if(el.readyState >= 1) begin(); else el.addEventListener('loadedmetadata', begin, {once:true});
+          a.timer = setTimeout(()=>{ if(active===a){ stop(); if(after) after(); } }, (dur+2.5)*1000);
+        }
+      }).catch(()=> speakSentence(text, after));
+    }
+  };
+})();
+
+let RD = null, STORIES = null, STORY_IX = 0;
 function readState(){ return db.get('read', {day:'', pages:0, at:{}}); }
 function pagesToday(){
   const r = readState();
@@ -2239,14 +2316,19 @@ document.getElementById('stBack').onclick = ()=>{ Voice.stop(); renderHome(); go
 
 /* word work first — the hard words get met once before they show up mid-sentence */
 function openWords(id){
-  const st = STORIES.find(x=>x.id===id);
+  STORY_IX = STORIES.findIndex(x=>x.id===id);
+  const st = STORIES[STORY_IX];
+  RVoice.warm(STORY_IX);
   RD = { st, page: (readState().at||{})[id] || 0, sent: 0, checkDone: {} };
   if(RD.page >= st.pages.length) RD.page = 0;
-  document.getElementById('wordList').innerHTML = st.words.map(w=>
-    `<div class="wordcard" data-say="${w[0]}"><b>${w[0]}</b>
+  document.getElementById('wordList').innerHTML = st.words.map((w,k)=>
+    `<div class="wordcard" data-w="${k}"><b>${w[0]}</b>
        <div class="say">${w[2]}</div><span>${w[1]}</span></div>`).join('');
-  document.querySelectorAll('[data-say]').forEach(el=>
-    el.onclick = ()=> speakWord(el.dataset.say));
+  document.querySelectorAll('.wordcard[data-w]').forEach(el=> el.onclick = ()=>{
+    const w = st.words[+el.dataset.w];
+    // the word, then what it means — both recorded
+    RVoice.say(STORY_IX, w[3], w[0], ()=> setTimeout(()=> RVoice.say(STORY_IX, w[4], w[1]), 260));
+  });
   go('words');
 }
 document.getElementById('wdBack').onclick = ()=>{ renderStories(); go('stories'); };
@@ -2282,8 +2364,8 @@ function paintPage(){
   document.getElementById('pgNum').textContent = `Page ${RD.page+1} of ${st.pages.length}`;
   document.getElementById('pgBar').style.width = ((RD.page+1)/st.pages.length*100)+'%';
   document.getElementById('pgAfter').innerHTML = '';
-  document.getElementById('pgText').innerHTML = sents.map((sen,i)=>
-    `<span class="sent" data-s="${i}">` + sen.split(/(\s+)/).map(tok=>{
+  document.getElementById('pgText').innerHTML = sents.map((pair,i)=>
+    `<span class="sent" data-s="${i}">` + pair[0].split(/(\s+)/).map(tok=>{
       if(!tok.trim()) return tok;
       const bare = tok.replace(/[^A-Za-z']/g,'').toLowerCase();
       return `<span class="w${HARD[bare]?' hard':''}" data-w="${bare}">${tok}</span>`;
@@ -2316,11 +2398,11 @@ function readPage(from){
     }
     const el = document.querySelector(`#pgText [data-s="${RD.at}"]`);
     if(el) el.classList.add('lit');
-    const text = sents[RD.at];
+    const [text, ai] = sents[RD.at];
     // a beat between sentences, longer on the slow setting — a weak reader
     // needs a moment to land on the full stop before the next one starts
     const beat = Math.round(420 - rate() * 240);
-    speakSentence(text, ()=>{
+    RVoice.say(STORY_IX, ai, text, ()=>{
       if(mine !== READ.gen) return;
       RD.at++;
       setTimeout(step, beat);
@@ -2328,7 +2410,7 @@ function readPage(from){
   })();
 }
 function pauseRead(){
-  READ.gen++;                                        // invalidates the running loop
+  READ.gen++; RVoice.stop();                                        // invalidates the running loop
   READ.playing = false;
   try{ speechSynthesis.cancel(); }catch(e){}
   paintReadBtn();
@@ -2356,7 +2438,7 @@ function speakSentence(text, after){
   }catch(e){ if(after) after(); }
 }
 function stopReading(){
-  READ.gen++; READ.playing = false;
+  READ.gen++; READ.playing = false; RVoice.stop();
   try{ speechSynthesis.cancel(); }catch(e){}
   paintReadBtn();
   document.querySelectorAll('.spk.playing').forEach(b=>b.classList.remove('playing'));
@@ -2391,7 +2473,14 @@ function askCheck(c){
      <div class="opts">${c.o.map((o,i)=>
        `<button class="opt" data-ck="${i}"><span class="num">${i+1}</span><span>${o}</span></button>`).join('')}</div>`;
   document.getElementById('pgAfter').scrollIntoView({block:'nearest', behavior:'smooth'});
-  speakSentence(c.q);
+  // question, then each choice in turn — he cannot read them either
+  const items = [[c.ai ? c.ai.q : null, c.q]].concat(c.o.map((o,k)=>[c.ai ? c.ai.o[k] : null, o]));
+  let k = 0;
+  (function run(){
+    if(k >= items.length) return;
+    const [ai, txt] = items[k++];
+    RVoice.say(STORY_IX, ai, txt, ()=> setTimeout(run, 220));
+  })();
   document.querySelectorAll('[data-ck]').forEach(b=> b.onclick = ()=>{
     const i = +b.dataset.ck, ok = (i === c.a);
     document.querySelectorAll('[data-ck]').forEach(x=> x.onclick = null);
@@ -2402,7 +2491,7 @@ function askCheck(c){
     document.getElementById('pgAfter').insertAdjacentHTML('beforeend',
       `<div class="why${ok?'':' miss'}"><b>${lead}</b> ${c.why}</div>
        <button class="btn" id="ckNext" style="margin-top:14px">Keep reading</button>`);
-    speakSentence(lead + ' ' + c.why);
+    RVoice.say(STORY_IX, c.ai ? c.ai.w : null, lead + ' ' + c.why);
     document.getElementById('ckNext').onclick = ()=>{ stopReading(); nextPageOrEnd(); };
     document.getElementById('ckNext').scrollIntoView({block:'nearest', behavior:'smooth'});
   });
