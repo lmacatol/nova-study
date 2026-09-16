@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Nevada Driver Test — Practice</title>
+<style>
+:root{
+  --bg:#0d0b07; --panel:#191509; --panel2:#231d0e; --line:#3a3119;
+  --ink:#f4efe4; --dim:#a99b80; --acc:#ffcc4d; --acc2:#e0a92b;
+  --good:#5fd08a; --bad:#ff7b6b; --r:16px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);
+  font:16px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding:0 0 40px;min-height:100vh;-webkit-font-smoothing:antialiased}
+.wrap{max-width:660px;margin:0 auto;padding:0 16px}
+a{color:var(--acc)}
+.top{position:sticky;top:0;z-index:40;background:rgba(13,11,7,.95);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topin{max-width:660px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+.badge{width:38px;height:38px;border-radius:11px;background:var(--acc);color:#2a1d00;
+  display:grid;place-items:center;font-weight:800;font-size:13px;flex:0 0 auto}
+.who b{display:block;font-size:15px;line-height:1.2}
+.who span{display:block;font-size:12px;color:var(--dim)}
+.pill{margin-left:auto;border:1px solid var(--line);background:var(--panel);color:var(--dim);
+  border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit}
+h1{font-size:22px;margin:22px 0 4px;letter-spacing:-.3px}
+h2{font-size:15px;margin:26px 0 8px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px}
+.muted{color:var(--dim);font-size:13.5px;line-height:1.6}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:12px 0}
+.note{background:rgba(255,204,77,.08);border:1px solid rgba(255,204,77,.35);
+  border-radius:13px;padding:14px 16px;margin:14px 0;font-size:13.5px;line-height:1.6}
+.note b{color:var(--acc)}
+.btn{display:block;width:100%;border:0;border-radius:13px;padding:14px 16px;background:var(--acc);
+  color:#2a1d00;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line);font-weight:600}
+.btn:active{transform:translateY(1px)}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.tile{display:flex;gap:14px;align-items:center;width:100%;text-align:left;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--r);padding:15px 16px;margin:10px 0;
+  cursor:pointer;color:inherit;font-family:inherit}
+.tile:active{border-color:var(--acc)}
+.tico{width:42px;height:42px;border-radius:11px;background:var(--panel2);display:grid;
+  place-items:center;font-size:20px;flex:0 0 auto}
+.tile b{display:block;font-size:15.5px}
+.tile span{display:block;font-size:12.5px;color:var(--dim);margin-top:2px;line-height:1.45}
+.tchev{margin-left:auto;color:var(--dim);font-size:19px}
+.qtop{display:flex;align-items:center;gap:10px;margin:18px 0 6px}
+.tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;
+  color:var(--acc);border:1px solid var(--acc);border-radius:999px;padding:3px 9px}
+.qnum{margin-left:auto;font-size:12.5px;color:var(--dim);font-weight:700}
+.bar{height:5px;background:var(--panel2);border-radius:99px;overflow:hidden;margin:8px 0 2px}
+.bar i{display:block;height:100%;background:var(--acc);border-radius:99px;transition:width .3s}
+.bar i.warn{background:var(--bad)}
+.qask{font-size:19px;line-height:1.5;margin:16px 0 14px}
+.opt{display:block;width:100%;text-align:left;background:var(--panel);border:1.5px solid var(--line);
+  border-radius:13px;padding:14px 16px;margin:9px 0;color:inherit;font-size:15.5px;
+  cursor:pointer;font-family:inherit;line-height:1.45}
+.opt:active{border-color:var(--acc)}
+.opt .k{display:inline-block;width:22px;font-weight:800;color:var(--dim)}
+.opt.pick{border-color:var(--acc)}
+.opt.right{border-color:var(--good);background:rgba(95,208,138,.1)}
+.opt.right .k{color:var(--good)}
+.opt.wrong{border-color:var(--bad);background:rgba(255,123,107,.1)}
+.opt.wrong .k{color:var(--bad)}
+.opt:disabled{cursor:default;opacity:1}
+.fb{border-radius:13px;padding:13px 15px;margin:14px 0;font-size:14.5px;line-height:1.6;display:none}
+.fb.show{display:block}
+.fb.ok{background:rgba(95,208,138,.1);border:1px solid rgba(95,208,138,.4)}
+.fb.no{background:rgba(255,123,107,.1);border:1px solid rgba(255,123,107,.4)}
+.fb b{display:block;margin-bottom:4px;font-size:15px}
+.score{text-align:center;padding:26px 0 4px}
+.score .n{font-size:58px;font-weight:800;letter-spacing:-2px;line-height:1}
+.score .of{font-size:17px;margin-top:6px}
+.score .of.pass{color:var(--good)}
+.score .of.fail{color:var(--bad)}
+.secline{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.secline:last-child{border-bottom:0}
+.secline .s{margin-left:auto;font-weight:700}
+.rev{border-left:3px solid var(--bad);padding:2px 0 2px 13px;margin:14px 0}
+.rev p{margin:0 0 5px;font-size:14px;line-height:1.55}
+.rev .lbl{font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--dim);text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="top"><div class="topin">
+  <div class="badge">NV</div>
+  <div class="who"><b>Nevada Driver Test</b><span id="subline">Practice</span></div>
+  <button class="pill" id="homeBtn" onclick="go('home')" style="display:none">Menu</button>
+</div></div>
+<div class="wrap" id="app"></div>
+<script>
+const BANK = [{"t": "Nevada rules", "q": "How many demerit points in a 12-month period trigger an automatic license suspension in Nevada?", "c": ["8 points", "10 points", "12 points", "15 points"], "a": 2, "w": "12 or more points within 12 months means an automatic 6-month suspension."}, {"t": "Nevada rules", "q": "If you reach the point threshold, how long is the suspension?", "c": ["30 days", "90 days", "6 months", "1 year"], "a": 2, "w": "The automatic suspension is 6 months."}, {"t": "Nevada rules", "q": "How long do demerit points stay active on your Nevada record?", "c": ["6 months", "1 year from conviction", "3 years", "Forever"], "a": 1, "w": "Points stay active for one year after the conviction. The conviction itself remains on your permanent record even after the points drop off."}, {"t": "Nevada rules", "q": "How many points does reckless driving carry in Nevada?", "c": ["4 points", "6 points", "8 points", "12 points"], "a": 2, "w": "Reckless driving is 8 points — the most of any single non-DUI violation. Careless driving is 6."}, {"t": "Nevada rules", "q": "How many points is 'failure to yield the right of way'?", "c": ["2 points", "4 points", "6 points", "8 points"], "a": 1, "w": "4 points. Disobeying a signal or stop sign, following too closely, and passing a stopped school bus are also 4 each."}, {"t": "Nevada rules", "q": "You have between 3 and 11 points. What can remove 3 of them?", "c": ["Paying an extra fine", "Completing a DMV-approved traffic safety course", "Waiting 30 days with no violations", "Nothing — points can't be removed"], "a": 1, "w": "A DMV-approved traffic safety course removes 3 points, but only once every 12 months, and not if the course was ordered by a court."}, {"t": "Nevada rules", "q": "Nevada's minimum liability insurance for bodily injury to ONE person in an accident is:", "c": ["$15,000", "$20,000", "$25,000", "$50,000"], "a": 2, "w": "Nevada's minimums are 25/50/20: $25,000 per person, $50,000 per accident, $20,000 property damage."}, {"t": "Nevada rules", "q": "Nevada's minimum liability coverage for property damage is:", "c": ["$10,000", "$20,000", "$25,000", "$50,000"], "a": 1, "w": "$20,000 for property damage. The full minimum is $25,000 / $50,000 / $20,000."}, {"t": "Nevada rules", "q": "A standard Nevada driver's license is normally valid for how long?", "c": ["4 years", "5 years", "8 years", "10 years"], "a": 2, "w": "Most Nevada drivers get a license valid for 8 years."}, {"t": "Nevada rules", "q": "Your Nevada license expired 45 days ago. What applies?", "c": ["Nothing extra", "A $10 late fee", "A written test", "A written and a road test"], "a": 1, "w": "Past 30 days a $10 late fee applies. A written test isn't required until the license has been expired a year or more."}, {"t": "Nevada rules", "q": "Your Nevada license has been expired for more than four years. What must you do?", "c": ["Just pay the late fee", "Take the written test only", "Take both the written test and the road skills test", "Apply as a new resident"], "a": 2, "w": "Over four years expired means you must pass both the knowledge test and the road skills test."}, {"t": "Nevada rules", "q": "Children under the age of two must ride:", "c": ["In any child seat, front or back", "In a rear-facing child restraint in the back seat", "In a booster seat", "Buckled in a regular seat belt"], "a": 1, "w": "Under two years old means a rear-facing child restraint system in the back seat."}, {"t": "Nevada rules", "q": "Nevada requires an approved child restraint system for children who are:", "c": ["Under 6 years old and less than 57 inches tall", "Under 4 years old only", "Under 10 years old regardless of height", "Under 80 pounds only"], "a": 0, "w": "Both conditions are written into the requirement: under age six and under 57 inches tall."}, {"t": "Speed & spacing", "q": "Unless posted otherwise, the speed limit in a Nevada business or residential district is:", "c": ["15 mph", "20 mph", "25 mph", "35 mph"], "a": 2, "w": "25 mph in business and residential districts unless a sign says otherwise."}, {"t": "Speed & spacing", "q": "At 40 mph or less, the recommended minimum following distance is:", "c": ["One second", "Two seconds", "Four seconds", "Six seconds"], "a": 1, "w": "Use the two-second rule at 40 mph and under. Add more time in rain, fog, or when following a large vehicle."}, {"t": "Speed & spacing", "q": "You should increase your following distance when:", "c": ["The road is dry and clear", "You are being tailgated", "You are driving downhill in the rain", "All of the above except the first"], "a": 3, "w": "Wet roads, downgrades, and being tailgated all call for more space in front of you — that cushion is the only one you control."}, {"t": "Speed & spacing", "q": "Driving well BELOW the speed limit on a highway is:", "c": ["Always the safest choice", "Legal and never a problem", "Potentially dangerous and can obstruct traffic", "Only a problem at night"], "a": 2, "w": "Traffic moving much slower than the flow forces others to pass and change lanes, which creates conflict. Keep right if you must go slow."}, {"t": "Speed & spacing", "q": "'Basic speed law' means:", "c": ["You may always drive the posted limit", "You must never exceed 55 mph", "You must drive at a speed that is reasonable for the conditions", "Speed limits don't apply in bad weather"], "a": 2, "w": "The posted limit is the maximum in ideal conditions. In fog, ice, or heavy traffic, the safe speed is lower — and driving the posted limit can still be illegal."}, {"t": "Speed & spacing", "q": "Speeding 11 to 20 mph over the limit carries how many demerit points?", "c": ["1 point", "2 points", "4 points", "5 points"], "a": 1, "w": "2 points. It climbs to 4 points at 21-40 over, and 5 points at 41 or more over."}, {"t": "Speed & spacing", "q": "Your stopping distance is made up of:", "c": ["Braking distance only", "Perception and reaction distance plus braking distance", "Reaction distance only", "The length of your vehicle plus braking distance"], "a": 1, "w": "You travel a surprising distance while you notice a hazard and move your foot, before the brakes do anything at all."}, {"t": "Speed & spacing", "q": "If you double your speed, your braking distance:", "c": ["Stays the same", "Roughly doubles", "Roughly quadruples", "Is cut in half"], "a": 2, "w": "Braking distance grows with the square of speed — double the speed, about four times the distance."}, {"t": "Speed & spacing", "q": "When entering a freeway from an on-ramp you should:", "c": ["Stop at the end of the ramp and wait for a gap", "Use the ramp to match the speed of freeway traffic, then merge", "Merge at 35 mph and speed up afterward", "Signal only after you have merged"], "a": 1, "w": "The acceleration lane exists so you can match traffic speed. Merging much slower than the flow is how ramp collisions happen."}, {"t": "Speed & spacing", "q": "On a wet road, hydroplaning is most likely to begin:", "c": ["Below 20 mph", "At higher speeds with worn tires", "Only in standing water deeper than six inches", "Only with brand-new tires"], "a": 1, "w": "Speed and tread depth are the two big factors. If you feel the steering go light, ease off the gas — don't brake hard."}, {"t": "Speed & spacing", "q": "In work zones, fines for speeding in Nevada are:", "c": ["The same as anywhere else", "Waived if no workers are present", "Doubled", "Replaced with a warning"], "a": 2, "w": "Work zone fines are doubled. Slow down and expect sudden lane shifts."}, {"t": "Speed & spacing", "q": "The safest speed on an icy or snow-packed road is:", "c": ["The posted limit", "Well below the posted limit", "Whatever keeps up with traffic", "5 mph over, to maintain momentum"], "a": 1, "w": "Traction is what sets your safe speed, not the sign. Brake gently and leave far more space than usual."}, {"t": "Alcohol & penalties", "q": "The BAC limit for a driver 21 or older in Nevada is:", "c": ["0.02%", "0.05%", "0.08%", "0.10%"], "a": 2, "w": "0.08% for adults. You can still be arrested below that if your driving is impaired."}, {"t": "Alcohol & penalties", "q": "For a driver under 21, the BAC limit is:", "c": ["0.00%", "0.02%", "0.05%", "0.08%"], "a": 1, "w": "0.02% — effectively zero tolerance for drivers under 21."}, {"t": "Alcohol & penalties", "q": "For a commercial driver operating a commercial vehicle, the BAC limit is:", "c": ["0.02%", "0.04%", "0.08%", "0.10%"], "a": 1, "w": "0.04% for commercial drivers — half the limit for regular drivers."}, {"t": "Alcohol & penalties", "q": "What most reliably lowers your blood alcohol level?", "c": ["Coffee", "A cold shower", "Time", "Exercise"], "a": 2, "w": "Only time. Coffee makes a drunk person a wide-awake drunk person — it does nothing to the alcohol in your blood."}, {"t": "Alcohol & penalties", "q": "'Implied consent' means that by driving in Nevada you have agreed to:", "c": ["Random vehicle searches", "Chemical testing if lawfully arrested for DUI", "Waive your right to an attorney", "Annual vehicle inspections"], "a": 1, "w": "Holding a license means you've consented to evidentiary testing on a lawful DUI arrest. Refusing carries its own penalties."}, {"t": "Alcohol & penalties", "q": "Prescription medication can:", "c": ["Never affect your driving", "Only affect driving if mixed with alcohol", "Impair driving on its own", "Be ignored if prescribed by a doctor"], "a": 2, "w": "Plenty of legal prescriptions cause drowsiness or slow reactions. A prescription is not a defense to impaired driving."}, {"t": "Alcohol & penalties", "q": "The single most effective way to avoid a DUI is to:", "c": ["Drive slowly and carefully", "Eat a large meal first", "Arrange a sober ride before you drink", "Wait one hour per drink"], "a": 2, "w": "Decide before the first drink, when you're still in a position to decide well."}, {"t": "Alcohol & penalties", "q": "Alcohol affects which of these first?", "c": ["Reaction time only", "Judgment and inhibition", "Vision only", "Physical coordination only"], "a": 1, "w": "Judgment goes early — which is exactly why impaired drivers feel fine and conclude they're safe to drive."}, {"t": "Alcohol & penalties", "q": "Passing a stopped school bus with its red lights flashing carries how many demerit points?", "c": ["2 points", "4 points", "6 points", "8 points"], "a": 1, "w": "4 points, plus a substantial fine. It is one of the most serious non-DUI violations."}, {"t": "Alcohol & penalties", "q": "Careless driving in Nevada carries how many points?", "c": ["2 points", "4 points", "6 points", "8 points"], "a": 2, "w": "6 points for careless driving. Reckless driving is worse at 8."}, {"t": "Alcohol & penalties", "q": "Driving while fatigued is:", "c": ["Not a real safety issue", "Comparable to impairment in its effect on reaction time", "Only a problem on trips over 8 hours", "Solved by turning up the radio"], "a": 1, "w": "Fatigue slows reactions and narrows attention much the way alcohol does. The only real fix is sleep."}, {"t": "Alcohol & penalties", "q": "An open container of alcohol in the passenger area of a moving vehicle is:", "c": ["Fine if the driver isn't drinking", "Fine if it belongs to a passenger", "Prohibited", "Fine if it is under 12 ounces"], "a": 2, "w": "Open containers are not allowed in the passenger area, regardless of who they belong to."}, {"t": "Right of way", "q": "Two vehicles arrive at a four-way stop at the same time. Who goes first?", "c": ["The vehicle on the left", "The vehicle on the right", "The larger vehicle", "Whoever accelerates first"], "a": 1, "w": "Yield to the vehicle on your right when you arrive together."}, {"t": "Right of way", "q": "You are turning left at an intersection with a green light (no arrow). You must:", "c": ["Proceed immediately", "Yield to oncoming traffic and pedestrians", "Wait for a green arrow", "Sound your horn and proceed"], "a": 1, "w": "A green ball lets you turn left only when there is a safe gap. Oncoming traffic and pedestrians have the right of way."}, {"t": "Right of way", "q": "A pedestrian is in an unmarked crosswalk at an intersection. You must:", "c": ["Proceed — only marked crosswalks count", "Yield to the pedestrian", "Honk to warn them", "Yield only if they are elderly"], "a": 1, "w": "Intersections have crosswalks whether or not lines are painted. Pedestrians in them have the right of way."}, {"t": "Right of way", "q": "You are entering a road from a driveway or alley. You must:", "c": ["Yield to all traffic and pedestrians on the road", "Proceed if you signal", "Take the right of way if the road is clear of cars", "Yield only to vehicles, not pedestrians"], "a": 0, "w": "Traffic already on the roadway and pedestrians on the sidewalk both have the right of way over you."}, {"t": "Right of way", "q": "An emergency vehicle approaches with lights and siren. You should:", "c": ["Speed up to clear the intersection", "Pull to the right and stop", "Stop immediately where you are", "Move to the left lane"], "a": 1, "w": "Pull to the right edge of the road and stop, so the emergency vehicle has a predictable path. Don't stop in the middle of an intersection."}, {"t": "Right of way", "q": "Nevada's Move Over law requires you to do what when passing a stopped emergency or tow vehicle with flashing lights?", "c": ["Sound your horn", "Move over a lane if you safely can, otherwise slow down", "Stop completely", "Maintain your speed"], "a": 1, "w": "Give them a lane if traffic allows. If you can't change lanes safely, slow down substantially as you pass."}, {"t": "Right of way", "q": "At an uncontrolled intersection where no signs or signals are present, you should:", "c": ["Proceed at normal speed", "Slow down and be ready to yield", "Always stop completely", "Sound your horn and proceed"], "a": 1, "w": "Approach ready to yield. The vehicle on the right has the right of way if you arrive together."}, {"t": "Right of way", "q": "A funeral procession is passing through an intersection. You should:", "c": ["Cut between vehicles if there is a gap", "Yield and not interrupt the procession", "Proceed if you have a green light", "Sound your horn"], "a": 1, "w": "Let the procession pass intact, even if your light turns green."}, {"t": "Right of way", "q": "When a traffic signal is completely dark due to a power failure, treat the intersection as:", "c": ["A green light", "A four-way stop", "A yield sign", "An uncontrolled intersection"], "a": 1, "w": "Treat a dead signal as a four-way stop: stop, then proceed in turn."}, {"t": "Right of way", "q": "A school bus on a divided highway is stopped with red lights flashing on the OTHER side of the median. You:", "c": ["Must stop", "May proceed with caution", "Must stop only if children are visible", "Must stop only on city streets"], "a": 1, "w": "On a divided highway, traffic traveling the opposite direction need not stop. On an undivided road, everyone stops."}, {"t": "Right of way", "q": "You want to change lanes. The correct order is:", "c": ["Signal, check mirrors, check blind spot, move", "Move, then signal", "Check blind spot, move, then signal", "Signal and move immediately"], "a": 0, "w": "Signal first so others know your intent, then mirrors, then a head-check of the blind spot, then move."}, {"t": "Right of way", "q": "Vehicles already in a roundabout:", "c": ["Must yield to entering traffic", "Have the right of way", "Must stop at each entrance", "Should reverse if they miss an exit"], "a": 1, "w": "Yield on entry to traffic already circulating. Never back up or stop inside a roundabout — go around again."}, {"t": "Signs & signals", "q": "An octagonal (eight-sided) sign always means:", "c": ["Yield", "Stop", "Do not enter", "Railroad crossing"], "a": 1, "w": "Only stop signs are octagonal, so the shape is recognizable even if the face is obscured by snow or dirt."}, {"t": "Signs & signals", "q": "A triangular sign pointing downward means:", "c": ["Stop", "Yield", "No passing", "School zone"], "a": 1, "w": "The downward triangle is reserved for yield."}, {"t": "Signs & signals", "q": "A yellow diamond-shaped sign is a:", "c": ["Regulatory sign", "Warning sign", "Guide sign", "Construction sign"], "a": 1, "w": "Yellow diamonds warn of conditions ahead — curves, merges, crossings. Orange diamonds mean construction."}, {"t": "Signs & signals", "q": "A solid yellow line on your side of the center line means:", "c": ["Passing is permitted", "Passing is not permitted from your side", "The road is one-way", "You may park there"], "a": 1, "w": "Solid means don't cross to pass. A broken yellow line on your side means passing is allowed when clear."}, {"t": "Signs & signals", "q": "A flashing red light means:", "c": ["Slow down and proceed", "Stop, then proceed when safe", "The signal is broken — ignore it", "Stop and wait for green"], "a": 1, "w": "Treat a flashing red exactly like a stop sign."}, {"t": "Signs & signals", "q": "A flashing yellow light means:", "c": ["Stop", "Proceed with caution", "The light is about to turn red", "Yield to pedestrians only"], "a": 1, "w": "Slow down and proceed carefully — cross traffic may not be stopping."}, {"t": "Signs & signals", "q": "A steady yellow light means:", "c": ["Speed up to clear the intersection", "The light is about to turn red — stop if you can do so safely", "Stop no matter what", "Proceed as if green"], "a": 1, "w": "Stop if you can do so safely. If you're already too close to stop, continue through."}, {"t": "Signs & signals", "q": "White lane markings separate:", "c": ["Traffic moving in opposite directions", "Traffic moving in the same direction", "Parking spaces only", "Bicycle lanes only"], "a": 1, "w": "White separates same-direction lanes; yellow separates opposing directions."}, {"t": "Signs & signals", "q": "A red circle with a diagonal slash over a symbol means:", "c": ["Caution", "The action shown is prohibited", "The action shown is required", "Construction ahead"], "a": 1, "w": "The slashed red circle always means 'do not do this'."}, {"t": "Signs & signals", "q": "A pentagon-shaped sign indicates:", "c": ["A hospital", "A school zone or school crossing", "A rest area", "A railroad crossing"], "a": 1, "w": "The five-sided sign is reserved for schools and school crossings."}, {"t": "Signs & signals", "q": "A round yellow sign with a black X and two Rs warns of:", "c": ["A rest stop", "A railroad crossing ahead", "A river crossing", "A runaway ramp"], "a": 1, "w": "The circular RxR sign gives advance warning of a railroad crossing."}, {"t": "Signs & signals", "q": "A green traffic sign generally gives:", "c": ["A warning", "Directions, distances and destinations", "A prohibition", "Construction information"], "a": 1, "w": "Green signs are guide signs — where you are and how far to somewhere else."}, {"t": "Parking & stopping", "q": "You may not park within how many feet of a fire hydrant?", "c": ["10 feet", "15 feet", "25 feet", "30 feet"], "a": 1, "w": "15 feet from a fire hydrant."}, {"t": "Parking & stopping", "q": "You may not park within how many feet of a crosswalk at an intersection?", "c": ["10 feet", "15 feet", "20 feet", "30 feet"], "a": 2, "w": "20 feet from a crosswalk — parking closer hides pedestrians from approaching drivers."}, {"t": "Parking & stopping", "q": "You may not park within how many feet of a railroad crossing?", "c": ["25 feet", "30 feet", "50 feet", "100 feet"], "a": 2, "w": "50 feet from a railroad crossing."}, {"t": "Parking & stopping", "q": "When parking facing downhill next to a curb, turn your front wheels:", "c": ["Toward the curb", "Away from the curb", "Straight ahead", "It doesn't matter"], "a": 0, "w": "Downhill, point the wheels into the curb so the car rolls into it rather than into traffic. Uphill with a curb, turn them away."}, {"t": "Parking & stopping", "q": "Parking in a space marked for people with disabilities without a valid placard is:", "c": ["Allowed briefly", "Allowed if no other space is free", "Prohibited and heavily fined", "Allowed while a passenger waits in the car"], "a": 2, "w": "There is no short-stay exception. The fines are steep."}, {"t": "Parking & stopping", "q": "Before opening your door into traffic you should:", "c": ["Open it quickly", "Check mirrors and over your shoulder for traffic and cyclists", "Rely on other drivers to see you", "Open it only on the traffic side"], "a": 1, "w": "Look for cyclists especially — a suddenly opened door is one of the most serious hazards they face."}, {"t": "Parking & stopping", "q": "When you leave your vehicle parked on a public road you should:", "c": ["Leave the engine running for a quick return", "Set the parking brake and remove the key", "Leave it in neutral", "Leave a window open for ventilation"], "a": 1, "w": "Parking brake on, engine off, key with you."}, {"t": "Parking & stopping", "q": "Parking on the shoulder of a freeway is permitted:", "c": ["Any time you want a rest", "Only in an emergency", "For up to 30 minutes", "Only at night"], "a": 1, "w": "Freeway shoulders are for emergencies. If you must stop, get as far right as possible and use hazard lights."}, {"t": "Parking & stopping", "q": "If your vehicle breaks down on a highway, you should:", "c": ["Stand in the traffic lane to flag help", "Move the vehicle off the road, turn on hazard lights, and stay clear of traffic", "Leave the vehicle in the lane with lights off", "Push the vehicle across the median"], "a": 1, "w": "Get the vehicle and yourself away from moving traffic first, then call for help."}, {"t": "Parking & stopping", "q": "Double parking — stopping alongside a legally parked car — is:", "c": ["Legal for under five minutes", "Legal with hazard lights on", "Illegal", "Legal for deliveries only"], "a": 2, "w": "Double parking blocks a travel lane and forces others around you. It's illegal regardless of your hazard lights."}, {"t": "Parking & stopping", "q": "You must not stop or park:", "c": ["In a marked bicycle lane", "On a sidewalk or crosswalk", "In front of a driveway", "All of the above"], "a": 3, "w": "All of these block someone — cyclists, pedestrians, or a resident trying to get out."}, {"t": "Parking & stopping", "q": "A curb painted red generally means:", "c": ["Loading zone", "No stopping or parking", "15-minute parking", "Passenger loading only"], "a": 1, "w": "Red means no stopping, standing, or parking."}, {"t": "Sharing the road", "q": "When passing a bicyclist in Nevada you must allow at least:", "c": ["1 foot", "2 feet", "3 feet", "6 feet"], "a": 2, "w": "Three feet of clearance. If you can't give that much, wait until you can."}, {"t": "Sharing the road", "q": "Motorcycles are entitled to:", "c": ["Half a lane", "A full lane", "Only the shoulder", "The left lane only"], "a": 1, "w": "A motorcycle gets a full lane. Never try to share a lane alongside one."}, {"t": "Sharing the road", "q": "The most common cause of collisions between cars and motorcycles is:", "c": ["Motorcycles speeding", "Drivers failing to see the motorcycle", "Poor motorcycle brakes", "Motorcycles running red lights"], "a": 1, "w": "Motorcycles are small and easily hidden in a blind spot or behind a windshield pillar. Look twice, especially before turning left."}, {"t": "Sharing the road", "q": "Large trucks have blind spots that are:", "c": ["Smaller than a car's", "Roughly the same as a car's", "Much larger, especially on the right side and directly behind", "Only on the left side"], "a": 2, "w": "If you can't see the driver's face in the truck's mirror, they cannot see you."}, {"t": "Sharing the road", "q": "A large truck is making a right turn and swings wide to the left. You should:", "c": ["Pass on the right", "Stay back and never move up on the right side", "Sound your horn", "Pass on the left quickly"], "a": 1, "w": "The gap on the right is where the trailer is about to go. Squeezing into it is how cars get crushed against the curb."}, {"t": "Sharing the road", "q": "You must dim your high beams when an oncoming vehicle is within:", "c": ["100 feet", "200 feet", "500 feet", "1000 feet"], "a": 2, "w": "Dim within 500 feet of an oncoming vehicle, and within 300 feet when following one."}, {"t": "Sharing the road", "q": "In fog, you should use:", "c": ["High beams", "Low beams", "Hazard lights while moving", "Parking lights"], "a": 1, "w": "High beams reflect off fog and make visibility worse. Low beams throw light under it."}, {"t": "Sharing the road", "q": "When a pedestrian who is blind is crossing with a white cane or guide dog, you must:", "c": ["Sound your horn", "Come to a complete stop and yield", "Drive around them slowly", "Proceed if you have a green light"], "a": 1, "w": "Stop and let them cross. Don't honk — it can disorient both the person and the dog."}, {"t": "Sharing the road", "q": "If a driver behind you is tailgating, the safest response is:", "c": ["Brake hard to warn them", "Speed up to outrun them", "Increase the space in front of you and let them pass", "Sound your horn"], "a": 2, "w": "Brake-checking turns their mistake into your collision. Give yourself more room ahead and let them go by."}, {"t": "Sharing the road", "q": "Your rear wheels begin to skid. You should:", "c": ["Brake hard", "Steer in the direction you want the front of the car to go", "Steer the opposite way", "Accelerate hard"], "a": 1, "w": "Ease off the accelerator and steer where you want to go. Sudden braking usually makes a skid worse."}, {"t": "Sharing the road", "q": "Texting while driving in Nevada is:", "c": ["Legal at a red light", "Legal if you use one hand", "Prohibited", "Legal on surface streets only"], "a": 2, "w": "Handheld texting is prohibited. Phones must be hands-free."}, {"t": "Sharing the road", "q": "Aggressive driving by another motorist is best handled by:", "c": ["Matching their behavior", "Making eye contact and gesturing", "Staying calm, giving them room, and not engaging", "Blocking them from passing"], "a": 2, "w": "Engaging escalates. Let them go, and report genuinely dangerous driving once you're safely stopped."}];
+
+/* ---- Nevada written knowledge test: 25 questions, 80% to pass (20 of 25) ---- */
+const EXAM_N = 25, PASS_PCT = 80;
+const PASS_N = Math.ceil(EXAM_N * PASS_PCT / 100);   // 20
+const TOPICS = [...new Set(BANK.map(q => q.t))];
+
+const K = 'nvdmv:';
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(K+k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(K+k, JSON.stringify(v)); }catch(e){} }
+};
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+let AC=null;
+function tone(kind){
+  try{
+    AC = AC || new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended') AC.resume();
+    const t=AC.currentTime, o=AC.createOscillator(), g=AC.createGain();
+    o.type = kind==='no' ? 'sawtooth' : 'sine';
+    const f = kind==='ok'?760 : kind==='no'?190 : 500;
+    o.frequency.setValueAtTime(f,t);
+    if(kind==='ok') o.frequency.exponentialRampToValueAtTime(f*1.45,t+.08);
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.exponentialRampToValueAtTime(.1,t+.012);
+    g.gain.exponentialRampToValueAtTime(.0001,t+.2);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t+.26);
+  }catch(e){}
+}
+
+/* Shuffle the answer options too, so the position of the right answer
+   is never memorable. Track where the correct one ended up. */
+function prep(src){
+  return src.map(q=>{
+    const order = shuffle(q.c.map((c,i)=>i));
+    return { t:q.t, q:q.q, w:q.w,
+             c: order.map(i=>q.c[i]),
+             a: order.indexOf(q.a) };
+  });
+}
+function buildExam(){ return prep(shuffle(BANK).slice(0, EXAM_N)); }
+function buildTopic(t){ return prep(shuffle(BANK.filter(q=>q.t===t))); }
+
+let S = null;
+
+function go(screen){
+  window.scrollTo(0,0);
+  if(screen==='home') return renderHome();
+  if(screen==='q')    return renderQ();
+  if(screen==='done') return renderDone();
+}
+
+function renderHome(){
+  S = null;
+  $('homeBtn').style.display='none';
+  $('subline').textContent = 'Practice';
+  const best = store.get('bestExam', null);
+  const taken = store.get('examsTaken', 0)|0;
+  const passed = store.get('examsPassed', 0)|0;
+  const weak = store.get('topicScore', {});
+  const rows = TOPICS.map(t=>{
+    const v = weak[t];
+    const txt = v ? Math.round(v.r/v.n*100)+'%' : '—';
+    return `<button class="tile" onclick="startTopic('${t.replace(/'/g,"\\'")}')">
+        <div class="tico">${topicIcon(t)}</div>
+        <div><b>${esc(t)}</b><span>${BANK.filter(q=>q.t===t).length} questions${v?' · you\u2019re at '+txt:''}</span></div>
+        <div class="tchev">›</div></button>`;
+  }).join('');
+
+  $('app').innerHTML = `
+    <h1>Nevada written test</h1>
+    <p class="muted">${BANK.length} questions covering what the Nevada Driver's Handbook
+      actually tests. Every number here was checked against the DMV's own pages.</p>
+
+    <div class="note">
+      <b>Heads up before you study.</b> Nevada does <b>not</b> require a written test for a
+      standard renewal — that's a California habit. You'd only be tested if your license has
+      been expired a year or more, or if you've had three or more moving violations or a
+      suspension in the last four years. Worth a two-minute check before you spend an evening on this.
+    </div>
+
+    <button class="tile" onclick="startExam()" style="border-color:var(--acc)">
+      <div class="tico">📋</div>
+      <div><b>Full practice exam</b><span>${EXAM_N} questions, ${PASS_N} correct to pass — same format and passing score as the real one.</span></div>
+      <div class="tchev">›</div></button>
+
+    <h2>Drill one topic</h2>
+    ${rows}
+
+    <div class="card">
+      <div class="muted" style="font-size:13px">
+        <b style="color:var(--ink);font-size:14px">Your record</b><br>
+        ${taken ? `${taken} practice exam${taken===1?'':'s'} taken · ${passed} passed · best score ${best}/${EXAM_N}`
+                : 'No practice exams yet.'}
+      </div>
+    </div>
+    <p class="muted" style="font-size:12px;text-align:center;margin:16px 0 4px">
+      Study material: the official
+      <a href="https://dmv.nv.gov/pdfforms/dlbook.pdf" target="_blank" rel="noopener">Nevada Driver's Handbook</a>.
+      This app is practice, not a DMV product.
+    </p>`;
+}
+function topicIcon(t){
+  return {'Nevada rules':'🎰','Speed & spacing':'⏱️','Alcohol & penalties':'🚫',
+          'Right of way':'🔀','Signs & signals':'🛑','Parking & stopping':'🅿️',
+          'Sharing the road':'🚛'}[t] || '📘';
+}
+
+function startExam(){
+  tone();
+  S = { mode:'exam', list: buildExam(), i:0, right:0, log:[] };
+  $('homeBtn').style.display='';
+  $('subline').textContent = 'Practice exam';
+  go('q');
+}
+function startTopic(t){
+  tone();
+  S = { mode:'topic', topic:t, list: buildTopic(t), i:0, right:0, log:[] };
+  $('homeBtn').style.display='';
+  $('subline').textContent = t;
+  go('q');
+}
+
+function renderQ(){
+  const q = S.list[S.i], n = S.list.length;
+  const wrong = S.log.filter(e=>!e.ok).length;
+  const dead = S.mode==='exam' && wrong > (EXAM_N - PASS_N);
+  $('app').innerHTML = `
+    <div class="qtop">
+      <span class="tag">${esc(q.t)}</span>
+      <span class="qnum">${S.i+1} / ${n}</span>
+    </div>
+    <div class="bar"><i class="${dead?'warn':''}" style="width:${Math.round(S.i/n*100)}%"></i></div>
+    ${S.mode==='exam' ? `<p class="muted" style="font-size:12.5px;margin:6px 0 0">
+        ${S.right} correct · ${wrong} missed · ${EXAM_N-PASS_N} misses allowed</p>` : ''}
+    <p class="qask">${esc(q.q)}</p>
+    <div id="opts">${q.c.map((c,i)=>
+      `<button class="opt" data-i="${i}" onclick="answer(${i})">
+         <span class="k">${'ABCD'[i]}</span>${esc(c)}</button>`).join('')}</div>
+    <div class="fb" id="fb"></div>
+    <div id="acts" style="margin-top:14px"></div>`;
+}
+
+function answer(pick){
+  const q = S.list[S.i];
+  const ok = pick === q.a;
+  S.log.push({ q, pick, ok });
+  if(ok) S.right++;
+  tone(ok?'ok':'no');
+  try{ navigator.vibrate && navigator.vibrate(ok?18:[22,50,22]); }catch(e){}
+
+  document.querySelectorAll('#opts .opt').forEach(el=>{
+    const i = +el.dataset.i;
+    el.disabled = true;
+    if(i === q.a) el.classList.add('right');
+    else if(i === pick) el.classList.add('wrong');
+  });
+  const fb = $('fb');
+  fb.className = 'fb show ' + (ok?'ok':'no');
+  fb.innerHTML = (ok ? '<b>Correct.</b>' : '<b>The answer is '+'ABCD'[q.a]+'.</b>') + esc(q.w);
+  const last = S.i === S.list.length-1;
+  $('acts').innerHTML = `<button class="btn" onclick="next()">${last?'See results':'Next question'}</button>`;
+}
+
+function next(){
+  tone();
+  S.i++;
+  if(S.i >= S.list.length) return finish();
+  go('q');
+}
+
+function finish(){
+  const n = S.list.length;
+  if(S.mode === 'exam'){
+    store.set('examsTaken', (store.get('examsTaken',0)|0) + 1);
+    if(S.right >= PASS_N) store.set('examsPassed', (store.get('examsPassed',0)|0) + 1);
+    const b = store.get('bestExam', null);
+    if(b == null || S.right > b) store.set('bestExam', S.right);
+  }
+  const ts = store.get('topicScore', {});
+  S.log.forEach(e=>{
+    const t = e.q.t;
+    ts[t] = ts[t] || {r:0, n:0};
+    ts[t].n++; if(e.ok) ts[t].r++;
+  });
+  store.set('topicScore', ts);
+  go('done');
+}
+
+function renderDone(){
+  const n = S.list.length, r = S.right;
+  const pct = Math.round(r/n*100);
+  const isExam = S.mode==='exam';
+  const passed = isExam ? r >= PASS_N : pct >= PASS_PCT;
+
+  const secs = {};
+  S.log.forEach(e=>{ const t=e.q.t; secs[t]=secs[t]||{r:0,n:0}; secs[t].n++; if(e.ok) secs[t].r++; });
+  const rows = Object.keys(secs).sort().map(t=>{
+    const v = secs[t];
+    return `<div class="secline"><span>${esc(t)}</span>
+      <span class="s" style="color:${v.r===v.n?'var(--good)':v.r/v.n<0.7?'var(--bad)':'var(--ink)'}">${v.r}/${v.n}</span></div>`;
+  }).join('');
+
+  const missed = S.log.filter(e=>!e.ok);
+  const review = missed.map(e=>`
+    <div class="rev">
+      <p class="lbl">${esc(e.q.t)}</p>
+      <p>${esc(e.q.q)}</p>
+      <p class="lbl" style="margin-top:7px">You picked</p>
+      <p style="color:var(--bad)">${esc(e.q.c[e.pick])}</p>
+      <p class="lbl" style="margin-top:7px">Correct</p>
+      <p style="color:var(--good)">${esc(e.q.c[e.q.a])}</p>
+      <p class="muted" style="margin-top:5px">${esc(e.q.w)}</p>
+    </div>`).join('');
+
+  $('subline').textContent = 'Results';
+  $('app').innerHTML = `
+    <div class="score">
+      <div class="n">${r}<span style="font-size:26px;color:var(--dim)">/${n}</span></div>
+      <div class="of ${passed?'pass':'fail'}">
+        ${isExam
+          ? (passed ? 'Pass — you needed '+PASS_N+'.' : 'Not a pass. You needed '+PASS_N+' of '+EXAM_N+'.')
+          : pct+'% on this topic'}
+      </div>
+    </div>
+    <div class="card">${rows}</div>
+    <div class="row" style="margin:16px 0">
+      <button class="btn ghost" onclick="go('home')">Menu</button>
+      <button class="btn" onclick="${isExam?'startExam()':'startTopic(\''+String(S.topic).replace(/'/g,"\\'")+'\')'}">Again</button>
+    </div>
+    ${missed.length
+      ? `<h2>What you missed (${missed.length})</h2>${review}`
+      : `<p class="muted" style="text-align:center">Nothing missed. Run it again — the questions and the answer order are reshuffled every time.</p>`}
+    <div style="height:24px"></div>`;
+}
+
+renderHome();
+</script>
+</body>
+</html>
