@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>States &amp; Capitals — Louie</title>
+<style>
+:root{--bg:#0b1014;--panel:#121a20;--panel2:#18232b;--line:#24333d;--ink:#e8f1f5;
+  --dim:#8ba3b0;--acc:#3ddc97;--warn:#ffc857;--bad:#ff6b6b;--r:16px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding:0 0 40px;min-height:100vh;-webkit-font-smoothing:antialiased}
+.wrap{max-width:660px;margin:0 auto;padding:0 16px}
+a{color:var(--acc);text-decoration:none}
+.top{position:sticky;top:0;z-index:40;background:rgba(11,16,20,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topin{max-width:660px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+.badge{width:38px;height:38px;border-radius:11px;background:var(--acc);color:#06210f;display:grid;place-items:center;font-weight:800;font-size:14px;flex:0 0 auto}
+.who b{display:block;font-size:15px;line-height:1.2}
+.who span{display:block;font-size:12px;color:var(--dim)}
+.pill{margin-left:auto;border:1px solid var(--line);background:var(--panel);color:var(--dim);border-radius:999px;
+  padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit}
+h1{font-size:22px;margin:22px 0 4px;letter-spacing:-.3px}
+h2{font-size:13px;margin:26px 0 8px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px}
+.muted{color:var(--dim);font-size:13.5px;line-height:1.6}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:12px 0}
+.btn{display:block;width:100%;border:0;border-radius:13px;padding:14px 16px;background:var(--acc);
+  color:#06210f;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line);font-weight:600}
+.btn:active{transform:translateY(1px)}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.tile{display:flex;gap:14px;align-items:center;width:100%;text-align:left;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--r);padding:15px 16px;margin:10px 0;cursor:pointer;color:inherit;font-family:inherit}
+.tile:active{border-color:var(--acc)}
+.tico{width:42px;height:42px;border-radius:11px;background:var(--panel2);display:grid;place-items:center;font-size:20px;flex:0 0 auto}
+.tile b{display:block;font-size:15.5px}
+.tile span{display:block;font-size:12.5px;color:var(--dim);margin-top:2px;line-height:1.45}
+.tchev{margin-left:auto;color:var(--dim);font-size:19px}
+.qtop{display:flex;align-items:center;gap:10px;margin:18px 0 6px}
+.tag{font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--acc);
+  border:1px solid var(--acc);border-radius:999px;padding:3px 9px}
+.qnum{margin-left:auto;font-size:12.5px;color:var(--dim);font-weight:700}
+.bar{height:5px;background:var(--panel2);border-radius:99px;overflow:hidden;margin:8px 0 2px}
+.bar i{display:block;height:100%;background:var(--acc);border-radius:99px;transition:width .3s}
+.qask{font-size:16px;color:var(--dim);margin:18px 0 2px}
+.qbig{font-size:31px;font-weight:700;letter-spacing:-.5px;line-height:1.25;margin:0 0 16px}
+.opt{display:block;width:100%;text-align:left;background:var(--panel);border:1.5px solid var(--line);
+  border-radius:13px;padding:14px 16px;margin:9px 0;color:inherit;font-size:16px;cursor:pointer;font-family:inherit}
+.opt:active{border-color:var(--acc)}
+.opt.right{border-color:var(--acc);background:rgba(61,220,151,.1)}
+.opt.wrong{border-color:var(--bad);background:rgba(255,107,107,.1)}
+.opt:disabled{cursor:default;opacity:1}
+input[type=text]{width:100%;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);
+  border-radius:12px;padding:13px 14px;font-size:18px;font-family:inherit;outline:none}
+input:focus{border-color:var(--acc)}
+.fb{border-radius:13px;padding:13px 15px;margin:13px 0;font-size:14.5px;line-height:1.6;display:none}
+.fb.show{display:block}
+.fb.ok{background:rgba(61,220,151,.1);border:1px solid rgba(61,220,151,.4)}
+.fb.no{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.4)}
+.fb b{display:block;margin-bottom:4px;font-size:15px}
+.score{text-align:center;padding:26px 0 4px}
+.score .n{font-size:58px;font-weight:800;letter-spacing:-2px;line-height:1}
+.score .of{font-size:17px;color:var(--dim);margin-top:6px}
+.rev{border-left:3px solid var(--bad);padding:2px 0 2px 13px;margin:13px 0;font-size:14px;line-height:1.55}
+.rev .lbl{font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--dim);text-transform:uppercase}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.6px;padding:8px 6px;border-bottom:1px solid var(--line)}
+td{padding:9px 6px;border-bottom:1px solid var(--line)}
+td.ab{color:var(--dim);font-variant-numeric:tabular-nums;width:38px}
+tr.miss td{color:var(--warn)}
+.chipbar{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.chip{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:13px;color:var(--dim);cursor:pointer;font-family:inherit}
+.chip.on{border-color:var(--acc);color:var(--acc)}
+</style>
+</head>
+<body>
+<div class="top"><div class="topin">
+  <div class="badge">Lou</div>
+  <div class="who"><b>States &amp; Capitals</b><span id="subline">50 states</span></div>
+  <button class="pill" id="homeBtn" onclick="go('home')" style="display:none">Menu</button>
+</div></div>
+<div class="wrap" id="app"></div>
+<script>
+const ST = [{"s": "Alabama", "c": "Montgomery", "ab": "AL", "r": "South", "d": "East South Central", "l": ["Birmingham", "Mobile"]}, {"s": "Alaska", "c": "Juneau", "ab": "AK", "r": "West", "d": "Pacific", "l": ["Anchorage", "Fairbanks"]}, {"s": "Arizona", "c": "Phoenix", "ab": "AZ", "r": "West", "d": "Mountain", "l": ["Tucson", "Mesa"]}, {"s": "Arkansas", "c": "Little Rock", "ab": "AR", "r": "South", "d": "West South Central", "l": ["Fayetteville", "Fort Smith"]}, {"s": "California", "c": "Sacramento", "ab": "CA", "r": "West", "d": "Pacific", "l": ["Los Angeles", "San Francisco"]}, {"s": "Colorado", "c": "Denver", "ab": "CO", "r": "West", "d": "Mountain", "l": ["Colorado Springs", "Boulder"]}, {"s": "Connecticut", "c": "Hartford", "ab": "CT", "r": "Northeast", "d": "New England", "l": ["New Haven", "Bridgeport"]}, {"s": "Delaware", "c": "Dover", "ab": "DE", "r": "South", "d": "South Atlantic", "l": ["Wilmington", "Newark"]}, {"s": "Florida", "c": "Tallahassee", "ab": "FL", "r": "South", "d": "South Atlantic", "l": ["Miami", "Orlando"]}, {"s": "Georgia", "c": "Atlanta", "ab": "GA", "r": "South", "d": "South Atlantic", "l": ["Savannah", "Augusta"]}, {"s": "Hawaii", "c": "Honolulu", "ab": "HI", "r": "West", "d": "Pacific", "l": ["Hilo", "Kailua"]}, {"s": "Idaho", "c": "Boise", "ab": "ID", "r": "West", "d": "Mountain", "l": ["Idaho Falls", "Coeur d'Alene"]}, {"s": "Illinois", "c": "Springfield", "ab": "IL", "r": "Midwest", "d": "East North Central", "l": ["Chicago", "Peoria"]}, {"s": "Indiana", "c": "Indianapolis", "ab": "IN", "r": "Midwest", "d": "East North Central", "l": ["Fort Wayne", "Gary"]}, {"s": "Iowa", "c": "Des Moines", "ab": "IA", "r": "Midwest", "d": "West North Central", "l": ["Cedar Rapids", "Davenport"]}, {"s": "Kansas", "c": "Topeka", "ab": "KS", "r": "Midwest", "d": "West North Central", "l": ["Wichita", "Kansas City"]}, {"s": "Kentucky", "c": "Frankfort", "ab": "KY", "r": "South", "d": "East South Central", "l": ["Louisville", "Lexington"]}, {"s": "Louisiana", "c": "Baton Rouge", "ab": "LA", "r": "South", "d": "West South Central", "l": ["New Orleans", "Shreveport"]}, {"s": "Maine", "c": "Augusta", "ab": "ME", "r": "Northeast", "d": "New England", "l": ["Portland", "Bangor"]}, {"s": "Maryland", "c": "Annapolis", "ab": "MD", "r": "South", "d": "South Atlantic", "l": ["Baltimore", "Rockville"]}, {"s": "Massachusetts", "c": "Boston", "ab": "MA", "r": "Northeast", "d": "New England", "l": ["Worcester", "Cambridge"]}, {"s": "Michigan", "c": "Lansing", "ab": "MI", "r": "Midwest", "d": "East North Central", "l": ["Detroit", "Grand Rapids"]}, {"s": "Minnesota", "c": "Saint Paul", "ab": "MN", "r": "Midwest", "d": "West North Central", "l": ["Minneapolis", "Duluth"]}, {"s": "Mississippi", "c": "Jackson", "ab": "MS", "r": "South", "d": "East South Central", "l": ["Biloxi", "Gulfport"]}, {"s": "Missouri", "c": "Jefferson City", "ab": "MO", "r": "Midwest", "d": "West North Central", "l": ["Kansas City", "St. Louis"]}, {"s": "Montana", "c": "Helena", "ab": "MT", "r": "West", "d": "Mountain", "l": ["Billings", "Bozeman"]}, {"s": "Nebraska", "c": "Lincoln", "ab": "NE", "r": "Midwest", "d": "West North Central", "l": ["Omaha", "Bellevue"]}, {"s": "Nevada", "c": "Carson City", "ab": "NV", "r": "West", "d": "Mountain", "l": ["Las Vegas", "Reno"]}, {"s": "New Hampshire", "c": "Concord", "ab": "NH", "r": "Northeast", "d": "New England", "l": ["Manchester", "Nashua"]}, {"s": "New Jersey", "c": "Trenton", "ab": "NJ", "r": "Northeast", "d": "Middle Atlantic", "l": ["Newark", "Atlantic City"]}, {"s": "New Mexico", "c": "Santa Fe", "ab": "NM", "r": "West", "d": "Mountain", "l": ["Albuquerque", "Las Cruces"]}, {"s": "New York", "c": "Albany", "ab": "NY", "r": "Northeast", "d": "Middle Atlantic", "l": ["New York City", "Buffalo"]}, {"s": "North Carolina", "c": "Raleigh", "ab": "NC", "r": "South", "d": "South Atlantic", "l": ["Charlotte", "Greensboro"]}, {"s": "North Dakota", "c": "Bismarck", "ab": "ND", "r": "Midwest", "d": "West North Central", "l": ["Fargo", "Grand Forks"]}, {"s": "Ohio", "c": "Columbus", "ab": "OH", "r": "Midwest", "d": "East North Central", "l": ["Cleveland", "Cincinnati"]}, {"s": "Oklahoma", "c": "Oklahoma City", "ab": "OK", "r": "South", "d": "West South Central", "l": ["Tulsa", "Norman"]}, {"s": "Oregon", "c": "Salem", "ab": "OR", "r": "West", "d": "Pacific", "l": ["Portland", "Eugene"]}, {"s": "Pennsylvania", "c": "Harrisburg", "ab": "PA", "r": "Northeast", "d": "Middle Atlantic", "l": ["Philadelphia", "Pittsburgh"]}, {"s": "Rhode Island", "c": "Providence", "ab": "RI", "r": "Northeast", "d": "New England", "l": ["Newport", "Warwick"]}, {"s": "South Carolina", "c": "Columbia", "ab": "SC", "r": "South", "d": "South Atlantic", "l": ["Charleston", "Myrtle Beach"]}, {"s": "South Dakota", "c": "Pierre", "ab": "SD", "r": "Midwest", "d": "West North Central", "l": ["Sioux Falls", "Rapid City"]}, {"s": "Tennessee", "c": "Nashville", "ab": "TN", "r": "South", "d": "East South Central", "l": ["Memphis", "Knoxville"]}, {"s": "Texas", "c": "Austin", "ab": "TX", "r": "South", "d": "West South Central", "l": ["Houston", "Dallas"]}, {"s": "Utah", "c": "Salt Lake City", "ab": "UT", "r": "West", "d": "Mountain", "l": ["Provo", "Ogden"]}, {"s": "Vermont", "c": "Montpelier", "ab": "VT", "r": "Northeast", "d": "New England", "l": ["Burlington", "Rutland"]}, {"s": "Virginia", "c": "Richmond", "ab": "VA", "r": "South", "d": "South Atlantic", "l": ["Virginia Beach", "Norfolk"]}, {"s": "Washington", "c": "Olympia", "ab": "WA", "r": "West", "d": "Pacific", "l": ["Seattle", "Spokane"]}, {"s": "West Virginia", "c": "Charleston", "ab": "WV", "r": "South", "d": "South Atlantic", "l": ["Huntington", "Morgantown"]}, {"s": "Wisconsin", "c": "Madison", "ab": "WI", "r": "Midwest", "d": "East North Central", "l": ["Milwaukee", "Green Bay"]}, {"s": "Wyoming", "c": "Cheyenne", "ab": "WY", "r": "West", "d": "Mountain", "l": ["Casper", "Laramie"]}];
+
+/* ============================================================
+   States & Capitals
+   ============================================================ */
+const K = 'loust:';
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem(K+k); return v==null?d:JSON.parse(v); }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(K+k, JSON.stringify(v)); }catch(e){} }
+};
+const $  = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const REGIONS = ['Northeast','Midwest','South','West'];
+
+let AC=null;
+function tone(kind){
+  try{
+    AC = AC || new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended') AC.resume();
+    const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();
+    o.type = kind==='no'?'sawtooth':'sine';
+    const f = kind==='ok'?780:kind==='no'?190:520;
+    o.frequency.setValueAtTime(f,t);
+    if(kind==='ok') o.frequency.exponentialRampToValueAtTime(f*1.5,t+.08);
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.exponentialRampToValueAtTime(.11,t+.012);
+    g.gain.exponentialRampToValueAtTime(.0001,t+.2);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t+.26);
+  }catch(e){}
+}
+function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
+
+/* --- typed answers: forgiving about case, punctuation and St./Saint --- */
+function slug(s){
+  return String(s||'').toLowerCase()
+    .replace(/\bst\.?\b/g,'saint')
+    .replace(/[^a-z]/g,'');
+}
+function typedOK(given, want){ const g=slug(given); return g.length>0 && g===slug(want); }
+
+/* --- the missed pile: anything wrong comes back until it's right twice --- */
+function missed(){ return store.get('missed', {}); }
+function markMiss(ab){ const m=missed(); m[ab]=(m[ab]||0)+2; store.set('missed',m); }
+function markHit(ab){ const m=missed(); if(m[ab]){ m[ab]--; if(m[ab]<=0) delete m[ab]; store.set('missed',m); } }
+function troubleList(){ const m=missed(); return ST.filter(s=>m[s.ab]); }
+
+/* ---------- question builders ---------- */
+/* distractors come from the same region first, so a right answer is never
+   findable just by spotting the one city that sounds like it belongs */
+function nearCaps(target, pool){
+  const same = pool.filter(x=>x.r===target.r && x.ab!==target.ab);
+  const rest = pool.filter(x=>x.r!==target.r && x.ab!==target.ab);
+  return shuffle(same).concat(shuffle(rest)).map(x=>x.c);
+}
+function qCapital(st, pool){
+  const wrong = [];
+  if(st.l && st.l.length) wrong.push(st.l[Math.floor(Math.random()*st.l.length)]);
+  for(const c of nearCaps(st, pool)){
+    if(wrong.length>=3) break;
+    if(c!==st.c && wrong.indexOf(c)===-1) wrong.push(c);
+  }
+  const opts = shuffle([st.c].concat(wrong.slice(0,3)));
+  return { ab:st.ab, ask:'What is the capital of', big:st.s, kind:'mc',
+           opts, a:opts.indexOf(st.c), ansText:st.c,
+           why: st.c + ' is the capital of ' + st.s + '.' +
+                (st.l && st.l.length ? ' ' + st.l[0] + ' is the bigger city, but it is not the capital.' : '') };
+}
+function qState(st, pool){
+  const wrong = [];
+  const same = shuffle(pool.filter(x=>x.r===st.r && x.ab!==st.ab)).map(x=>x.s);
+  const rest = shuffle(pool.filter(x=>x.r!==st.r && x.ab!==st.ab)).map(x=>x.s);
+  for(const s of same.concat(rest)){ if(wrong.length>=3) break; if(wrong.indexOf(s)===-1) wrong.push(s); }
+  const opts = shuffle([st.s].concat(wrong));
+  return { ab:st.ab, ask:'Which state has the capital', big:st.c, kind:'mc',
+           opts, a:opts.indexOf(st.s), ansText:st.s,
+           why: st.c + ' is the capital of ' + st.s + ' (' + st.r + ').' };
+}
+function qType(st){
+  return { ab:st.ab, ask:'Type the capital of', big:st.s, kind:'type', ansText:st.c,
+           why: 'The capital of ' + st.s + ' is ' + st.c + '.' +
+                (st.l && st.l.length ? ' Not ' + st.l[0] + ' — that one is just bigger.' : '') };
+}
+function qAbbr(st, pool){
+  const wrong=[];
+  for(const x of shuffle(pool)){ if(wrong.length>=3) break; if(x.ab!==st.ab && wrong.indexOf(x.ab)===-1) wrong.push(x.ab); }
+  const opts = shuffle([st.ab].concat(wrong));
+  return { ab:st.ab, ask:'What is the postal abbreviation for', big:st.s, kind:'mc',
+           opts, a:opts.indexOf(st.ab), ansText:st.ab,
+           why: st.s + ' is ' + st.ab + '.' };
+}
+
+function buildRound(mode, arg){
+  const pool = ST;
+  let set = pool;
+  if(mode==='region')  set = pool.filter(x=>x.r===arg);
+  if(mode==='trouble') set = troubleList();
+  set = shuffle(set);
+  if(mode==='all50')  set = shuffle(pool);
+  if(mode==='quick')  set = set.slice(0,12);
+  return set.map(st=>{
+    if(mode==='states')  return qState(st, pool);
+    if(mode==='typeit')  return qType(st);
+    if(mode==='abbr')    return qAbbr(st, pool);
+    if(mode==='mix' || mode==='trouble'){
+      const r = Math.floor(Math.random()*3);
+      return r===0 ? qCapital(st,pool) : r===1 ? qState(st,pool) : qType(st);
+    }
+    return qCapital(st, pool);
+  });
+}
+
+/* ============================================================
+   SCREENS
+   ============================================================ */
+let S = null;
+
+function go(screen){
+  window.scrollTo(0,0);
+  if(screen==='home')  return renderHome();
+  if(screen==='q')     return renderQ();
+  if(screen==='done')  return renderDone();
+  if(screen==='list')  return renderList();
+}
+
+function renderHome(){
+  S=null;
+  $('homeBtn').style.display='none';
+  $('subline').textContent='50 states';
+  const m = missed(), nTrouble = Object.keys(m).length;
+  const best = store.get('best50', null);
+  const done = store.get('rounds',0)|0;
+  const regionRows = REGIONS.map(r=>{
+    const n = ST.filter(x=>x.r===r).length;
+    const sc = store.get('reg.'+r, null);
+    return `<button class="tile" onclick="start('region','${r}')">
+      <div class="tico">${({Northeast:'🍁',Midwest:'🌽',South:'🌴',West:'🏔️'})[r]}</div>
+      <div><b>${r}</b><span>${n} states${sc!=null?' · best '+sc+'/'+n:''}</span></div>
+      <div class="tchev">›</div></button>`;
+  }).join('');
+
+  $('app').innerHTML = `
+    <h1>States &amp; capitals</h1>
+    <p class="muted">All 50, checked against two sources. Start with one region at a time —
+      learning ten is a job you can finish, learning fifty is a job you quit.</p>
+
+    ${nTrouble ? `<button class="tile" onclick="start('trouble')" style="border-color:var(--warn)">
+      <div class="tico">🎯</div>
+      <div><b>Trouble spots</b><span>${nTrouble} you've missed. They keep coming back until you get each one right twice.</span></div>
+      <div class="tchev">›</div></button>` : ''}
+
+    <h2>One region at a time</h2>
+    ${regionRows}
+
+    <h2>All fifty</h2>
+    <button class="tile" onclick="start('quick')">
+      <div class="tico">⚡</div>
+      <div><b>Quick 12</b><span>Twelve random states. Good for a couple of minutes.</span></div>
+      <div class="tchev">›</div></button>
+    <button class="tile" onclick="start('all50')">
+      <div class="tico">🇺🇸</div>
+      <div><b>All 50 capitals</b><span>The whole thing, multiple choice.${best!=null?' Best so far: '+best+'/50.':''}</span></div>
+      <div class="tchev">›</div></button>
+    <button class="tile" onclick="start('states')">
+      <div class="tico">🔄</div>
+      <div><b>Backwards</b><span>Given the capital, name the state. Harder than it sounds.</span></div>
+      <div class="tchev">›</div></button>
+    <button class="tile" onclick="start('typeit')">
+      <div class="tico">⌨️</div>
+      <div><b>Spell it out</b><span>Type the capital yourself — no options to pick from.</span></div>
+      <div class="tchev">›</div></button>
+    <button class="tile" onclick="start('abbr')">
+      <div class="tico">✉️</div>
+      <div><b>Abbreviations</b><span>The two-letter postal codes.</span></div>
+      <div class="tchev">›</div></button>
+
+    <h2>Look them up</h2>
+    <button class="tile" onclick="go('list')">
+      <div class="tico">📖</div>
+      <div><b>The study list</b><span>All 50 by region, with abbreviations. Anything you've missed is marked.</span></div>
+      <div class="tchev">›</div></button>
+
+    <div class="card"><div class="muted" style="font-size:13px">
+      <b style="color:var(--ink);font-size:14px">Where you're at</b><br>
+      ${done ? done+' round'+(done===1?'':'s')+' finished · '+nTrouble+' still giving you trouble'
+             : 'No rounds yet. Pick a region.'}
+    </div></div>`;
+}
+
+function renderList(){
+  $('homeBtn').style.display='';
+  $('subline').textContent='Study list';
+  const m = missed();
+  const body = REGIONS.map(r=>{
+    const rows = ST.filter(x=>x.r===r).map(x=>
+      `<tr class="${m[x.ab]?'miss':''}"><td class="ab">${x.ab}</td><td>${esc(x.s)}</td>
+       <td style="color:var(--acc)">${esc(x.c)}</td></tr>`).join('');
+    return `<h2>${r} &middot; ${ST.filter(x=>x.r===r).length}</h2>
+      <table><thead><tr><th></th><th>State</th><th>Capital</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }).join('');
+  $('app').innerHTML = body + `<div style="height:24px"></div>
+    <button class="btn ghost" onclick="go('home')">Back</button><div style="height:20px"></div>`;
+}
+
+function start(mode, arg){
+  tone();
+  const list = buildRound(mode, arg);
+  if(!list.length){ return renderHome(); }
+  S = { mode, arg, list, i:0, right:0, log:[] };
+  $('homeBtn').style.display='';
+  $('subline').textContent =
+      mode==='region' ? arg
+    : mode==='trouble'? 'Trouble spots'
+    : mode==='all50'  ? 'All 50'
+    : mode==='quick'  ? 'Quick 12'
+    : mode==='states' ? 'Capital → state'
+    : mode==='typeit' ? 'Spell it out'
+    : mode==='abbr'   ? 'Abbreviations' : 'Practice';
+  go('q');
+}
+
+function renderQ(){
+  const q = S.list[S.i], n = S.list.length;
+  let body;
+  if(q.kind==='mc'){
+    body = `<div id="opts">${q.opts.map((o,i)=>
+      `<button class="opt" data-i="${i}" onclick="answer(${i})">${esc(o)}</button>`).join('')}</div>`;
+  } else {
+    body = `<input type="text" id="in1" autocomplete="off" autocapitalize="words" spellcheck="false"
+              placeholder="Capital city…" onkeydown="if(event.key==='Enter')answerTyped()">
+            <div id="acts2" style="margin-top:12px"><button class="btn" onclick="answerTyped()">Check</button></div>`;
+  }
+  $('app').innerHTML = `
+    <div class="qtop"><span class="tag">${S.mode==='region'?S.arg:'Capitals'}</span>
+      <span class="qnum">${S.i+1} / ${n}</span></div>
+    <div class="bar"><i style="width:${Math.round(S.i/n*100)}%"></i></div>
+    <p class="qask">${esc(q.ask)}</p>
+    <p class="qbig">${esc(q.big)}</p>
+    ${body}
+    <div class="fb" id="fb"></div>
+    <div id="acts" style="margin-top:14px"></div>`;
+  const f=$('in1'); if(f) f.focus();
+}
+
+function land(ok, q, given){
+  S.log.push({q, given, ok});
+  if(ok){ S.right++; markHit(q.ab); tone('ok'); buzz(18); }
+  else  { markMiss(q.ab); tone('no'); buzz([22,50,22]); }
+  const fb=$('fb');
+  fb.className='fb show '+(ok?'ok':'no');
+  fb.innerHTML = (ok?'<b>Yes.</b>':'<b>No — '+esc(q.ansText)+'.</b>') + esc(q.why);
+  const last = S.i === S.list.length-1;
+  const a2=$('acts2'); if(a2) a2.innerHTML='';
+  $('acts').innerHTML = `<button class="btn" onclick="next()">${last?'See results':'Next'}</button>`;
+}
+
+function answer(pick){
+  const q = S.list[S.i];
+  if(S.log.length > S.i) return;
+  const ok = pick === q.a;
+  document.querySelectorAll('#opts .opt').forEach(el=>{
+    const i=+el.dataset.i; el.disabled=true;
+    if(i===q.a) el.classList.add('right');
+    else if(i===pick) el.classList.add('wrong');
+  });
+  land(ok, q, q.opts[pick]);
+}
+function answerTyped(){
+  const q = S.list[S.i];
+  if(S.log.length > S.i) return;
+  const v = ($('in1').value||'').trim();
+  if(!v) return;
+  $('in1').disabled = true;
+  land(typedOK(v, q.ansText), q, v);
+}
+function next(){
+  tone(); S.i++;
+  if(S.i >= S.list.length) return finish();
+  go('q');
+}
+
+function finish(){
+  store.set('rounds',(store.get('rounds',0)|0)+1);
+  if(S.mode==='region') {
+    const prev = store.get('reg.'+S.arg, null);
+    if(prev==null || S.right>prev) store.set('reg.'+S.arg, S.right);
+  }
+  if(S.mode==='all50'){
+    const prev = store.get('best50', null);
+    if(prev==null || S.right>prev) store.set('best50', S.right);
+  }
+  go('done');
+}
+
+function renderDone(){
+  const n=S.list.length, r=S.right, pct=Math.round(r/n*100);
+  const word = r===n ? 'Every one.' : pct>=85 ? 'Strong.' : pct>=65 ? 'Getting there.'
+             : pct>=40 ? 'Worth another run.' : 'Try one region at a time.';
+  const wrong = S.log.filter(e=>!e.ok);
+  const review = wrong.map(e=>`<div class="rev">
+      <p class="lbl">${esc(e.q.big)}</p>
+      <div>You said <span style="color:var(--bad)">${esc(e.given||'—')}</span> &middot;
+        answer <span style="color:var(--acc)">${esc(e.q.ansText)}</span></div>
+      <div class="muted" style="margin-top:3px">${esc(e.q.why)}</div></div>`).join('');
+  const nTrouble = Object.keys(missed()).length;
+  $('subline').textContent='Results';
+  $('app').innerHTML = `
+    <div class="score"><div class="n">${r}<span style="font-size:26px;color:var(--dim)">/${n}</span></div>
+      <div class="of">${word}</div></div>
+    <div class="row" style="margin:16px 0">
+      <button class="btn ghost" onclick="go('home')">Menu</button>
+      <button class="btn" onclick="start('${S.mode}'${S.arg?",'"+S.arg+"'":''})">Again</button>
+    </div>
+    ${wrong.length ? `<h2>Missed (${wrong.length})</h2>${review}
+      <p class="muted">These are in your trouble pile now — they'll keep showing up until you
+        get each one right twice in a row.</p>`
+      : `<p class="muted" style="text-align:center">Nothing missed.${nTrouble?' You still have '+nTrouble+' in the trouble pile from earlier.':''}</p>`}
+    <div style="height:24px"></div>`;
+}
+
+renderHome();
+</script>
+</body>
+</html>

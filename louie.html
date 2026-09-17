@@ -91,6 +91,25 @@ h2{font-size:16px;margin:26px 0 10px;letter-spacing:-.2px}
 .tag.c{color:#7db9ff;border-color:#7db9ff}
 .tag.d{color:#c79bff;border-color:#c79bff}
 .tag.e{color:#ffb454;border-color:#ffb454}
+.digrow{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+  margin:22px 0 6px;user-select:none}
+.dig{font:700 46px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink);padding:0 1px}
+.gap{background:none;border:0;padding:0 3px;cursor:pointer;display:flex;align-items:flex-end;
+  height:54px;font-family:inherit}
+.gap i{display:block;width:12px;height:12px;border-radius:50%;background:var(--panel2);
+  border:1.5px dashed var(--line);transition:.15s}
+.gap:active i{transform:scale(1.25)}
+.gap.on i{background:var(--acc);border-color:var(--acc);border-style:solid}
+.gap.bad i{background:var(--bad);border-color:var(--bad);border-style:solid}
+.gap.show i{border-color:var(--acc);border-style:solid}
+.digrow.done .gap{cursor:default}
+.placed{text-align:center;font:700 30px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;
+  color:var(--acc);margin:6px 0 0;min-height:36px}
+pre.work{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;
+  margin:12px 0 0;font:15px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--acc);
+  white-space:pre;overflow-x:auto}
+.fb .why{display:block;margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.14)}
+.fb .why b{display:inline;font-size:14px;color:var(--warn)}
 .calcq{font-size:30px;font-weight:700;letter-spacing:.5px;margin:14px 0 6px;line-height:1.35}
 
 input[type=text],input[type=number],textarea{
@@ -557,7 +576,10 @@ function sameNum(a, b){
 /* a decimal with `s` places and a whole part up to maxWhole */
 function mkDec(maxWhole, s){
   const whole = randInt(0, maxWhole);
-  const frac  = randInt(0, pow10(s)-1);
+  let frac = randInt(0, pow10(s)-1);
+  /* no trailing zero in the decimal part: real problems say 11.6, not 11.60 */
+  if(s > 0 && frac % 10 === 0) frac += randInt(1, 9);
+  if(s > 0 && frac >= pow10(s)) frac = pow10(s) - 1;
   const v = whole*pow10(s) + frac;
   return v === 0 ? mkDec(maxWhole, s) : { v, s };
 }
@@ -648,10 +670,10 @@ function genDecDiv(hard){
     const dividend = quot.v * divisor;
     return {
       sec:DECSEC, kind:'calc', ask:'Divide',
-      q: show(dividend, qs) + ' ÷ ' + divisor,
+      q: trim(dividend, qs) + ' ÷ ' + divisor,
       a: trim(quot.v, qs),
       w: 'Dividing by a whole number: the decimal point in the answer sits directly above the one in ' +
-         show(dividend, qs) + '. ' + show(dividend,qs) + ' ÷ ' + divisor + ' = ' + trim(quot.v,qs) +
+         trim(dividend, qs) + '. ' + trim(dividend,qs) + ' ÷ ' + divisor + ' = ' + trim(quot.v,qs) +
          '. Check it: ' + trim(quot.v,qs) + ' × ' + divisor + ' = ' + trim(dividend,qs) + '.'
     };
   }
@@ -664,12 +686,12 @@ function genDecDiv(hard){
   const dividend = Qn.v * D.v;            // scale = qs + ds
   return {
     sec:DECSEC, kind:'calc', ask:'Divide',
-    q: show(dividend, qs+ds) + ' ÷ ' + show(D.v, ds),
+    q: trim(dividend, qs+ds) + ' ÷ ' + show(D.v, ds),
     a: trim(Qn.v, qs),
     w: 'Make the divisor a whole number. Move the point ' + ds + ' place' + (ds===1?'':'s') +
        ' right in BOTH numbers: ' + show(D.v,ds) + ' becomes ' + D.v + ', and ' +
-       show(dividend, qs+ds) + ' becomes ' + show(dividend, qs) + '. Now divide: ' +
-       show(dividend,qs) + ' ÷ ' + D.v + ' = ' + trim(Qn.v,qs) + '.'
+       trim(dividend, qs+ds) + ' becomes ' + trim(dividend, qs) + '. Now divide: ' +
+       trim(dividend,qs) + ' ÷ ' + D.v + ' = ' + trim(Qn.v,qs) + '.'
   };
 }
 
@@ -824,6 +846,429 @@ function buildQuiz33(){
 }
 
 /* ============================================================
+   DIAGNOSIS — work out WHICH mistake he made, not just that he
+   made one. Each candidate below is a real error reproduced
+   exactly, then compared against what he actually typed.
+   ============================================================ */
+function parseShown(str){
+  const s = String(str).trim();
+  const i = s.split('.')[0] || '0', f = s.split('.')[1] || '';
+  return { v: parseInt((i+f).replace(/^0+(?=\d)/,''), 10), s: f.length };
+}
+function digitsOf(str){
+  const n = normNum(str);
+  return n === null ? null : n.replace(/[.\-]/g,'').replace(/^0+/,'').replace(/0+$/,'') || '0';
+}
+function divExact(nv, ns, dv, ds){
+  if(dv === 0) return null;
+  let N = nv * pow10(ds), D = dv * pow10(ns);
+  for(let e=0; e<=10; e++){
+    const NN = N * pow10(e);
+    if(NN % D === 0) return trim(NN/D, e);
+  }
+  return null;
+}
+
+/* returns a sentence naming the mistake, or '' if we can't tell */
+function diagnoseCalc(q, given){
+  const g = normNum(given);
+  if(g === null) return '';
+  const m = q.q.match(/^([\d.]+)\s*([+−×÷])\s*([\d.]+)$/);
+  if(!m) return '';
+  const A = parseShown(m[1]), B = parseShown(m[3]), op = m[2];
+  const right = normNum(q.a);
+  if(g === right) return '';                 // he was correct; never invent a mistake
+  /* a candidate mistake only counts if it is genuinely DIFFERENT from the right
+     answer — otherwise e.g. "right-aligned" fires on every same-scale sum */
+  const hit = cand => cand !== null && normNum(cand) === g && normNum(cand) !== right;
+
+  /* the big one: correct digits, point in the wrong place */
+  const dg = digitsOf(given), da = digitsOf(q.a);
+  const samedigits = dg && da && dg === da && g !== normNum(q.a);
+
+  if(op === '+' || op === '−'){
+    const sc = Math.max(A.s, B.s);
+    const av = A.v*pow10(sc-A.s), bv = B.v*pow10(sc-B.s);
+    /* right-aligned instead of point-aligned */
+    if(hit(trim(op==='+' ? A.v+B.v : Math.abs(A.v-B.v), sc)))
+      return 'That is what you get when you line up the right-hand ENDS of the numbers instead of the decimal points. ' +
+             m[1] + ' and ' + m[3] + ' have different numbers of decimal places, so their last digits are not in the same column. Stack them by the point and fill the short one with zeros.';
+    if(op==='−' && hit(trim(bv-av, sc)))
+      return 'You subtracted the wrong way round. ' + m[1] + ' is on top, so it is ' + m[1] + ' − ' + m[3] + ', not the other way.';
+    if(op==='−' && A.s===0)
+      { if(hit(trim(av - B.v, sc))) return 'You treated ' + m[1] + ' as if it had no decimal part. It does — write it as ' + show(av, sc) + ' first, then subtract.'; }
+    if(samedigits)
+      return 'Your digits are right — ' + dg + ' — but the decimal point landed in the wrong place. In adding and subtracting, the point in the answer goes straight down below the points above it.';
+  }
+
+  if(op === '×'){
+    if(hit(trim(A.v*B.v, A.s)) || hit(trim(A.v*B.v, B.s)))
+      return 'You multiplied correctly but only counted ONE number’s decimal places. Count them in both: ' +
+             m[1] + ' has ' + A.s + ', ' + m[3] + ' has ' + B.s + ', so the answer needs ' + (A.s+B.s) + '.';
+    if(hit(trim(A.v*B.v, 0)))
+      return 'You multiplied the digits correctly and then left the decimal point out altogether. ' +
+             A.v + ' × ' + B.v + ' = ' + (A.v*B.v) + ', and now you step ' + (A.s+B.s) + ' places in from the right.';
+    const sc = Math.max(A.s,B.s);
+    if(hit(trim(A.v*pow10(sc-A.s) + B.v*pow10(sc-B.s), sc)))
+      return 'That is the two numbers ADDED, not multiplied. Check the sign in the middle — it is ×.';
+    if(samedigits)
+      return 'Your multiplication is right — the digits ' + dg + ' are correct. Only the decimal point is misplaced. Count the places in the QUESTION (' + A.s + ' + ' + B.s + ' = ' + (A.s+B.s) + ') and step in that far from the right.';
+  }
+
+  if(op === '÷'){
+    if(hit(divExact(B.v, B.s, A.v, A.s)))
+      return 'You divided the wrong way round. ' + m[1] + ' ÷ ' + m[3] + ' means ' + m[1] +
+             ' goes inside the box and ' + m[3] + ' outside. Division is not like multiplication — the order matters.';
+    if(B.s > 0){
+      const onlyDivisor = divExact(A.v, A.s, B.v, 0);
+      if(hit(onlyDivisor))
+        return 'You made the divisor whole (' + m[3] + ' → ' + B.v + ') but forgot to move the point in ' +
+               m[1] + ' as well. Both numbers move the SAME number of places, or the answer comes out ' +
+               pow10(B.s) + ' times off.';
+    }
+    if(hit(trim(A.v*B.v, A.s+B.s)))
+      return 'That is the two numbers MULTIPLIED. The sign is ÷ — you are sharing ' + m[1] + ' into groups of ' + m[3] + '.';
+    if(samedigits)
+      return 'Your digits are right — ' + dg + ' — but the point is in the wrong place. That almost always means one number got moved and the other did not.';
+    const ansV = parseShown(q.a);
+    if(ansV.s > 0 && g === normNum(trim(Math.round(ansV.v/pow10(ansV.s))*pow10(ansV.s), ansV.s)))
+      return 'You stopped at a whole number. It does not divide evenly, so keep going past the decimal point — add zeros to the dividend and carry on until it ends.';
+  }
+  if(samedigits)
+    return 'The digits are right, the decimal point is not.';
+  return '';
+}
+
+function diagnoseTwo(q, v1, v2){
+  const bits = [];
+  if(!sameNum(v1, q.a1) && sameNum(v1, q.a2))
+    bits.push('You put the second answer in box (a).');
+  if(!sameNum(v2, q.a2) && sameNum(v2, q.a1))
+    bits.push('Box (b) has the answer to part (a) in it. You did the first piece of work correctly and then stopped — re-read what (b) is actually asking for.');
+  return bits.join(' ');
+}
+
+/* the one sentence he sees when he gets it wrong */
+function whyWrong(q, given, v1, v2){
+  let d = '';
+  if(q.kind === 'calc' || q.kind === 'num') d = diagnoseCalc(q, given);
+  else if(q.kind === 'two') d = diagnoseTwo(q, v1, v2);
+  return d;
+}
+
+/* ============================================================
+   LESSONS — the method first, one step at a time.
+   Worked examples are taken from Louie's own Quiz 3-3, so the
+   lesson and the thing he got wrong are visibly the same problem.
+   ============================================================ */
+const LESSONS = {
+  point: {
+    title:'Where does the point go?',
+    rule:'Every operation has its own rule. And every answer gets a size check.',
+    steps:[
+      {h:'Moving the point is not a small mistake',
+       b:'The digits stay the same no matter where the point goes. What changes is the SIZE — and it changes by ten times for every place. One place off is not nearly right. It is ten times wrong.',
+       m:'12388\n123.88   ← right\n1238.8   ← ten times too big\n 12.388  ← ten times too small'},
+      {h:'Adding and subtracting: it drops STRAIGHT DOWN',
+       b:'You lined the points up before you started, so the point in the answer goes directly below them. You do not count anything. You do not move anything.',
+       m:'  12.500\n+  3.478\n  ------\n  15.978\n     ↑ straight down'},
+      {h:'Multiplying: COUNT the places in the question',
+       b:'Count how many digits come after the point in each number you were given. Add those two counts together. That is how many places you step in from the right-hand end of your digits.',
+       m:'16.3 × 7.6\n 1  +  1  = 2 places\n12388 → 123.88'},
+      {h:'Careful — count the QUESTION, not your answer',
+       b:'The count always comes from the two numbers you started with. People look at the long answer they just wrote and try to count places in it. There are none yet. That is the whole point of this step.',
+       m:''},
+      {h:'Dividing: it goes STRAIGHT UP',
+       b:'Once the divisor is a whole number, the point in the answer sits directly above the point in the number inside the box. Straight up, like addition goes straight down.',
+       m:'      6.25\n   -------\n32 ) 200.00\n       ↑ straight up'},
+      {h:'× 10, 100, 1000 just slides it',
+       b:'No working at all. Multiplying moves the point RIGHT (bigger). Dividing moves it LEFT (smaller). One place per zero.',
+       m:'3.47 × 100 = 347\n3.47 ÷ 100 = 0.0347'},
+      {h:'Now the check that catches everything',
+       b:'Before you write the answer down, round the numbers and do it roughly in your head. 16.3 is about 16, 7.6 is about 8. 16 × 8 is about 128. So 123.88 makes sense and 1238.8 does not. This one habit catches almost every misplaced point.',
+       m:'16.3 × 7.6\nabout 16 × 8 = about 128\nso 123.88  ✓\n   1238.8  ✗ way too big'},
+      {h:'Does bigger or smaller make sense?',
+       b:'Multiplying by something bigger than 1 makes it grow. Multiplying by something less than 1 makes it shrink. Dividing by something bigger than 1 makes it shrink. If your answer went the wrong direction, the point is misplaced.',
+       m:'20 ÷ 3.2\nsharing 20 into groups of about 3\nabout 6 or 7\nso 6.25 ✓   not 5.00, not 0.625'}
+    ]
+  },
+  decadd: {
+    title:'Adding & subtracting decimals',
+    rule:'Line up the decimal points. Not the ends of the numbers — the points.',
+    steps:[
+      {h:'Stack them by the point',
+       b:'Write one number above the other so the decimal points are in a straight vertical line. This is the whole trick. If you line up the right-hand ends instead, every digit is in the wrong column.',
+       m:'  12.5\n+  3.478'},
+      {h:'Fill the short one with zeros',
+       b:'12.5 has one decimal place, 3.478 has three. Add zeros to the short one so they match. 12.5 becomes 12.500 — same number, easier to work with.',
+       m:'  12.500\n+  3.478'},
+      {h:'Add the columns like normal',
+       b:'Now it is ordinary addition. Work right to left, carrying when a column goes over 9.',
+       m:'  12.500\n+  3.478\n  ------\n  15.978'},
+      {h:'Bring the point straight down',
+       b:'The decimal point in the answer goes directly below the ones above it. Never move it.',
+       m:'12.5 + 3.478 = 15.978'},
+      {h:'Whole numbers need zeros too',
+       b:'150 − 138.79 trips people up because 150 looks like it has no decimal. It does — it is 150.00. Write it that way and it subtracts normally.',
+       m:'  150.00\n− 138.79\n  ------\n   11.21'}
+    ]
+  },
+  decmul: {
+    title:'Multiplying decimals',
+    rule:'Multiply as if there were no points. Then count the places and put one in.',
+    steps:[
+      {h:'Do NOT line up the points',
+       b:'That rule belongs to addition. For multiplication you ignore the decimal points completely at the start.',
+       m:'16.3 × 7.6'},
+      {h:'Multiply as whole numbers',
+       b:'Pretend the points are not there: 163 × 76. Do it exactly like any multiplication you already know.',
+       m:'163 × 76 = 12388'},
+      {h:'Count the decimal places in the question',
+       b:'16.3 has one digit after the point. 7.6 has one. That is two places altogether. This count comes from the QUESTION, never from your answer.',
+       m:'16.3 → 1 place\n 7.6 → 1 place\n total → 2 places'},
+      {h:'Count that many places in from the right',
+       b:'Start at the right-hand end of 12388 and step left two places. Put the point there.',
+       m:'12388 → 123.88'},
+      {h:'Multiplying by 10, 100, 1000',
+       b:'These need no working at all. Each zero moves the point one place to the RIGHT. 0.192 × 40 is 0.192 × 4 = 0.768, then one more place right for the 10.',
+       m:'0.192 × 40 = 7.68'}
+    ]
+  },
+  decdiv: {
+    title:'Dividing decimals',
+    rule:'Make the divisor a whole number. Move the other point the same amount.',
+    steps:[
+      {h:'Find the divisor',
+       b:'The divisor is the number you are dividing BY — the one outside the box. In 20 ÷ 3.2 the divisor is 3.2.',
+       m:'20 ÷ 3.2\n      ↑ divisor'},
+      {h:'Move its point until it is whole',
+       b:'3.2 becomes 32 by moving the point one place right. Count how many places you moved: one.',
+       m:'3.2 → 32   (moved 1 place)'},
+      {h:'Move the other number the SAME amount',
+       b:'This is the step people skip. Whatever you did to the divisor, you must do to the dividend. 20 moves one place right and becomes 200. Skipping this is why an answer comes out ten times too big or too small.',
+       m:'20 → 200   (moved 1 place)'},
+      {h:'Now divide normally',
+       b:'200 ÷ 32. The decimal point in the answer goes straight up above where it sits in the dividend.',
+       m:'200 ÷ 32 = 6.25'},
+      {h:'Do not stop at the remainder',
+       b:'If it does not divide evenly, add zeros after the point and keep going. 20.68 ÷ 8 does not stop at 2 — it carries on to 2.585.',
+       m:'20.68 ÷ 8 = 2.585'},
+      {h:'Dividing by 10, 100, 1000',
+       b:'Each zero moves the point one place to the LEFT. The opposite of multiplying.',
+       m:'128.16 ÷ 1.2 = 106.8'}
+    ]
+  },
+  decword: {
+    title:'Decimal word problems',
+    rule:'Do the math, then go back and read the question again before you write anything.',
+    steps:[
+      {h:'Read the last line first',
+       b:'Before you touch the numbers, find the actual question. "How much did she pay?" and "how much MORE?" need different final steps even though the multiplication is identical.',
+       m:'Josh ran 84.6 miles in June.\nIn July he ran 0.55 times that.\nHow many MORE miles in June?'},
+      {h:'Work out the piece you need',
+       b:'July is 84.6 × 0.55 = 46.53 miles. That number is correct — and it is not the answer.',
+       m:'84.6 × 0.55 = 46.53'},
+      {h:'Re-read the question',
+       b:'It asked how many MORE. More means a difference, which means subtract. Stopping at 46.53 gets the multiplication right and the question wrong.',
+       m:'84.6 − 46.53 = 38.07 miles'},
+      {h:'"How many fit" means round DOWN',
+       b:'65.8 meters of wire cut into 1.6 meter pieces gives 41.125. You cannot cut a 0.125 piece, so the answer is 41 whole pieces — and the unit is pieces, not meters.',
+       m:'65.8 ÷ 1.6 = 41.125 → 41 pieces'},
+      {h:'Check the unit',
+       b:'Dollars, ounces, miles, pieces. The unit is part of the answer. Writing the right number with the wrong unit still loses the mark.',
+       m:''}
+    ]
+  },
+  lcm: {
+    title:'Least common multiple',
+    rule:'Break both into primes. Take the highest power of every prime that appears.',
+    steps:[
+      {h:'What LCM means',
+       b:'The smallest number that BOTH numbers divide into evenly. Think of two things happening on a cycle — when do they next happen together?',
+       m:'LCM of 12 and 18'},
+      {h:'Break each into primes',
+       b:'Split each number into prime factors and keep them in order.',
+       m:'12 = 2 × 2 × 3\n18 = 2 × 3 × 3'},
+      {h:'Take the most of each prime',
+       b:'Two appears twice in 12 and once in 18 — take two of them. Three appears once in 12 and twice in 18 — take two of those.',
+       m:'2 × 2 × 3 × 3'},
+      {h:'Multiply',
+       b:'That product is the LCM. It is always at least as big as the larger number.',
+       m:'2 × 2 × 3 × 3 = 36'}
+    ]
+  },
+  gcf: {
+    title:'Greatest common factor',
+    rule:'Break both into primes. Keep only what they share.',
+    steps:[
+      {h:'What GCF means',
+       b:'The biggest number that divides into BOTH evenly. Think of splitting things into identical groups with nothing left over.',
+       m:'GCF of 48 and 72'},
+      {h:'Break each into primes',
+       b:'Same first move as LCM — prime factors for both.',
+       m:'48 = 2 × 2 × 2 × 2 × 3\n72 = 2 × 2 × 2 × 3 × 3'},
+      {h:'Circle only what is in BOTH',
+       b:'Both have three 2s and one 3. The extra 2 in 48 and the extra 3 in 72 are not shared, so they are out.',
+       m:'shared: 2 × 2 × 2 × 3'},
+      {h:'Multiply the shared ones',
+       b:'That is the GCF. It is always no bigger than the smaller number — if you get something larger, you have taken an unshared factor.',
+       m:'2 × 2 × 2 × 3 = 24'}
+    ]
+  }
+};
+const LESSON_FOR = { point:'point', decadd:'decadd', decmul:'decmul', decdiv:'decdiv', decword:'decword',
+                     decmix:'decadd', quiz33:'decadd', lcm:'lcm', gcf:'gcf', word:'lcm', mixed:'lcm' };
+
+function lessonSeen(id){ return !!raw.get('seen.'+id, false); }
+function markLessonSeen(id){ raw.set('seen.'+id, true); }
+
+let L = null;
+function openLesson(id, thenMode){
+  tick();
+  L = { id, lesson: LESSONS[id], i:0, thenMode };
+  $('homeBtn').style.display='';
+  $('subline').textContent = 'Lesson';
+  renderLesson();
+}
+function renderLesson(){
+  const les = L.lesson, st = les.steps[L.i], n = les.steps.length;
+  const last = L.i === n-1;
+  window.scrollTo(0,0);
+  $('app').innerHTML = `
+    <div class="qtop">
+      <span class="tag e">Lesson</span>
+      <span class="qnum">Step ${L.i+1} of ${n}</span>
+    </div>
+    <div class="bar"><i style="width:${Math.round((L.i+1)/n*100)}%"></i></div>
+    <h1 style="font-size:20px;margin:18px 0 2px">${esc(les.title)}</h1>
+    <p class="muted" style="margin:0 0 4px"><b style="color:var(--acc)">${esc(les.rule)}</b></p>
+    <div class="card" style="margin-top:16px">
+      <b style="font-size:16px;display:block;margin-bottom:6px">${esc(st.h)}</b>
+      <div class="muted" style="font-size:14.5px;color:var(--ink)">${esc(st.b)}</div>
+      ${st.m ? `<pre class="work">${esc(st.m)}</pre>` : ''}
+    </div>
+    <div class="row" style="margin-top:14px">
+      ${L.i ? `<button class="btn ghost" onclick="lessonBack()">Back</button>` : ''}
+      <button class="btn" onclick="${last?'lessonDone()':'lessonNext()'}">${last?'Got it — let me try':'Next step'}</button>
+    </div>
+    ${last ? '' : `<button class="btn ghost" style="margin-top:10px" onclick="lessonDone()">Skip to practice</button>`}
+    <div style="height:20px"></div>`;
+}
+function lessonNext(){ tick(); L.i++; renderLesson(); }
+function lessonBack(){ tick(); L.i--; renderLesson(); }
+function lessonDone(){
+  markLessonSeen(L.id);
+  const m = L.thenMode; L = null;
+  if(m) start(m, true); else renderHome();
+}
+
+/* ============================================================
+   WHERE DOES THE POINT GO?
+   The digits are already done for him. The ONLY decision is
+   where the point lands. Everything else is stripped away.
+   ============================================================ */
+function digitsOnly(v){ return String(v); }
+
+/* Rounding 0.66 to 1 makes a useless estimate, and rounding 0.23 to 0 makes a
+   misleading one. When a factor is under 1, say what it DOES instead. */
+function estMul(A, B){
+  const a = A.v/pow10(A.s), b = B.v/pow10(B.s);
+  const ra = Math.round(a), rb = Math.round(b);
+  if(a < 1 || b < 1){
+    const small = a < 1 ? show(A.v,A.s) : show(B.v,B.s);
+    const other = a < 1 ? show(B.v,B.s) : show(A.v,A.s);
+    return small + ' is less than 1, so the answer must come out SMALLER than ' + other +
+           '. If yours is bigger, the point is too far right.';
+  }
+  return 'About ' + ra + ' \u00d7 ' + rb + ' = about ' + (ra*rb) + '. Your answer should land near that.';
+}
+function estDiv(val, divisor){
+  const r = Math.round(val/divisor);
+  if(r < 1) return 'Sharing about ' + Math.round(val) + ' into ' + divisor +
+    ' groups gives less than 1, so the answer starts with a zero before the point.';
+  return 'About ' + Math.round(val) + ' \u00f7 ' + divisor + ' = about ' + r +
+         '. Your answer should land near that.';
+}
+
+/* slot k = how many digits end up to the RIGHT of the point */
+function genPoint(hard){
+  const mode = pick(['mul','mul','div','pow']);
+
+  if(mode === 'mul'){
+    const sa = randInt(1,2), sb = hard ? randInt(1,2) : 1;
+    const A = mkDec(hard?99:19, sa), B = mkDec(9, sb);
+    const prod = A.v * B.v, k = sa + sb, d = digitsOnly(prod);
+    if(!(k >= 1 && k <= d.length-1)) return genPoint(hard);
+    return {
+      sec:DECSEC, kind:'point',
+      expr: show(A.v,sa) + ' × ' + show(B.v,sb),
+      lead: 'You already multiplied ' + A.v + ' × ' + B.v + ' and got',
+      digits: d, k,
+      rule: show(A.v,sa) + ' has ' + sa + ' place' + (sa===1?'':'s') + ' and ' +
+            show(B.v,sb) + ' has ' + sb + '. ' + sa + ' + ' + sb + ' = ' + k +
+            ', so count ' + k + ' place' + (k===1?'':'s') + ' in from the RIGHT.',
+      est: estMul(A, B)
+    };
+  }
+
+  if(mode === 'div'){
+    const divisor = randInt(2,12), qs = randInt(1,2);
+    const quot = mkDec(hard?99:29, qs);
+    const dividend = quot.v * divisor, d = digitsOnly(quot.v);
+    if(!(qs >= 1 && qs <= d.length-1)) return genPoint(hard);
+    return {
+      sec:DECSEC, kind:'point',
+      expr: trim(dividend, qs) + ' ÷ ' + divisor,
+      lead: 'You already divided and got the digits',
+      digits: d, k: qs,
+      rule: 'Dividing by a whole number does not move anything. The point in the answer sits directly above the point in ' +
+            trim(dividend, qs) + ', which puts it ' + qs + ' place' + (qs===1?'':'s') + ' from the right.',
+      est: estDiv(dividend/pow10(qs), divisor)
+    };
+  }
+
+  /* multiplying or dividing by 10 / 100 / 1000 — pure point-shifting */
+  const s = randInt(2,3), A = mkDec(99, s), k10 = pick([1,2]);
+  const up = Math.random() < 0.5;
+  const k = up ? s - k10 : s + k10;
+  const d = digitsOnly(A.v);
+  if(!(k >= 1 && k <= d.length-1)) return genPoint(hard);
+  return {
+    sec:DECSEC, kind:'point',
+    expr: show(A.v,s) + (up ? ' × ' : ' ÷ ') + pow10(k10),
+    lead: 'The digits do not change at all. They are still',
+    digits: d, k,
+    rule: (up ? 'Multiplying' : 'Dividing') + ' by ' + pow10(k10) + ' moves the point ' +
+          k10 + ' place' + (k10===1?'':'s') + ' to the ' + (up?'RIGHT':'LEFT') + '. ' +
+          'It started ' + s + ' from the right, so it ends up ' + k + ' from the right.',
+    est: (up ? 'Multiplying makes it bigger.' : 'Dividing makes it smaller.') +
+         ' If your answer went the other way, you moved the point the wrong direction.'
+  };
+}
+
+function buildPoints(n){
+  const out=[];
+  for(let i=0;i<n;i++) out.push(genPoint(i >= Math.floor(n/2)));
+  return out;
+}
+
+/* render the digit string with a tappable gap between every pair */
+function pointHTML(q){
+  const d = q.digits;
+  let html = '<div class="digrow">';
+  for(let i=0;i<d.length;i++){
+    html += '<span class="dig">'+d[i]+'</span>';
+    const k = d.length - 1 - i;             // digits remaining to the right
+    if(k >= 1) html += '<button class="gap" data-k="'+k+'" onclick="pickPoint('+k+')"><i></i></button>';
+  }
+  return html + '</div>';
+}
+function answerWithPoint(q, k){
+  const d = q.digits;
+  return d.slice(0, d.length-k) + '.' + d.slice(d.length-k);
+}
+
+/* ============================================================
    SCREENS
    ============================================================ */
 let S = null;                 /* active run */
@@ -862,7 +1307,21 @@ function renderHome(){
        so you can&rsquo;t memorize your way through &mdash; and every wrong answer
        shows you the step you missed.</p>
 
+    <a class="tile" href="states.html" style="text-decoration:none">
+      <div class="tico">🗺️</div>
+      <div><b>States &amp; capitals</b><span>All 50, one region at a time. Anything you miss keeps coming back.</span></div>
+      <div class="tchev">›</div>
+    </a>
+
+    <h2>Lessons — read these first</h2>
+    <div class="chipbar" id="lessonChips"></div>
+
     <h2>Decimals</h2>
+    <button class="tile" onclick="start('point')" style="border-color:var(--acc)">
+      <div class="tico">📍</div>
+      <div><b>Where does the point go?</b><span>The digits are already done. You only decide where the point lands — tap the spot.</span></div>
+      <div class="tchev">›</div>
+    </button>
     <button class="tile" onclick="start('quiz33')" style="border-color:var(--acc)">
       <div class="tico">📝</div>
       <div><b>Quiz 3-3 retake</b><span>Same shape as the real one: 10 expressions, then 5 word problems. Graded at the end.</span></div>
@@ -931,10 +1390,18 @@ function renderHome(){
       Stuck on a factorization? The pad at the bottom breaks any number apart for you —
       except during the test.
     </p>`;
+  const chips = $('lessonChips');
+  if(chips){
+    chips.innerHTML = Object.keys(LESSONS).map(id=>
+      `<button class="chip${lessonSeen(id)?' on':''}" onclick="openLesson('${id}')">
+         ${lessonSeen(id)?'\u2713 ':''}${esc(LESSONS[id].title)}</button>`).join('');
+  }
 }
 
 /* ---------- start a run ---------- */
-function start(mode){
+function start(mode, skipLesson){
+  const lid = LESSON_FOR[mode];
+  if(lid && !skipLesson && !lessonSeen(lid)) return openLesson(lid, mode);
   tick();
   const isTest = mode==='test' || mode==='quiz33';
   S = {
@@ -942,6 +1409,7 @@ function start(mode){
     instant: !isTest,
     list: mode==='quiz33' ? buildQuiz33()
         : mode==='test' ? normTest()
+        : mode==='point'  ? buildPoints(12)
         : mode==='decadd' ? buildDecimals('decadd',10)
         : mode==='decmul' ? buildDecimals('decmul',10)
         : mode==='decdiv' ? buildDecimals('decdiv',10)
@@ -956,6 +1424,7 @@ function start(mode){
   $('subline').textContent =
        mode==='test'   ? 'Test — 15 questions'
      : mode==='quiz33' ? 'Quiz 3-3 retake'
+     : mode==='point'  ? 'Where does the point go?'
      : mode==='decadd' ? 'Adding & subtracting'
      : mode==='decmul' ? 'Multiplying'
      : mode==='decdiv' ? 'Dividing'
@@ -974,7 +1443,15 @@ function renderQ(){
   const pct = Math.round(S.i/n*100);
   let body = '';
 
-  if(q.kind==='calc'){
+  if(q.kind==='point'){
+    body = `
+      <p class="muted" style="margin:14px 0 0;font-size:13px">${esc(q.expr)}</p>
+      <p class="qask" style="font-size:17px;margin:8px 0 0">${esc(q.lead)}</p>
+      ${pointHTML(q)}
+      <p class="placed" id="placed"></p>
+      <p class="muted" style="text-align:center;font-size:13px;margin-top:10px">
+        Tap where the decimal point belongs.</p>`;
+  } else if(q.kind==='calc'){
     body = `
       <p class="muted" style="margin:14px 0 0;font-size:13px">${esc(q.ask)}</p>
       <p class="calcq">${esc(q.q)}</p>
@@ -1016,6 +1493,41 @@ function renderQ(){
   const f=$('in1'); if(f) f.focus();
 }
 
+function pickPoint(k){
+  if(S.answered) return;
+  const q = S.list[S.i];
+  const ok = k === q.k;
+  S.answered = true;
+  const given = answerWithPoint(q, k);
+  S.log.push({ q, given, ok, why: ok ? '' : pointWhy(q, k) });
+  if(ok){ S.right++; S.auto++; tick('ok'); buzz(18); }
+  else  { S.auto++; tick('no'); buzz([22,50,22]); }
+
+  document.querySelectorAll('.digrow').forEach(r=>r.classList.add('done'));
+  document.querySelectorAll('.gap').forEach(g=>{
+    const gk = +g.dataset.k;
+    if(gk === q.k) g.classList.add(ok ? 'on' : 'show');
+    else if(gk === k) g.classList.add('bad');
+  });
+  $('placed').textContent = ok ? given : given + '   \u2192   ' + answerWithPoint(q, q.k);
+
+  const fb = $('fb');
+  fb.className = 'fb show ' + (ok ? 'ok' : 'no');
+  fb.innerHTML = (ok ? '<b>Right where it goes.</b>' : '<b>The point goes here: ' + esc(answerWithPoint(q, q.k)) + '</b>')
+    + esc(q.rule)
+    + (ok ? '' : '<span class="why"><b>Why yours was off:</b> ' + esc(pointWhy(q, k)) + '</span>')
+    + '<span class="why"><b>Sense check:</b> ' + esc(q.est) + '</span>';
+  const last = S.i === S.list.length-1;
+  $('acts').innerHTML = `<button class="btn" onclick="next()">${last?'See results':'Next'}</button>`;
+}
+function pointWhy(q, k){
+  const off = k - q.k;
+  const times = pow10(Math.abs(off));
+  return 'You put it ' + Math.abs(off) + ' place' + (Math.abs(off)===1?'':'s') + ' too far ' +
+         (off > 0 ? 'LEFT, which makes the answer ' + times + ' times too small.'
+                  : 'RIGHT, which makes the answer ' + times + ' times too big.');
+}
+
 function check(){
   if(S.answered) return;
   const q = S.list[S.i];
@@ -1036,7 +1548,9 @@ function check(){
   }
 
   S.answered = true;
-  S.log.push({q, given, ok});
+  let _v1='', _v2='';
+  if(q.kind==='two'){ _v1=($('in1')||{}).value||''; _v2=($('in2')||{}).value||''; }
+  S.log.push({q, given, ok, why: ok===false ? whyWrong(q, given, _v1, _v2) : ''});
 
   if(ok===true){ S.right++; S.auto++; tick('ok'); buzz(18); }
   else if(ok===false){ S.auto++; tick('no'); buzz([22,50,22]); }
@@ -1047,7 +1561,11 @@ function check(){
   if(ok===true){
     fb.innerHTML = '<b>Correct.</b>' + (S.isTest?'':esc(q.w));
   } else if(ok===false){
-    fb.innerHTML = '<b>Not quite.</b>The answer is <span class="ans">'+esc(q.a)+'</span>.<br>'+esc(q.w);
+    let v1='', v2='';
+    if(q.kind==='two'){ v1=($('in1')||{}).value||''; v2=($('in2')||{}).value||''; }
+    const why = whyWrong(q, given, v1, v2);
+    fb.innerHTML = '<b>Not quite.</b>The answer is <span class="ans">'+esc(q.a)+'</span>.<br>'+esc(q.w)
+      + (why ? '<span class="why"><b>What went wrong:</b> '+esc(why)+'</span>' : '');
   } else {
     fb.innerHTML = '<b>Model answer</b><span class="ans">'+esc(q.a)+'</span><br>'+esc(q.w)+
                    '<br><br><span style="color:var(--dim)">Did you get the idea?</span>';
@@ -1132,7 +1650,8 @@ function renderResults(){
       ${e.ok===true?'':`
         <p class="lbl" style="margin-top:8px">Answer</p>
         <p style="color:var(--acc)">${esc(e.q.a)}</p>
-        <p class="muted" style="margin-top:6px">${esc(e.q.w)}</p>`}
+        <p class="muted" style="margin-top:6px">${esc(e.q.w)}</p>
+        ${(function(){ const w = e.why; return w ? `<p style="margin-top:6px;color:var(--warn);font-size:13.5px">${esc(w)}</p>` : ''; })()}`}
     </div>`;
   }).join('');
 
