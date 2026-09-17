@@ -90,6 +90,8 @@ h2{font-size:16px;margin:26px 0 10px;letter-spacing:-.2px}
 .tag.b{color:var(--warn);border-color:var(--warn)}
 .tag.c{color:#7db9ff;border-color:#7db9ff}
 .tag.d{color:#c79bff;border-color:#c79bff}
+.tag.e{color:#ffb454;border-color:#ffb454}
+.calcq{font-size:30px;font-weight:700;letter-spacing:.5px;margin:14px 0 6px;line-height:1.35}
 
 input[type=text],input[type=number],textarea{
   width:100%;background:var(--panel2);border:1.5px solid var(--line);color:var(--ink);
@@ -512,11 +514,321 @@ function buildPractice(mode, n){
 }
 
 /* ============================================================
+   DECIMALS
+   All arithmetic here is done on INTEGERS with a separate scale
+   (number of decimal places). Nothing is ever computed in
+   floating point, because 0.1 + 0.2 = 0.30000000000000004 and a
+   kid should never be marked wrong for a bug of mine.
+   ============================================================ */
+function pow10(n){ return Math.round(Math.pow(10, n)); }
+
+/* integer value scaled by 10^s  ->  display string with exactly s places */
+function show(v, s){
+  const neg = v < 0; v = Math.abs(v);
+  let t = String(v);
+  if(s > 0){
+    t = t.padStart(s+1, '0');
+    t = t.slice(0, t.length-s) + '.' + t.slice(t.length-s);
+  }
+  return (neg?'-':'') + t;
+}
+/* same, but trimmed — the form we store as the answer */
+function trim(v, s){
+  let t = show(v, s);
+  if(t.indexOf('.') > -1) t = t.replace(/0+$/,'').replace(/\.$/,'');
+  return t;
+}
+/* canonical form of anything the student types, for comparison */
+function normNum(str){
+  let s = String(str==null?'':str).trim().replace(/[$,\s]/g,'');
+  if(s === '') return null;
+  if(!/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return null;
+  let neg = s[0] === '-'; if(neg) s = s.slice(1);
+  let i = s.split('.')[0] || '0', f = s.split('.')[1] || '';
+  i = i.replace(/^0+/,'') || '0';
+  f = f.replace(/0+$/,'');
+  const body = i + (f ? '.'+f : '');
+  return (neg && body !== '0' ? '-' : '') + body;
+}
+function sameNum(a, b){
+  const x = normNum(a); return x !== null && x === normNum(b);
+}
+
+/* a decimal with `s` places and a whole part up to maxWhole */
+function mkDec(maxWhole, s){
+  const whole = randInt(0, maxWhole);
+  const frac  = randInt(0, pow10(s)-1);
+  const v = whole*pow10(s) + frac;
+  return v === 0 ? mkDec(maxWhole, s) : { v, s };
+}
+const DECSEC = 'E';
+
+function alignNote(A, B, m){
+  if(A.s === B.s) return 'Both numbers already have ' + A.s + ' decimal place' + (A.s===1?'':'s') + ', so they line up as written.';
+  const short = A.s < B.s ? A : B;
+  return 'They have different numbers of decimal places. Write ' + show(short.v, short.s) +
+         ' as ' + show(short.v*pow10(m-short.s), m) + ' so the points line up, then work down the columns.';
+}
+
+function genDecAdd(hard){
+  const sa = hard ? randInt(1,3) : randInt(1,2);
+  const sb = hard ? randInt(1,3) : sa;
+  const A = mkDec(hard?499:99, sa), B = mkDec(hard?499:99, sb);
+  const m = Math.max(sa, sb);
+  const sum = A.v*pow10(m-sa) + B.v*pow10(m-sb);
+  return {
+    sec:DECSEC, kind:'calc', ask:'Add',
+    q: show(A.v,sa) + ' + ' + show(B.v,sb),
+    a: trim(sum, m),
+    w: alignNote(A, B, m) + ' The decimal point in the answer drops straight down: ' + trim(sum,m) + '.'
+  };
+}
+function genDecSub(hard){
+  let sa = hard ? randInt(0,3) : randInt(1,2);
+  let sb = hard ? randInt(1,3) : sa;
+  if(sa === 0 && sb === 0) sb = 2;
+  let A = mkDec(hard?499:99, sa), B = mkDec(hard?499:99, sb);
+  const m = Math.max(sa, sb);
+  let av = A.v*pow10(m-sa), bv = B.v*pow10(m-sb);
+  if(av < bv){ const t=A; A=B; B=t; const t2=av; av=bv; bv=t2; }
+  if(av === bv) return genDecSub(hard);
+  const diff = av - bv;
+  const wholeNote = A.s === 0
+    ? 'Watch this one — ' + show(A.v,0) + ' is a whole number, so write it as ' + show(av, m) + ' before you subtract. '
+    : '';
+  return {
+    sec:DECSEC, kind:'calc', ask:'Subtract',
+    q: show(A.v,A.s) + ' − ' + show(B.v,B.s),
+    a: trim(diff, m),
+    w: wholeNote + alignNote(A, B, m) + ' Answer: ' + trim(diff, m) + '.'
+  };
+}
+function genDecMul(hard){
+  /* every so often, a pure place-value shift — the rule worth owning */
+  if(!hard && Math.random() < 0.25){
+    const s = randInt(1,2), A = mkDec(99, s), k = pick([1,2,3]);
+    const prod = A.v * pow10(k);
+    return {
+      sec:DECSEC, kind:'calc', ask:'Multiply',
+      q: show(A.v,s) + ' × ' + pow10(k),
+      a: trim(prod, s),
+      w: 'Multiplying by ' + pow10(k) + ' moves the decimal point ' + k +
+         ' place' + (k===1?'':'s') + ' to the RIGHT. ' + show(A.v,s) + ' → ' + trim(prod,s) + '.'
+    };
+  }
+  const sa = randInt(1,2), sb = hard ? randInt(1,2) : 1;
+  const A = mkDec(hard?99:19, sa), B = mkDec(hard?19:9, sb);
+  const prod = A.v * B.v, m = sa + sb;
+  return {
+    sec:DECSEC, kind:'calc', ask:'Multiply',
+    q: show(A.v,sa) + ' × ' + show(B.v,sb),
+    a: trim(prod, m),
+    w: 'Ignore the points and multiply whole numbers: ' + A.v + ' × ' + B.v + ' = ' + prod +
+       '. Now count decimal places in the question — ' + sa + ' and ' + sb + ', so ' + m +
+       ' altogether. Put the point ' + m + ' places from the right: ' + trim(prod, m) + '.'
+  };
+}
+function genDecDiv(hard){
+  /* place-value shift the other way */
+  if(!hard && Math.random() < 0.25){
+    const s = randInt(0,1), A = mkDec(999, s), k = pick([1,2,3]);
+    return {
+      sec:DECSEC, kind:'calc', ask:'Divide',
+      q: show(A.v,s) + ' ÷ ' + pow10(k),
+      a: trim(A.v, s+k),
+      w: 'Dividing by ' + pow10(k) + ' moves the decimal point ' + k +
+         ' place' + (k===1?'':'s') + ' to the LEFT. ' + show(A.v,s) + ' → ' + trim(A.v, s+k) + '.'
+    };
+  }
+  if(!hard){
+    /* decimal ÷ whole number — build it from the answer so it comes out even */
+    const divisor = randInt(2, 12);
+    const qs = randInt(1, 2);
+    const quot = mkDec(29, qs);
+    const dividend = quot.v * divisor;
+    return {
+      sec:DECSEC, kind:'calc', ask:'Divide',
+      q: show(dividend, qs) + ' ÷ ' + divisor,
+      a: trim(quot.v, qs),
+      w: 'Dividing by a whole number: the decimal point in the answer sits directly above the one in ' +
+         show(dividend, qs) + '. ' + show(dividend,qs) + ' ÷ ' + divisor + ' = ' + trim(quot.v,qs) +
+         '. Check it: ' + trim(quot.v,qs) + ' × ' + divisor + ' = ' + trim(dividend,qs) + '.'
+    };
+  }
+  /* decimal ÷ decimal — the one that needs the divisor made whole */
+  const ds = randInt(1,2);
+  const D = mkDec(9, ds);
+  if(D.v === 0) return genDecDiv(hard);
+  const qs = randInt(0,1);
+  const Qn = mkDec(19, qs);
+  const dividend = Qn.v * D.v;            // scale = qs + ds
+  return {
+    sec:DECSEC, kind:'calc', ask:'Divide',
+    q: show(dividend, qs+ds) + ' ÷ ' + show(D.v, ds),
+    a: trim(Qn.v, qs),
+    w: 'Make the divisor a whole number. Move the point ' + ds + ' place' + (ds===1?'':'s') +
+       ' right in BOTH numbers: ' + show(D.v,ds) + ' becomes ' + D.v + ', and ' +
+       show(dividend, qs+ds) + ' becomes ' + show(dividend, qs) + '. Now divide: ' +
+       show(dividend,qs) + ' ÷ ' + D.v + ' = ' + trim(Qn.v,qs) + '.'
+  };
+}
+
+/* --- money and measurement word problems, answers computed the same way --- */
+function money(v){ return '$' + show(v, 2); }
+function genDecWord(){
+  const kind = randInt(0,3);
+  const who = pick(NAMES);
+  if(kind === 0){
+    const price = mkDec(24, 2), n = randInt(3, 8);
+    const total = price.v * n;
+    const paid = Math.ceil(total/1000)*1000;             // next whole $10
+    return {
+      sec:DECSEC, kind:'two',
+      q: who + ' buys ' + n + ' notebooks at ' + money(price.v) + ' each and pays with ' + money(paid) + '.',
+      p1:'Total cost? (just the number)',
+      p2:'Change? (just the number)',
+      a1: trim(total,2), a2: trim(paid-total,2),
+      a: '(a) ' + money(total) + '  (b) ' + money(paid-total),
+      w: n + ' × ' + money(price.v) + ' = ' + money(total) + '. Then ' + money(paid) +
+         ' − ' + money(total) + ' = ' + money(paid-total) + '.'
+    };
+  }
+  if(kind === 1){
+    const each = mkDec(9, 2), n = randInt(3, 9);
+    const total = each.v * n;
+    return {
+      sec:DECSEC, kind:'two',
+      q: who + ' cuts a ribbon into ' + n + ' equal pieces, each ' + show(each.v,2) + ' meters long.',
+      p1:'Total length in meters?',
+      p2:'How many centimeters is one piece? (1 m = 100 cm)',
+      a1: trim(total,2), a2: trim(each.v, 0),
+      a: '(a) ' + trim(total,2) + ' m  (b) ' + trim(each.v,0) + ' cm',
+      w: n + ' × ' + show(each.v,2) + ' = ' + trim(total,2) + ' m. To convert metres to centimetres multiply by 100, which moves the point two places right: ' +
+         show(each.v,2) + ' m = ' + trim(each.v,0) + ' cm.'
+    };
+  }
+  if(kind === 2){
+    const per = mkDec(5, 2); if(per.v === 0) return genDecWord();
+    const n = randInt(4, 9);
+    const total = per.v * n;
+    return {
+      sec:DECSEC, kind:'two',
+      q: who + ' spends ' + money(total) + ' on ' + n + ' identical drinks.',
+      p1:'Cost of one drink? (just the number)',
+      p2:'Cost of 3 drinks? (just the number)',
+      a1: trim(per.v,2), a2: trim(per.v*3,2),
+      a: '(a) ' + money(per.v) + '  (b) ' + money(per.v*3),
+      w: money(total) + ' ÷ ' + n + ' = ' + money(per.v) + '. Then 3 × ' +
+         money(per.v) + ' = ' + money(per.v*3) + '.'
+    };
+  }
+  const start = mkDec(199, 2), spend1 = mkDec(49, 2), spend2 = mkDec(29, 2);
+  const left = start.v - spend1.v - spend2.v;
+  if(left <= 0) return genDecWord();
+  return {
+    sec:DECSEC, kind:'two',
+    q: who + ' starts with ' + money(start.v) + ', spends ' + money(spend1.v) + ', then spends ' + money(spend2.v) + '.',
+    p1:'Total spent? (just the number)',
+    p2:'Amount left? (just the number)',
+    a1: trim(spend1.v+spend2.v,2), a2: trim(left,2),
+    a: '(a) ' + money(spend1.v+spend2.v) + '  (b) ' + money(left),
+    w: money(spend1.v) + ' + ' + money(spend2.v) + ' = ' + money(spend1.v+spend2.v) +
+       '. Then ' + money(start.v) + ' − ' + money(spend1.v+spend2.v) + ' = ' + money(left) + '.'
+  };
+}
+
+function buildDecimals(mode, n){
+  const out = [];
+  for(let i=0;i<n;i++){
+    const hard = i >= Math.floor(n/2);
+    if(mode==='decadd')      out.push(Math.random()<0.5 ? genDecAdd(hard) : genDecSub(hard));
+    else if(mode==='decmul') out.push(genDecMul(hard));
+    else if(mode==='decdiv') out.push(genDecDiv(hard));
+    else if(mode==='decword')out.push(genDecWord());
+    else {
+      const r = i % 5;
+      out.push(r===0?genDecAdd(hard):r===1?genDecSub(hard):r===2?genDecMul(hard)
+              :r===3?genDecDiv(hard):genDecWord());
+    }
+  }
+  return out;
+}
+
+/* ---- the two traps Louie actually fell into on Quiz 3-3 ---- */
+function genTrapMore(){
+  const who = pick(NAMES), other = pick(NAMES.filter(n=>n!==who));
+  const base = mkDec(99, 1);                    // e.g. 84.6
+  const f = { v: randInt(15, 85), s: 2 };       // e.g. 0.55
+  const second = base.v * f.v;                  // scale 3
+  const diff = base.v*pow10(2) - second;        // scale 3
+  return {
+    sec:DECSEC, kind:'two',
+    q: who + ' ran ' + show(base.v,1) + ' miles in June. In July ' + who +
+       ' ran ' + show(f.v,2) + ' times that distance.',
+    p1:'Miles in July?',
+    p2:'How many MORE miles in June than July?',
+    a1: trim(second,3), a2: trim(diff,3),
+    a: '(a) ' + trim(second,3) + ' miles  (b) ' + trim(diff,3) + ' miles',
+    w: 'July: ' + show(base.v,1) + ' × ' + show(f.v,2) + ' = ' + trim(second,3) +
+       ' miles. But "how many MORE" asks for the difference, not July’s total: ' +
+       show(base.v,1) + ' − ' + trim(second,3) + ' = ' + trim(diff,3) +
+       '. Finishing the multiplication is only half the job — read the last line again before you write the answer.'
+  };
+}
+function genTrapPieces(){
+  const who = pick(NAMES);
+  const piece = mkDec(4, 1); if(piece.v === 0) return genTrapPieces();
+  const whole = randInt(12, 45);
+  const left = randInt(1, piece.v - 1);
+  const total = whole*piece.v + left;           // scale 1, deliberately not exact
+  return {
+    sec:DECSEC, kind:'two',
+    q: who + ' has ' + show(total,1) + ' meters of wire and cuts it into pieces ' +
+       show(piece.v,1) + ' meters long.',
+    p1:'What does the division give you? (exact)',
+    p2:'How many WHOLE pieces can be cut?',
+    a1: (function(){ const r = total/piece.v; return String(Math.round(r*1000)/1000); })(),
+    a2: String(whole),
+    w: show(total,1) + ' ÷ ' + show(piece.v,1) + ' = ' +
+       (Math.round(total/piece.v*1000)/1000) + '. You cannot cut a part-piece, so the answer is ' +
+       whole + ' whole pieces — and the units are pieces, not meters. Round DOWN on a "how many fit" question, always.'
+  };
+}
+function genCentRound(){
+  const who = pick(NAMES);
+  const lb = mkDec(9, 1); if(lb.v === 0) return genCentRound();
+  const price = mkDec(19, 2); if(price.v === 0) return genCentRound();
+  const exact = lb.v * price.v;                 // scale 3
+  const cents = Math.round(exact/10);           // nearest cent, half up
+  return {
+    sec:DECSEC, kind:'calc', ask:'Round to the nearest cent',
+    q: show(lb.v,1) + ' lb of coffee at ' + money(price.v) + ' per pound',
+    a: trim(cents, 2),
+    w: show(lb.v,1) + ' × ' + show(price.v,2) + ' = ' + show(exact,3) +
+       '. The nearest cent means two decimal places, so look at the third digit (' +
+       show(exact,3).slice(-1) + ') and round: ' + money(cents) + '.'
+  };
+}
+
+/* ---- a retake of Quiz 3-3: 10 computations, then 5 applications ---- */
+function buildQuiz33(){
+  const calc = [
+    genDecAdd(true), genDecSub(true),
+    genDecMul(true), genDecMul(false),
+    genDecMul(true), genDecDiv(false),
+    genDecDiv(true), genDecDiv(true),
+    genDecDiv(true), genDecDiv(false)
+  ];
+  const word = [ genDecWord(), genCentRound(), genDecWord(), genTrapMore(), genTrapPieces() ];
+  return calc.concat(word);
+}
+
+/* ============================================================
    SCREENS
    ============================================================ */
 let S = null;                 /* active run */
 const SECNAME = {A:'Least common multiple', B:'Greatest common factor',
-                 C:'Word problems', D:'Explain your thinking'};
+                 C:'Word problems', D:'Explain your thinking', E:'Decimals'};
 
 function normTest(){
   return TEST.map(t=>{
@@ -545,18 +857,49 @@ function renderHome(){
   const done = raw.get('rounds',0)|0, right = raw.get('right',0)|0;
   const tb = best.test!=null ? '<b style="color:var(--acc)">'+best.test+'/8</b> best on the test' : 'not attempted yet';
   $('app').innerHTML = `
-    <h1>Factors &amp; Multiples</h1>
-    <p class="muted">LCM, GCF, word problems and the reasoning questions.
-       The practice rounds build brand-new numbers every time, so you can't just
-       memorize the answers.</p>
+    <h1>Louie&rsquo;s math</h1>
+    <p class="muted">Decimals and factors. Every round builds brand-new numbers,
+       so you can&rsquo;t memorize your way through &mdash; and every wrong answer
+       shows you the step you missed.</p>
 
-    <button class="tile" onclick="start('test')">
+    <h2>Decimals</h2>
+    <button class="tile" onclick="start('quiz33')" style="border-color:var(--acc)">
       <div class="tico">📝</div>
-      <div><b>Take the test</b><span>The same 15 questions as the printed sheet. Graded at the end.</span></div>
+      <div><b>Quiz 3-3 retake</b><span>Same shape as the real one: 10 expressions, then 5 word problems. Graded at the end.</span></div>
+      <div class="tchev">›</div>
+    </button>
+    <button class="tile" onclick="start('decadd')">
+      <div class="tico">➕</div>
+      <div><b>Adding &amp; subtracting</b><span>Lining up the decimal points — including whole minus decimal.</span></div>
+      <div class="tchev">›</div>
+    </button>
+    <button class="tile" onclick="start('decmul')">
+      <div class="tico">✖️</div>
+      <div><b>Multiplying</b><span>Multiply as whole numbers, then count the decimal places.</span></div>
+      <div class="tchev">›</div>
+    </button>
+    <button class="tile" onclick="start('decdiv')">
+      <div class="tico">➗</div>
+      <div><b>Dividing</b><span>Making the divisor a whole number before you divide.</span></div>
+      <div class="tchev">›</div>
+    </button>
+    <button class="tile" onclick="start('decword')">
+      <div class="tico">💵</div>
+      <div><b>Decimal word problems</b><span>Money, distance and the ones that ask for something other than what you just worked out.</span></div>
+      <div class="tchev">›</div>
+    </button>
+    <button class="tile" onclick="start('decmix')">
+      <div class="tico">🔢</div>
+      <div><b>All four mixed</b><span>12 questions. Deciding which operation is half the work.</span></div>
       <div class="tchev">›</div>
     </button>
 
-    <h2>Practice</h2>
+    <h2>Factors &amp; multiples</h2>
+    <button class="tile" onclick="start('test')">
+      <div class="tico">📄</div>
+      <div><b>LCM &amp; GCF test</b><span>The same 15 questions as the printed sheet. Graded at the end.</span></div>
+      <div class="tchev">›</div>
+    </button>
     <button class="tile" onclick="start('lcm')">
       <div class="tico">🔁</div>
       <div><b>LCM drill</b><span>10 questions, gets harder as you go. Three-number ones near the end.</span></div>
@@ -593,18 +936,31 @@ function renderHome(){
 /* ---------- start a run ---------- */
 function start(mode){
   tick();
-  const isTest = mode==='test';
+  const isTest = mode==='test' || mode==='quiz33';
   S = {
     mode, isTest,
     instant: !isTest,
-    list: isTest ? normTest()
+    list: mode==='quiz33' ? buildQuiz33()
+        : mode==='test' ? normTest()
+        : mode==='decadd' ? buildDecimals('decadd',10)
+        : mode==='decmul' ? buildDecimals('decmul',10)
+        : mode==='decdiv' ? buildDecimals('decdiv',10)
+        : mode==='decword'? buildDecimals('decword',8)
+        : mode==='decmix' ? buildDecimals('decmix',12)
         : mode==='word' ? buildPractice('word',8)
         : mode==='mixed'? buildPractice('mixed',12)
         : buildPractice(mode,10),
     i:0, right:0, auto:0, log:[], answered:false
   };
   $('homeBtn').style.display='';
-  $('subline').textContent = isTest ? 'Test — 15 questions'
+  $('subline').textContent =
+       mode==='test'   ? 'Test — 15 questions'
+     : mode==='quiz33' ? 'Quiz 3-3 retake'
+     : mode==='decadd' ? 'Adding & subtracting'
+     : mode==='decmul' ? 'Multiplying'
+     : mode==='decdiv' ? 'Dividing'
+     : mode==='decword'? 'Decimal word problems'
+     : mode==='decmix' ? 'All four operations'
      : mode==='lcm' ? 'LCM drill' : mode==='gcf' ? 'GCF drill'
      : mode==='word' ? 'Word problems' : 'Mixed round';
   setScratch(!isTest);
@@ -618,7 +974,14 @@ function renderQ(){
   const pct = Math.round(S.i/n*100);
   let body = '';
 
-  if(q.kind==='num'){
+  if(q.kind==='calc'){
+    body = `
+      <p class="muted" style="margin:14px 0 0;font-size:13px">${esc(q.ask)}</p>
+      <p class="calcq">${esc(q.q)}</p>
+      <label class="fl">Your answer</label>
+      <input type="text" inputmode="decimal" id="in1" autocomplete="off"
+             onkeydown="if(event.key==='Enter')check()">`;
+  } else if(q.kind==='num'){
     body = `
       <p class="qask">${esc(q.ask)} of<span class="big">${esc(q.q)}</span></p>
       <label class="fl">Your answer</label>
@@ -658,15 +1021,15 @@ function check(){
   const q = S.list[S.i];
   let ok=null, given='';
 
-  if(q.kind==='num'){
+  if(q.kind==='num' || q.kind==='calc'){
     given = ($('in1').value||'').trim();
     if(given==='') return;
-    ok = Number(given) === Number(q.a);
+    ok = sameNum(given, q.a);
   } else if(q.kind==='two'){
     const v1=($('in1').value||'').trim(), v2=($('in2').value||'').trim();
     if(v1===''||v2==='') return;
     given = 'a) '+v1+'   b) '+v2;
-    ok = Number(v1)===Number(q.a1) && Number(v2)===Number(q.a2);
+    ok = sameNum(v1, q.a1) && sameNum(v2, q.a2);
   } else {
     given = ($('in1').value||'').trim();
     ok = null;                       /* self-graded */
